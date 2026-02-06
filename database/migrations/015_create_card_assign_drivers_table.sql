@@ -1,0 +1,28 @@
+-- Create card_assign_drivers table for driver-card relationships
+-- This junction table links drivers to their assigned cards
+CREATE TABLE IF NOT EXISTS card_assign_drivers (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    driver_id INT UNSIGNED NOT NULL COMMENT 'Foreign key to drivers table',
+    card_id INT UNSIGNED NOT NULL COMMENT 'Foreign key to cards table',
+    
+    -- Assignment Details
+    assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When the card was assigned to the driver',
+    unassigned_at TIMESTAMP NULL DEFAULT NULL COMMENT 'When the card was unassigned (if applicable)',
+    
+    -- Assignment Status
+    assignment_status ENUM('active', 'inactive', 'returned', 'lost') DEFAULT 'active',
+    
+    -- Timestamps
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (id),
+    FOREIGN KEY (driver_id) REFERENCES drivers(id) ON DELETE CASCADE,
+    FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE,
+    INDEX idx_driver_id (driver_id),
+    INDEX idx_card_id (card_id),
+    INDEX idx_assignment_status (assignment_status),
+    INDEX idx_active_assignments (driver_id, assignment_status),
+    UNIQUE KEY unique_active_assignment (driver_id, card_id, assignment_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
