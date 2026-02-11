@@ -82,7 +82,7 @@ if ($register === 'passenger') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>E-JEEP - Registration Portal</title>
     <link rel="stylesheet" href="assets/style/index.css">
   
@@ -95,6 +95,11 @@ if ($register === 'passenger') {
             <div class="nav-logo">
                 <img src="assets/logo.png" alt="E-JEEP Logo" onerror="this.outerHTML='<span class=\'logo-text\'>E-JEEP</span>';">
             </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="nav-links">
                 <a href="index.php" class="nav-link">Home</a>
                

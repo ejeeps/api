@@ -4,6 +4,39 @@
     box-sizing: border-box;
 }
 
+/* Improve touch targets for mobile */
+@media (hover: none) and (pointer: coarse) {
+    a, button, input, select, textarea {
+        min-height: 44px;
+    }
+    
+    .nav-link, .btn {
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Prevent text size adjustment on mobile */
+html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+/* Smooth scrolling for all devices */
+html {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+}
+
 :root {
     --primary-color:rgba(8, 56, 248, 0.76);
     --secondary-color: #2c3e50;
@@ -36,6 +69,9 @@ body {
     color: var(--text-dark);
     overflow-x: hidden;
     padding-top: 70px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 /* Navigation Bar */
@@ -173,6 +209,43 @@ body {
 .welcome-name {
     font-weight: 600;
     margin-top: 2px;
+}
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 25px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+    position: relative;
+}
+
+.mobile-menu-toggle span {
+    width: 100%;
+    height: 3px;
+    background-color: var(--bg-white);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
 }
 
 /* Main Content */
@@ -377,7 +450,7 @@ body {
 /* Registration Cards */
 .registration-types {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
     margin: 50px 0;
 }
@@ -576,6 +649,14 @@ body {
     text-align: center;
 }
 
+/* Better focus visibility for keyboard navigation */
+.btn:focus-visible,
+.nav-link:focus-visible,
+a:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
 .btn-primary {
     background-color: var(--primary-color);
     color: var(--bg-white);
@@ -710,24 +791,72 @@ body {
         font-size: 1.5rem;
     }
 
+    /* Show mobile menu toggle */
+    .mobile-menu-toggle {
+        display: flex;
+    }
+
+    /* Mobile menu styles */
     .nav-links {
-        gap: 15px;
+        position: fixed;
+        top: 60px;
+        right: -100%;
+        width: 70%;
+        max-width: 300px;
+        height: calc(100vh - 60px);
+        background-color: var(--primary-color);
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 30px 20px;
+        gap: 0;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+        transition: right 0.3s ease-in-out;
+        z-index: 999;
+        overflow-y: auto;
+    }
+
+    .nav-links.active {
+        right: 0;
     }
 
     .nav-link {
-        font-size: 0.85rem;
+        width: 100%;
+        font-size: 1rem;
+        padding: 15px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: left;
+    }
+
+    .nav-link::after {
+        display: none;
+    }
+
+    .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateX(5px);
     }
 
     .nav-link-login {
-        padding: 6px 15px;
-        font-size: 0.85rem;
+        width: 100%;
+        padding: 15px 10px;
+        font-size: 1rem;
+        text-align: left;
+        background-color: rgba(255, 255, 255, 0.15);
+        margin-top: 10px;
+    }
+
+    .nav-link-login:hover {
+        background-color: var(--hover-color);
+        transform: translateX(5px);
     }
 
     .nav-user-profile {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
         gap: 8px;
-        padding: 10px 0;
+        padding: 15px 10px;
+        width: 100%;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .nav-profile-image,
@@ -741,7 +870,18 @@ body {
         font-size: 0.85rem;
     }
 
-    /* Mobile menu styles are handled in dashboard.css */
+    /* Overlay for mobile menu */
+    body.menu-open::before {
+        content: '';
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 998;
+        animation: fadeIn 0.3s ease;
+    }
 }
 
     .main-content {
@@ -874,37 +1014,44 @@ body {
 /* Small Mobile Devices */
 @media (max-width: 480px) {
     .nav-container {
-        padding: 0 10px;
+        padding: 0 12px;
+        height: auto;
+        min-height: 60px;
     }
 
     .nav-links {
-        gap: 10px;
+        gap: 8px;
     }
 
     .nav-link {
         font-size: 0.8rem;
+        padding: 6px 0;
     }
 
     .nav-link-login {
-        padding: 5px 12px;
+        padding: 6px 14px;
         font-size: 0.8rem;
+        white-space: nowrap;
     }
 
     .main-content {
-        padding: 20px 10px;
+        padding: 20px 12px;
     }
 
     .page-title {
         font-size: 1.75rem;
+        line-height: 1.3;
     }
 
     .page-description {
         font-size: 0.9rem;
+        line-height: 1.6;
+        padding: 0 5px;
     }
 
     .taglist-scroller-container {
-        margin: 25px 0;
-        padding: 10px 0;
+        margin: 25px -12px;
+        padding: 10px 12px;
     }
 
     .tag-item {
@@ -933,6 +1080,7 @@ body {
 
     .registration-title {
         font-size: 1.3rem;
+        line-height: 1.3;
     }
 
     .registration-card:hover {
@@ -946,24 +1094,31 @@ body {
 
     .registration-description {
         font-size: 0.9rem;
+        line-height: 1.6;
     }
 
     .registration-benefits {
         padding: 15px;
     }
 
+    .registration-benefits-title {
+        font-size: 0.95rem;
+    }
+
     .benefits-list li {
         font-size: 0.85rem;
         padding-left: 20px;
+        line-height: 1.5;
     }
 
     .card-highlight {
         font-size: 0.85rem;
-        padding: 10px;
+        padding: 12px;
+        line-height: 1.5;
     }
 
     .btn {
-        padding: 12px 25px;
+        padding: 14px 28px;
         font-size: 0.9rem;
     }
 }
@@ -971,38 +1126,94 @@ body {
 /* Extra Small Devices */
 @media (max-width: 360px) {
     .logo-text {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+    }
+
+    .nav-logo img {
+        max-height: 30px;
+    }
+
+    .nav-container {
+        padding: 0 10px;
+    }
+
+    .nav-links {
+        gap: 6px;
     }
 
     .nav-link {
+        font-size: 0.75rem;
+        padding: 5px 0;
+    }
+
+    .nav-link-login {
+        padding: 5px 10px;
         font-size: 0.75rem;
     }
 
     .page-title {
         font-size: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .page-description {
+        font-size: 0.85rem;
     }
 
     .registration-card {
         padding: 20px 15px;
     }
 
+    .registration-icon {
+        font-size: 2.2rem;
+        animation: none;
+    }
+
     .registration-title {
         font-size: 1.2rem;
+        line-height: 1.3;
+    }
+
+    .registration-description {
+        font-size: 0.85rem;
+    }
+
+    .registration-benefits {
+        padding: 12px;
     }
 
     .benefits-list li {
         font-size: 0.8rem;
+        padding: 6px 0;
+        padding-left: 18px;
+    }
+
+    .card-highlight {
+        font-size: 0.8rem;
+        padding: 10px;
+    }
+
+    .btn {
+        padding: 12px 20px;
+        font-size: 0.85rem;
     }
 
     .registration-card:hover {
         transform: translateY(-2px) scale(1);
     }
 
-    .registration-icon {
-        animation: none;
-    }
-
     .btn-primary:hover {
         transform: translateY(0);
+    }
+
+    .login-link {
+        font-size: 0.9rem;
+        padding: 12px;
+    }
+
+    .tag-item {
+        padding: 8px 14px;
+        font-size: 0.8rem;
     }
 }
