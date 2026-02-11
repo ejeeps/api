@@ -69,31 +69,43 @@ class PayMongoService {
     /**
      * Create a checkout session
      */
-    public function createCheckoutSession($paymentIntentId, $successUrl = null, $cancelUrl = null, $amount = null) {
+    public function createCheckoutSession($paymentIntentId, $successUrl = null, $cancelUrl = null, $amount = null, $mobileOptimized = false) {
         $url = $this->baseUrl . '/checkout_sessions';
+        
+        // Use mobile-optimized payment methods if requested
+        $paymentMethods = $mobileOptimized && defined('PAYMONGO_MOBILE_METHODS') 
+            ? PAYMONGO_MOBILE_METHODS 
+            : PAYMONGO_PAYMENT_METHODS;
         
         $data = [
             'data' => [
                 'attributes' => [
                     'payment_intent_id' => $paymentIntentId,
-                    'payment_method_types' => PAYMONGO_PAYMENT_METHODS,
+                    'payment_method_types' => $paymentMethods,
                     'success_url' => $successUrl ?: PAYMONGO_SUCCESS_URL,
                     'cancel_url' => $cancelUrl ?: PAYMONGO_CANCEL_URL,
                     'description' => 'E-JEEP Points Purchase',
-                    'send_email_receipt' => false, // We'll handle our own receipts
+                    'send_email_receipt' => false,
                     'show_description' => true,
                     'show_line_items' => true,
+                    'reference_number' => generateTransactionReference(time()),
+                    'statement_descriptor' => 'EJEEP-POINTS',
+                    // Force all payment methods to be visible on mobile
                     'payment_method_options' => [
                         'card' => [
                             'request_three_d_secure' => 'automatic'
                         ]
                     ],
-                    'reference_number' => generateTransactionReference(time()),
+                    // Mobile-specific configurations
                     'billing' => [
                         'name' => 'E-JEEP Customer',
                         'email' => 'customer@ejeep.com'
                     ],
-                    'statement_descriptor' => 'EJEEP-POINTS'
+                    // Additional mobile optimization
+                    'metadata' => [
+                        'mobile_optimized' => 'true',
+                        'force_show_all_methods' => 'true'
+                    ]
                 ]
             ]
         ];

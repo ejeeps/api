@@ -107,8 +107,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ");
             $stmt->execute([$paymentIntent['id'], $transactionId]);
 
-            // Create checkout session
-            $checkoutSession = $payMongoService->createCheckoutSession($paymentIntent['id'], null, null, $amount);
+            // Detect mobile device
+            $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
+            
+            // Create checkout session (use mobile optimization if on mobile)
+            $checkoutSession = $payMongoService->createCheckoutSession(
+                $paymentIntent['id'], 
+                null, 
+                null, 
+                $amount, 
+                $isMobile
+            );
 
             if (!$checkoutSession) {
                 throw new Exception("Failed to create checkout session. Please try again.");
