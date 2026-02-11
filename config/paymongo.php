@@ -36,14 +36,14 @@ define('PAYMONGO_SUCCESS_URL', APP_BASE_URL . '/controller/passenger/PayMongoCal
 define('PAYMONGO_CANCEL_URL', APP_BASE_URL . '/controller/passenger/PayMongoCallbackController.php?status=cancel');
 define('PAYMONGO_WEBHOOK_URL', APP_BASE_URL . '/controller/passenger/PayMongoWebhookController.php');
 
-// Supported Payment Methods
+// Supported Payment Methods (ordered for mobile compatibility)
 define('PAYMONGO_PAYMENT_METHODS', [
-    'card',
-    'gcash',
-    'grab_pay',
-    'paymaya',
-    'qrph',
-    'billease'
+    'gcash',        // Most popular in PH - show first
+    'paymaya',      // Second most popular
+    'card',         // Credit/debit cards
+    'qrph',         // QR Philippines
+    'grab_pay',     // GrabPay
+    'billease'      // Buy now, pay later
 ]);
 
 /**

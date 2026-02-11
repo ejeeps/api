@@ -82,7 +82,18 @@ class PayMongoService {
                     'description' => 'E-JEEP Points Purchase',
                     'send_email_receipt' => false, // We'll handle our own receipts
                     'show_description' => true,
-                    'show_line_items' => true
+                    'show_line_items' => true,
+                    'payment_method_options' => [
+                        'card' => [
+                            'request_three_d_secure' => 'automatic'
+                        ]
+                    ],
+                    'reference_number' => generateTransactionReference(time()),
+                    'billing' => [
+                        'name' => 'E-JEEP Customer',
+                        'email' => 'customer@ejeep.com'
+                    ],
+                    'statement_descriptor' => 'EJEEP-POINTS'
                 ]
             ]
         ];
