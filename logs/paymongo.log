@@ -50,3 +50,5 @@
 [2026-02-11 08:19:27] [TEST] Payment Callback Received | Data: {"user_id":12,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"none"}
 [2026-02-11 08:25:36] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_GaWY6apcVtFoecEfb2xSrxKX","amount":50,"metadata":{"user_id":"12","transaction_reference":"TXN_12_1770794733_4198","transaction_id":"17","customer_email":"testing@gmail.com","customer_name":"tetete sdas","payment_method":"card","mobile_checkout":"true"}}
 [2026-02-11 08:25:39] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_05e04ff3d79beab9fd071cbe","payment_intent_id":"pi_GaWY6apcVtFoecEfb2xSrxKX"}
+[2026-02-11 08:27:41] [TEST] Payment Callback Received | Data: {"user_id":12,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"TXN_12_1770794733_4198"}
+[2026-02-11 08:27:41] [TEST] Payment Cancelled | Data: {"user_id":12,"transaction_reference":"TXN_12_1770794733_4198","affected_rows":1}
