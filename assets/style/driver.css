@@ -67,7 +67,7 @@
 .registration-form {
     background: var(--bg-white);
     padding: 45px 50px;
-    border-radius: 12px;
+    border-radius: 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     max-width: 900px;
     margin: 0 auto;
@@ -751,7 +751,12 @@
 
     .step-indicator {
         margin-bottom: 30px;
-        padding: 15px 0;
+        padding: 15px 10px;
+        gap: 6px;
+    }
+
+    .step-item {
+        flex-shrink: 0;
     }
 
     .step-number {
@@ -762,11 +767,15 @@
 
     .step-label {
         font-size: 0.75rem;
+        max-width: 70px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .step-line {
-        min-width: 20px;
-        max-width: 40px;
+        min-width: 15px;
+        max-width: 35px;
     }
 
     .form-actions {
@@ -853,23 +862,53 @@
 
     .step-indicator {
         margin-bottom: 25px;
-        padding: 10px 0;
-        gap: 5px;
+        padding: 10px 5px;
+        gap: 3px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .step-indicator::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .step-indicator::-webkit-scrollbar-track {
+        background: var(--bg-light);
+    }
+
+    .step-indicator::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 2px;
+    }
+
+    .step-item {
+        flex-shrink: 0;
+        min-width: 50px;
     }
 
     .step-number {
-        width: 30px;
-        height: 30px;
-        font-size: 0.85rem;
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+        border-width: 2px;
     }
 
     .step-label {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
+        white-space: nowrap;
+        max-width: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .step-line {
-        min-width: 15px;
-        max-width: 30px;
+        min-width: 10px;
+        max-width: 20px;
+        flex-shrink: 0;
     }
 
     .form-actions {
@@ -925,6 +964,68 @@
     .btn-switch-camera {
         width: 100%;
         max-width: none;
+    }
+}
+
+/* Extra Small Devices - 360px and below */
+@media (max-width: 360px) {
+    .registration-form {
+        padding: 30px 20px;
+    }
+
+    .registration-title {
+        font-size: 1.75rem;
+    }
+
+    .registration-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .step-indicator {
+        margin-bottom: 20px;
+        padding: 8px 5px;
+        gap: 2px;
+    }
+
+    .step-item {
+        min-width: 45px;
+    }
+
+    .step-number {
+        width: 26px;
+        height: 26px;
+        font-size: 0.75rem;
+        border-width: 1.5px;
+    }
+
+    .step-label {
+        font-size: 0.6rem;
+        max-width: 50px;
+    }
+
+    .step-line {
+        min-width: 8px;
+        max-width: 15px;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        font-size: 0.85rem;
+    }
+
+    .form-input,
+    .form-select {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+
+    .btn {
+        padding: 11px 20px;
+        font-size: 0.85rem;
     }
 }
 
