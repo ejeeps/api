@@ -66,10 +66,43 @@
                 </div>
             <?php endif; ?>
 
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step-item active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Account</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Personal</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Address</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">ID Info</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" data-step="5">
+                    <div class="step-number">5</div>
+                    <div class="step-label">Profile</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" data-step="6">
+                    <div class="step-number">6</div>
+                    <div class="step-label">Terms</div>
+                </div>
+            </div>
+
             <form action="<?php echo htmlspecialchars($basePath); ?>controller/passenger/PassengerRegController.php" method="POST" enctype="multipart/form-data" class="registration-form" id="passengerRegistrationForm">
                 
                 <!-- Account Information Section -->
-                <div class="form-section" id="accountSection">
+                <div class="form-section step-content active" data-step="1">
                     <h2 class="section-title">Account Information</h2>
                     <div class="form-grid">
                         <div class="form-group">
@@ -89,7 +122,7 @@
                 </div>
 
                 <!-- Personal Information Section -->
-                <div class="form-section" id="personalSection">
+                <div class="form-section step-content" data-step="2">
                     <h2 class="section-title">Personal Information</h2>
                     <div class="form-grid">
                         <div class="form-group">
@@ -134,7 +167,7 @@
                 </div>
 
                 <!-- Address Information Section (Optional) -->
-                <div class="form-section">
+                <div class="form-section step-content" data-step="3">
                     <h2 class="section-title">Address Information <small style="font-weight: normal; color: #666;">(Optional)</small></h2>
                     <div class="form-grid">
                         <div class="form-group form-group-full">
@@ -161,7 +194,7 @@
                 </div>
 
                 <!-- ID Information Section -->
-                <div class="form-section">
+                <div class="form-section step-content" data-step="4">
                     <h2 class="section-title">ID Information</h2>
                     <div class="form-grid">
                         <div class="form-group form-group-full">
@@ -178,7 +211,7 @@
                 </div>
 
                 <!-- Profile Image Section -->
-                <div class="form-section">
+                <div class="form-section step-content" data-step="5">
                     <h2 class="section-title">Profile Photo</h2>
                     <div class="form-grid">
                         <div class="form-group form-group-full">
@@ -190,7 +223,7 @@
                 </div>
 
                 <!-- Terms and Conditions -->
-                <div class="form-section">
+                <div class="form-section step-content" data-step="6">
                     <div class="form-group form-group-checkbox">
                         <label class="checkbox-label">
                             <input type="checkbox" name="terms" required>
@@ -199,10 +232,12 @@
                     </div>
                 </div>
 
-                <!-- Submit Button -->
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-submit">Submit Registration</button>
-                    <a href="<?php echo htmlspecialchars($basePath); ?>index.php" class="btn btn-secondary">Cancel</a>
+                <!-- Navigation Buttons -->
+                <div class="form-actions step-navigation">
+                    <button type="button" class="btn btn-secondary btn-prev" id="prevBtn" style="display: none;">Previous</button>
+                    <button type="button" class="btn btn-primary btn-next" id="nextBtn">Next</button>
+                    <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="display: none;">Submit Registration</button>
+                    <a href="<?php echo htmlspecialchars($basePath); ?>index.php" class="btn btn-secondary btn-cancel">Cancel</a>
                 </div>
             </form>
         </div>

@@ -146,7 +146,7 @@
                     </div>
                 </div>
 
-                <a href="<?php echo htmlspecialchars($basePath); ?>index.php" class="back-link">← Back to Home</a>
+              
             </div>
         </div>
     </div>

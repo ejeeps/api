@@ -116,6 +116,22 @@ if ($register === 'passenger') {
                 </p>
             </div>
 
+            <!-- Tag List Scroller -->
+            <div class="taglist-scroller-container">
+                <div class="taglist-scroller">
+                    <div class="tag-item">🚌 Cashless Payment</div>
+                    <div class="tag-item">💳 E-JEEP Card</div>
+                    <div class="tag-item">⚡ Quick Transactions</div>
+                    <div class="tag-item">🔒 Secure System</div>
+                    <div class="tag-item">📱 Easy Registration</div>
+                    <div class="tag-item">🎯 Convenient</div>
+                    <div class="tag-item">💰 Reloadable Balance</div>
+                    <div class="tag-item">✅ Verified Accounts</div>
+                    <div class="tag-item">🛣️ Route Management</div>
+                    <div class="tag-item">📊 Track Transactions</div>
+                </div>
+            </div>
+
         <div class="registration-types">
             <!-- Driver Registration Card -->
             <div class="registration-card">

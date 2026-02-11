@@ -37,7 +37,6 @@
 /* Alert Messages */
 .alert {
     padding: 16px 20px;
-    border-radius: 8px;
     margin-bottom: 30px;
     font-weight: 500;
     border-left: 4px solid;
@@ -135,7 +134,6 @@
 .form-input {
     padding: 13px 16px;
     border: 1.5px solid #dee2e6;
-    border-radius: 8px;
     font-size: 1rem;
     font-family: inherit;
     transition: all 0.3s ease;
@@ -155,6 +153,16 @@
     border-color: var(--primary-color);
     background-color: var(--bg-white);
     box-shadow: 0 0 0 4px rgba(26, 35, 50, 0.08);
+}
+
+.form-input.error {
+    border-color: #e74c3c;
+    background-color: #fff5f5;
+}
+
+.form-input.error:focus {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1);
 }
 
 .form-input::placeholder {
@@ -238,7 +246,6 @@
 .date-input::-webkit-datetime-edit-day-field:focus,
 .date-input::-webkit-datetime-edit-year-field:focus {
     background-color: rgba(26, 35, 50, 0.1);
-    border-radius: 3px;
     color: var(--primary-color);
 }
 
@@ -252,7 +259,6 @@
     color: white;
     border: none;
     padding: 8px 15px;
-    border-radius: 5px;
     cursor: pointer;
     margin-right: 10px;
     font-weight: 500;
@@ -281,7 +287,6 @@
     min-height: 250px;
     max-height: 500px;
     border: 2px dashed var(--border-color);
-    border-radius: 8px;
     background: var(--bg-light);
     display: flex;
     align-items: center;
@@ -297,7 +302,6 @@
     max-height: 400px;
     max-width: 100%;
     object-fit: contain;
-    border-radius: 8px;
     display: block;
 }
 
@@ -344,7 +348,6 @@
     max-width: 300px;
     padding: 12px 20px;
     border: none;
-    border-radius: 8px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -401,7 +404,6 @@
     background-color: var(--bg-white);
     margin: 2% auto;
     padding: 0;
-    border-radius: 12px;
     width: 90%;
     max-width: 600px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -437,7 +439,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
     transition: background-color 0.3s ease;
 }
 
@@ -481,7 +482,6 @@
 .btn-switch-camera {
     padding: 14px 30px;
     border: none;
-    border-radius: 8px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -552,6 +552,102 @@
     color: var(--hover-color);
 }
 
+/* Step Indicator */
+.step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40px;
+    padding: 20px 0;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-white);
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.step-item.active .step-number {
+    background-color: var(--primary-color);
+    color: var(--bg-white);
+    border-color: var(--primary-color);
+}
+
+.step-item.completed .step-number {
+    background-color: var(--success-color);
+    color: var(--bg-white);
+    border-color: var(--success-color);
+}
+
+.step-label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-weight: 500;
+    text-align: center;
+}
+
+.step-item.active .step-label {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background-color: var(--border-color);
+    min-width: 30px;
+    max-width: 80px;
+    transition: background-color 0.3s ease;
+}
+
+.step-item.completed ~ .step-line {
+    background-color: var(--success-color);
+}
+
+.step-item.active ~ .step-line {
+    background-color: var(--primary-color);
+}
+
+/* Step Content */
+.step-content {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+    animation: fadeInStep 0.4s ease-in;
+}
+
+@keyframes fadeInStep {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Form Actions */
 .form-actions {
     display: flex;
@@ -560,6 +656,19 @@
     margin-top: 40px;
     padding-top: 35px;
     border-top: 2px solid #e9ecef;
+}
+
+.step-navigation {
+    justify-content: space-between;
+}
+
+.btn-prev,
+.btn-next {
+    min-width: 120px;
+}
+
+.btn-cancel {
+    margin-left: auto;
 }
 
 .btn-submit {
@@ -598,7 +707,6 @@
     .registration-form {
         padding: 30px 25px;
         margin: 0 15px;
-        border-radius: 10px;
     }
 
     .registration-title {
@@ -641,6 +749,26 @@
         padding-bottom: 10px;
     }
 
+    .step-indicator {
+        margin-bottom: 30px;
+        padding: 15px 0;
+    }
+
+    .step-number {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+
+    .step-label {
+        font-size: 0.75rem;
+    }
+
+    .step-line {
+        min-width: 20px;
+        max-width: 40px;
+    }
+
     .form-actions {
         flex-direction: column;
         margin-top: 35px;
@@ -648,10 +776,21 @@
         gap: 12px;
     }
 
+    .step-navigation {
+        flex-direction: column;
+    }
+
+    .btn-prev,
+    .btn-next,
     .btn-submit,
     .btn-secondary {
         width: 100%;
         min-width: unset;
+    }
+
+    .btn-cancel {
+        margin-left: 0;
+        order: 4;
     }
 
     .btn-submit {
@@ -668,7 +807,6 @@
     .registration-form {
         padding: 22px 18px;
         margin: 0 10px;
-        border-radius: 8px;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     }
 
@@ -713,6 +851,27 @@
         margin-top: 4px;
     }
 
+    .step-indicator {
+        margin-bottom: 25px;
+        padding: 10px 0;
+        gap: 5px;
+    }
+
+    .step-number {
+        width: 30px;
+        height: 30px;
+        font-size: 0.85rem;
+    }
+
+    .step-label {
+        font-size: 0.7rem;
+    }
+
+    .step-line {
+        min-width: 15px;
+        max-width: 30px;
+    }
+
     .form-actions {
         margin-top: 30px;
         padding-top: 25px;
@@ -743,7 +902,6 @@
     .camera-modal-content {
         width: 100%;
         margin: 0;
-        border-radius: 0;
         height: 100vh;
         display: flex;
         flex-direction: column;

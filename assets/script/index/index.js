@@ -7,6 +7,78 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if device is mobile/tablet
     const isMobile = window.innerWidth <= 768;
     const isTablet = window.innerWidth <= 992 && window.innerWidth > 768;
+
+    // Tag List Scroller Auto-scroll - Optimized for smooth performance
+    const taglistScroller = document.querySelector('.taglist-scroller');
+    if (taglistScroller && !prefersReducedMotion) {
+        let scrollDirection = 1;
+        const scrollSpeed = 0.8; // Pixels per frame
+        let isPaused = false;
+        let animationFrameId = null;
+        let maxScroll = 0;
+        let isUserScrolling = false;
+        let scrollTimeout = null;
+
+        // Calculate max scroll once
+        function updateMaxScroll() {
+            maxScroll = taglistScroller.scrollWidth - taglistScroller.clientWidth;
+        }
+        updateMaxScroll();
+        
+        // Recalculate on resize
+        window.addEventListener('resize', updateMaxScroll, { passive: true });
+
+        // Pause on hover
+        taglistScroller.addEventListener('mouseenter', () => {
+            isPaused = true;
+        });
+
+        taglistScroller.addEventListener('mouseleave', () => {
+            isPaused = false;
+        });
+
+        // Detect user scrolling
+        taglistScroller.addEventListener('scroll', () => {
+            isUserScrolling = true;
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                isUserScrolling = false;
+            }, 150);
+        }, { passive: true });
+
+        // Optimized auto-scroll function
+        function autoScroll() {
+            if (!isPaused && !isUserScrolling && maxScroll > 0) {
+                const currentScroll = taglistScroller.scrollLeft;
+                let newScroll = currentScroll + (scrollSpeed * scrollDirection);
+                
+                if (newScroll >= maxScroll) {
+                    newScroll = maxScroll;
+                    scrollDirection = -1;
+                } else if (newScroll <= 0) {
+                    newScroll = 0;
+                    scrollDirection = 1;
+                }
+                
+                // Direct assignment is faster than scrollTo
+                taglistScroller.scrollLeft = newScroll;
+            }
+            
+            animationFrameId = requestAnimationFrame(autoScroll);
+        }
+
+        // Start auto-scroll after a short delay
+        setTimeout(() => {
+            animationFrameId = requestAnimationFrame(autoScroll);
+        }, 1000);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+        });
+    }
     
     // Animate registration cards on scroll
     const observerOptions = {

@@ -32,7 +32,7 @@
             <div class="nav-links">
                 <a href="index.php" class="nav-link">Home</a>
                 <a href="#" class="nav-link">Contact</a>
-                <a href="index.php?register=driver" class="nav-link">Register</a>
+               
             </div>
         </div>
     </nav>

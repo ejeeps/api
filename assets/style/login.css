@@ -7,7 +7,6 @@
     margin: 0 auto;
     background: var(--bg-white);
     padding: 50px 40px;
-    border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -31,7 +30,6 @@
 /* Alert Messages */
 .alert {
     padding: 15px 20px;
-    border-radius: 8px;
     margin-bottom: 25px;
     font-weight: 500;
     font-size: 0.95rem;
@@ -70,7 +68,6 @@
     width: 100%;
     padding: 12px 15px;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
     font-size: 1rem;
     font-family: inherit;
     transition: all 0.3s ease;
