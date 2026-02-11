@@ -72,12 +72,36 @@ document.addEventListener('DOMContentLoaded', function() {
         const firstInvalidField = [];
 
         requiredFields.forEach(field => {
-            // Skip validation for checkboxes in terms section if not on that step
-            if (field.type === 'checkbox' && step !== totalSteps) {
+            // Handle checkbox validation
+            if (field.type === 'checkbox') {
+                if (!field.checked) {
+                    isValid = false;
+                    field.classList.add('error');
+                    if (firstInvalidField.length === 0) {
+                        firstInvalidField.push(field);
+                    }
+                } else {
+                    field.classList.remove('error');
+                }
                 return;
             }
 
-            if (!field.value.trim()) {
+            // Handle file input validation
+            if (field.type === 'file') {
+                if (field.files.length === 0) {
+                    isValid = false;
+                    field.classList.add('error');
+                    if (firstInvalidField.length === 0) {
+                        firstInvalidField.push(field);
+                    }
+                } else {
+                    field.classList.remove('error');
+                }
+                return;
+            }
+
+            // Handle text, email, password, tel, etc.
+            if (!field.value || !field.value.trim()) {
                 isValid = false;
                 field.classList.add('error');
                 if (firstInvalidField.length === 0) {

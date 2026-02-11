@@ -339,13 +339,25 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
         <div class="container">
             <?php if (isset($_GET['success'])): ?>
                 <div class="alert alert-success">
-                    <strong>Success!</strong> Your card has been reloaded successfully.
+                    <strong>Success!</strong> <?php echo htmlspecialchars($_GET['success']); ?>
                 </div>
             <?php endif; ?>
 
             <?php if (isset($_GET['error'])): ?>
                 <div class="alert alert-error">
                     <strong>Error:</strong> <?php echo htmlspecialchars($_GET['error']); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['pending'])): ?>
+                <div class="alert alert-warning">
+                    <strong>Processing:</strong> <?php echo htmlspecialchars($_GET['pending']); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['info'])): ?>
+                <div class="alert" style="background-color: #e7f3ff; border: 1px solid #b3d7ff; color: #0056b3;">
+                    <strong>Info:</strong> <?php echo htmlspecialchars($_GET['info']); ?>
                 </div>
             <?php endif; ?>
 
@@ -364,9 +376,15 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
                 <div class="info-box-title">
                     <i class="fas fa-info-circle"></i>
                     How to Reload
+                    <?php if (defined('PAYMONGO_MODE') && PAYMONGO_MODE === 'test'): ?>
+                        <span style="background: #ff6b35; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: 10px;">TEST MODE</span>
+                    <?php endif; ?>
                 </div>
                 <div class="info-box-text">
-                    Select an amount below and choose your preferred payment method. Your balance will be updated immediately after successful payment. Minimum reload amount is ₱50.00.
+                    Select an amount below and choose your preferred payment method. You will be redirected to a secure PayMongo checkout page to complete your payment. Your balance will be updated after successful payment. Minimum reload amount is ₱50.00.
+                    <?php if (defined('PAYMONGO_MODE') && PAYMONGO_MODE === 'test'): ?>
+                        <br><br><strong>🧪 Test Mode:</strong> You can use test payment methods. No real money will be charged.
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -440,24 +458,60 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
                             <input type="radio" name="payment_method" value="bank" style="display: none;">
                         </div>
 
-                        <div class="payment-method" onclick="selectPaymentMethod('cash')">
-                            <div class="payment-icon" style="background-color: #f57c00; color: white;">
-                                <i class="fas fa-money-bill-wave"></i>
+                        <div class="payment-method" onclick="selectPaymentMethod('card')">
+                            <div class="payment-icon" style="background-color: #6c757d; color: white;">
+                                <i class="fas fa-credit-card"></i>
                             </div>
                             <div class="payment-details">
-                                <div class="payment-name">Cash Payment</div>
-                                <div class="payment-desc">Pay at authorized reloading stations</div>
+                                <div class="payment-name">Credit/Debit Card</div>
+                                <div class="payment-desc">Visa, Mastercard, JCB</div>
                             </div>
                             <div class="payment-radio"></div>
-                            <input type="radio" name="payment_method" value="cash" style="display: none;">
+                            <input type="radio" name="payment_method" value="card" style="display: none;">
+                        </div>
+
+                        <div class="payment-method" onclick="selectPaymentMethod('grab_pay')">
+                            <div class="payment-icon" style="background-color: #00b14f; color: white;">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-name">GrabPay</div>
+                                <div class="payment-desc">Pay using GrabPay wallet</div>
+                            </div>
+                            <div class="payment-radio"></div>
+                            <input type="radio" name="payment_method" value="grab_pay" style="display: none;">
+                        </div>
+
+                        <div class="payment-method" onclick="selectPaymentMethod('qrph')">
+                            <div class="payment-icon" style="background-color: #1f4788; color: white;">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-name">QRPh</div>
+                                <div class="payment-desc">QR Philippines - Scan to pay</div>
+                            </div>
+                            <div class="payment-radio"></div>
+                            <input type="radio" name="payment_method" value="qrph" style="display: none;">
+                        </div>
+
+                        <div class="payment-method" onclick="selectPaymentMethod('billease')">
+                            <div class="payment-icon" style="background-color: #ff6b35; color: white;">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-name">Billease</div>
+                                <div class="payment-desc">Buy now, pay later</div>
+                            </div>
+                            <div class="payment-radio"></div>
+                            <input type="radio" name="payment_method" value="billease" style="display: none;">
                         </div>
                     </div>
                 </div>
 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-submit">
-                        <i class="fas fa-coins"></i> Reload Card
+                    <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
+                        <i class="fas fa-shield-alt"></i> Pay Securely with PayMongo
                     </button>
                     <a href="<?php echo isset($dashboard_view) ? 'index.php' : '../../view/passenger/dashboard.php'; ?>" class="btn btn-secondary">Cancel</a>
                 </div>
@@ -503,11 +557,29 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
         // Form validation
         document.getElementById('buyPointsForm').addEventListener('submit', function(e) {
             const amount = document.getElementById('custom_amount').value;
+            const submitBtn = document.getElementById('submitBtn');
+            
             if (!amount || parseFloat(amount) < 50) {
                 e.preventDefault();
                 alert('Please enter a minimum amount of ₱50.00');
                 return false;
             }
+            
+            if (parseFloat(amount) > 10000) {
+                e.preventDefault();
+                alert('Maximum reload amount is ₱10,000.00');
+                return false;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            // Re-enable button after 30 seconds (in case of issues)
+            setTimeout(function() {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Pay Securely with PayMongo';
+            }, 30000);
         });
 
         // Auto-select amount when typing in custom input

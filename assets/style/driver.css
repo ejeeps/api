@@ -67,7 +67,6 @@
 .registration-form {
     background: var(--bg-white);
     padding: 45px 50px;
-    border-radius: 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     max-width: 900px;
     margin: 0 auto;
@@ -155,14 +154,26 @@
     box-shadow: 0 0 0 4px rgba(26, 35, 50, 0.08);
 }
 
-.form-input.error {
-    border-color: #e74c3c;
-    background-color: #fff5f5;
+.form-input.error,
+.form-select.error,
+input[type="file"].error {
+    border-color: #e74c3c !important;
+    background-color: #fff5f5 !important;
 }
 
-.form-input.error:focus {
-    border-color: #e74c3c;
-    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1);
+.form-input.error:focus,
+.form-select.error:focus,
+input[type="file"].error:focus {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1) !important;
+}
+
+/* Error message for fields */
+.form-group.has-error .form-label::after {
+    content: ' - Please fill this field';
+    color: #e74c3c;
+    font-size: 0.85rem;
+    font-weight: 500;
 }
 
 .form-input::placeholder {
@@ -882,7 +893,6 @@
 
     .step-indicator::-webkit-scrollbar-thumb {
         background: var(--primary-color);
-        border-radius: 2px;
     }
 
     .step-item {
@@ -1028,4 +1038,3 @@
         font-size: 0.85rem;
     }
 }
-
