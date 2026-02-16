@@ -1036,7 +1036,7 @@ a:focus-visible {
 /* Small Mobile Devices */
 @media (max-width: 480px) {
     .nav-container {
-        padding: 0 12px;
+        padding: 0 8px;
         height: auto;
         min-height: 60px;
     }
@@ -1051,7 +1051,7 @@ a:focus-visible {
     }
 
     .nav-link-login {
-        padding: 6px 14px;
+        padding: 2px 12px;
         font-size: 0.8rem;
         white-space: nowrap;
     }
@@ -1061,7 +1061,7 @@ a:focus-visible {
     }
 
     .page-header {
-        padding: 35px 20px;
+        padding: 50px 20px;
        
     }
 
