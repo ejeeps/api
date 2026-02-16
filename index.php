@@ -113,7 +113,7 @@ if ($register === 'passenger') {
     <div class="main-content">
         <div class="container">
             <div class="page-header">
-                <h1 class="page-title">Registration Portal</h1>
+               
                 <p class="page-description">
                     Welcome to E-JEEP Registration Portal. Whether you're a driver operating on routes 
                     or a passenger wanting to get your E-JEEP card for cashless payments when boarding, 
