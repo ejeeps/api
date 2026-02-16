@@ -36,15 +36,15 @@
 }
 
 .alert-error {
-    background-color: #fee;
-    border: 1px solid #fcc;
-    color: #c33;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
 }
 
 .alert-success {
-    background-color: #efe;
-    border: 1px solid #cfc;
-    color: #3c3;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
 }
 
 /* Login Form */
@@ -82,7 +82,7 @@
 .form-input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(26, 35, 50, 0.1);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
 }
 
 /* Better focus visibility for keyboard navigation */
