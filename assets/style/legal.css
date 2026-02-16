@@ -85,7 +85,7 @@ body {
 }
 
 .back-link:hover {
-    background-color: #1a2332;
+    background-color: var(--secondary-color);
     transform: translateY(-2px);
 }
 
