@@ -64,7 +64,7 @@ html {
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #f0fdf4 100%);
+    background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 50%, #f0fdf4 100%);
     min-height: 100vh;
     color: var(--text-dark);
     overflow-x: hidden;
@@ -904,7 +904,7 @@ a:focus-visible {
     }
 
     .page-header {
-        padding: 80px 25px;
+        padding: 90px 25px;
        
        
     }
