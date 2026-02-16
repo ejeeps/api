@@ -381,7 +381,7 @@ body {
     text-align: center;
    
     animation: fadeIn 0.8s ease-out;
-    background-image: url('../images/login-bg.jpg');
+    background-image: url('../images/login-bg.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
