@@ -64,7 +64,7 @@ html {
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 50%, #f0fdf4 100%);
+    background: white;
     min-height: 100vh;
     color: var(--text-dark);
     overflow-x: hidden;
@@ -1282,7 +1282,7 @@ a:focus-visible {
 
     .page-header {
         min-height: 250px;
-        aspect-ratio: 16/10;
+      
     }
 
     .page-description {
