@@ -1,14 +1,13 @@
 {
-  "name": "E-JEEP",
+  "name": "E-JEEP - Modern Transportation System",
   "short_name": "E-JEEP",
-  "description": "Modern Transportation App - Cashless Jeepney Payments",
-  "start_url": "/index.php",
+  "description": "Cashless payment system for jeepney transportation with driver and passenger management",
+  "start_url": "/api/",
   "display": "standalone",
- 
   "background_color": "#ffffff",
-  "theme_color": "#22c55e",
+  "theme_color": "#2563eb",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "scope": "/api/",
   "lang": "en",
   "categories": ["transportation", "finance", "utilities"],
   "icons": [
@@ -66,7 +65,7 @@
       "name": "Driver Login",
       "short_name": "Driver",
       "description": "Quick access for drivers",
-      "url": "/index.php?login=1&type=driver",
+      "url": "/api/?login=1&type=driver",
       "icons": [
         {
           "src": "assets/icons/driver-shortcut.png",
@@ -78,7 +77,7 @@
       "name": "Passenger Login",
       "short_name": "Passenger",
       "description": "Quick access for passengers",
-      "url": "/index.php?login=1&type=passenger",
+      "url": "/api/?login=1&type=passenger",
       "icons": [
         {
           "src": "assets/icons/passenger-shortcut.png",

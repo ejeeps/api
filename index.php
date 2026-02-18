@@ -103,17 +103,9 @@ if ($register === 'passenger') {
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="E-JEEP">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="application-name" content="E-JEEP">
     
-    <!-- Mobile Specific PWA Meta Tags -->
-    <meta name="format-detection" content="telephone=no">
-    <meta name="msapplication-tap-highlight" content="no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- PWA Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/icon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180x180.png">
@@ -321,13 +313,7 @@ if ($register === 'passenger') {
                 </div>
                 <div class="install-text">
                     <h3>📱 Install E-JEEP as Mobile App</h3>
-                    <p><strong>Android:</strong> Use install button below or Chrome address bar | <strong>iPhone:</strong> Share → Add to Home Screen</p>
-                </div>
-                <div class="install-button-container">
-                    <button id="install-app-btn" class="install-app-button">
-                        <i class="fas fa-download"></i>
-                        Install App
-                    </button>
+                    <p><strong>Android:</strong> Tap install button in Chrome address bar | <strong>iPhone:</strong> Share → Add to Home Screen</p>
                 </div>
             </div>
         </div>
@@ -369,8 +355,8 @@ if ($register === 'passenger') {
         // PWA Service Worker Registration (for installation support only)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js', {
-                    scope: './'
+                navigator.serviceWorker.register('/api/sw.js', {
+                    scope: '/api/'
                 })
                 .then(registration => {
                     console.log('SW registered for PWA installation: ', registration);
@@ -386,25 +372,6 @@ if ($register === 'passenger') {
         const installPrompt = document.getElementById('pwa-install-prompt');
         const installButton = document.getElementById('pwa-install-button');
         const dismissButton = document.getElementById('pwa-install-dismiss');
-        const footerInstallBtn = document.getElementById('install-app-btn');
-
-        // Check if app is already installed
-        function isAppInstalled() {
-            return window.matchMedia('(display-mode: standalone)').matches || 
-                   window.navigator.standalone === true;
-        }
-
-        // Update install button visibility
-        function updateInstallButton() {
-            if (footerInstallBtn) {
-                if (isAppInstalled()) {
-                    footerInstallBtn.style.display = 'none';
-                } else {
-                    footerInstallBtn.style.display = 'inline-flex';
-                    footerInstallBtn.innerHTML = '<i class="fas fa-download"></i> Install App';
-                }
-            }
-        }
 
         // Listen for the beforeinstallprompt event
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -414,23 +381,10 @@ if ($register === 'passenger') {
             // Stash the event so it can be triggered later
             deferredPrompt = e;
             
-            // Update button to show it's ready for install
-            if (footerInstallBtn) {
-                footerInstallBtn.innerHTML = '<i class="fas fa-download"></i> Install App';
-                footerInstallBtn.style.display = 'inline-flex';
-            }
-            
-            // Show custom install prompt after a delay (only if footer button not clicked)
+            // Show custom install prompt after a delay
             setTimeout(() => {
-                if (deferredPrompt) {
-                    showInstallPrompt();
-                }
-            }, 5000);
-        });
-
-        // Initialize button state on page load
-        window.addEventListener('load', () => {
-            updateInstallButton();
+                showInstallPrompt();
+            }, 3000);
         });
 
         // Show install prompt
@@ -441,220 +395,25 @@ if ($register === 'passenger') {
             }
         }
 
-        // Handle main install button click
+        // Handle install button click
         installButton.addEventListener('click', () => {
             hideInstallPrompt();
-            triggerInstall();
-        });
-
-        // Handle footer install button click
-        if (footerInstallBtn) {
-            footerInstallBtn.addEventListener('click', () => {
-                triggerInstall();
-            });
-        }
-
-        // Trigger install function
-        function triggerInstall() {
-            // Update button to show installing state
-            if (footerInstallBtn) {
-                footerInstallBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Installing...';
-                footerInstallBtn.disabled = true;
-            }
             
             if (deferredPrompt) {
-                // Automatically trigger the install prompt
+                // Show the install prompt
                 deferredPrompt.prompt();
                 
                 // Wait for the user to respond to the prompt
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
                         console.log('User accepted the install prompt');
-                        
-                        // Show success state
-                        if (footerInstallBtn) {
-                            footerInstallBtn.innerHTML = '<i class="fas fa-check"></i> Installed!';
-                            footerInstallBtn.style.background = '#10b981';
-                            
-                            // Hide button after 2 seconds
-                            setTimeout(() => {
-                                footerInstallBtn.style.display = 'none';
-                                // Hide the entire install section
-                                const installSection = document.querySelector('.simple-install-section');
-                                if (installSection) {
-                                    installSection.style.display = 'none';
-                                }
-                            }, 2000);
-                        }
-                        
-                        // Show success notification
-                        showInstallSuccessNotification();
-                        
                     } else {
                         console.log('User dismissed the install prompt');
-                        // Reset button state
-                        if (footerInstallBtn) {
-                            footerInstallBtn.innerHTML = '<i class="fas fa-download"></i> Install App';
-                            footerInstallBtn.disabled = false;
-                            footerInstallBtn.style.background = 'var(--primary-color)';
-                        }
                     }
                     deferredPrompt = null;
                 });
-            } else {
-                // Check if already installed
-                if (isAppInstalled()) {
-                    if (footerInstallBtn) {
-                        footerInstallBtn.innerHTML = '<i class="fas fa-check"></i> Already Installed';
-                        footerInstallBtn.style.background = '#10b981';
-                        footerInstallBtn.disabled = true;
-                    }
-                    showAlreadyInstalledNotification();
-                } else {
-                    // Show automatic installation guide
-                    showInstallationGuide();
-                    // Reset button state
-                    if (footerInstallBtn) {
-                        footerInstallBtn.innerHTML = '<i class="fas fa-download"></i> Install App';
-                        footerInstallBtn.disabled = false;
-                        footerInstallBtn.style.background = 'var(--primary-color)';
-                    }
-                }
             }
-        }
-        
-        // Show success notification
-        function showInstallSuccessNotification() {
-            const notification = document.createElement('div');
-            notification.className = 'install-notification success';
-            notification.innerHTML = `
-                <div class="notification-content">
-                    <i class="fas fa-check-circle"></i>
-                    <div class="notification-text">
-                        <strong>🎉 E-JEEP Installed Successfully!</strong>
-                        <p>Look for the E-JEEP icon on your home screen</p>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(notification);
-            
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                notification.remove();
-            }, 5000);
-        }
-        
-        // Show already installed notification
-        function showAlreadyInstalledNotification() {
-            const notification = document.createElement('div');
-            notification.className = 'install-notification info';
-            notification.innerHTML = `
-                <div class="notification-content">
-                    <i class="fas fa-mobile-alt"></i>
-                    <div class="notification-text">
-                        <strong>📱 E-JEEP is Already Installed</strong>
-                        <p>Check your home screen or app drawer</p>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 4000);
-        }
-        
-        // Show installation guide
-        function showInstallationGuide() {
-            const userAgent = navigator.userAgent.toLowerCase();
-            let title = '';
-            let instructions = '';
-            
-            if (userAgent.includes('chrome') && userAgent.includes('android')) {
-                title = '📱 Install E-JEEP on Android';
-                instructions = `
-                    <div class="guide-steps">
-                        <div class="guide-step">
-                            <span class="step-number">1</span>
-                            <span>Look for the install icon (⬇️) in Chrome address bar</span>
-                        </div>
-                        <div class="guide-step">
-                            <span class="step-number">2</span>
-                            <span>Tap it and confirm installation</span>
-                        </div>
-                        <div class="guide-alternative">
-                            <strong>Alternative:</strong> Menu (⋮) → "Add to Home Screen"
-                        </div>
-                    </div>
-                `;
-            } else if (userAgent.includes('safari') && (userAgent.includes('iphone') || userAgent.includes('ipad'))) {
-                title = '📱 Install E-JEEP on iPhone/iPad';
-                instructions = `
-                    <div class="guide-steps">
-                        <div class="guide-step">
-                            <span class="step-number">1</span>
-                            <span>Tap the Share button (📤) at the bottom</span>
-                        </div>
-                        <div class="guide-step">
-                            <span class="step-number">2</span>
-                            <span>Select "Add to Home Screen"</span>
-                        </div>
-                        <div class="guide-step">
-                            <span class="step-number">3</span>
-                            <span>Tap "Add" to confirm</span>
-                        </div>
-                    </div>
-                `;
-            } else {
-                title = '📱 Install E-JEEP as App';
-                instructions = `
-                    <div class="guide-steps">
-                        <div class="guide-step">
-                            <span class="step-number">📱</span>
-                            <span><strong>Android Chrome:</strong> Look for install icon in address bar</span>
-                        </div>
-                        <div class="guide-step">
-                            <span class="step-number">🍎</span>
-                            <span><strong>iPhone Safari:</strong> Share → Add to Home Screen</span>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            const modal = document.createElement('div');
-            modal.className = 'install-modal';
-            modal.innerHTML = `
-                <div class="modal-overlay" onclick="closeInstallModal()"></div>
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>${title}</h3>
-                        <button class="modal-close" onclick="closeInstallModal()">×</button>
-                    </div>
-                    <div class="modal-body">
-                        ${instructions}
-                    </div>
-                    <div class="modal-footer">
-                        <button class="modal-btn" onclick="closeInstallModal()">Got it!</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            
-            // Auto close after 10 seconds
-            setTimeout(() => {
-                if (document.body.contains(modal)) {
-                    modal.remove();
-                }
-            }, 10000);
-        }
-        
-        // Close install modal
-        function closeInstallModal() {
-            const modal = document.querySelector('.install-modal');
-            if (modal) {
-                modal.remove();
-            }
-        }
+        });
 
         // Handle dismiss button click
         dismissButton.addEventListener('click', () => {
