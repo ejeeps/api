@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate E-JEEP Icons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .icon-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .icon-item {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .download-all {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 20px 10px;
+        }
+        .download-all:hover {
+            background: #16a34a;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 E-JEEP Icon Generator</h1>
+        <p>This will generate all the PWA icons needed for your E-JEEP app to look like a native Flutter app!</p>
+        
+        <div class="status" id="status">
+            Click "Generate All Icons" to create professional app icons
+        </div>
+        
+        <button class="download-all" onclick="generateAllIcons()">
+            🚀 Generate All Icons
+        </button>
+        
+        <button class="download-all" onclick="downloadAsZip()" style="background: #3b82f6;">
+            📦 Download as ZIP
+        </button>
+        
+        <div class="icon-preview" id="iconPreview">
+            <!-- Icons will appear here -->
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        const iconSizes = [
+            { size: 16, name: 'icon-16x16.png' },
+            { size: 32, name: 'icon-32x32.png' },
+            { size: 57, name: 'icon-57x57.png' },
+            { size: 60, name: 'icon-60x60.png' },
+            { size: 72, name: 'icon-72x72.png' },
+            { size: 76, name: 'icon-76x76.png' },
+            { size: 96, name: 'icon-96x96.png' },
+            { size: 114, name: 'icon-114x114.png' },
+            { size: 120, name: 'icon-120x120.png' },
+            { size: 128, name: 'icon-128x128.png' },
+            { size: 144, name: 'icon-144x144.png' },
+            { size: 152, name: 'icon-152x152.png' },
+            { size: 180, name: 'icon-180x180.png' },
+            { size: 192, name: 'icon-192x192.png' },
+            { size: 384, name: 'icon-384x384.png' },
+            { size: 512, name: 'icon-512x512.png' }
+        ];
+        
+        let generatedIcons = [];
+        
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Create gradient background (like Flutter Material Design)
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#22c55e');
+            gradient.addColorStop(0.5, '#16a34a');
+            gradient.addColorStop(1, '#15803d');
+            
+            // Draw rounded rectangle background
+            const radius = size * 0.18; // Flutter-style rounded corners
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Add subtle shadow/depth effect
+            const shadowGradient = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+            shadowGradient.addColorStop(0, 'rgba(255,255,255,0.3)');
+            shadowGradient.addColorStop(0.7, 'rgba(255,255,255,0.1)');
+            shadowGradient.addColorStop(1, 'rgba(0,0,0,0.1)');
+            
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fillStyle = shadowGradient;
+            ctx.fill();
+            
+            // Draw main jeepney icon
+            const scale = size / 512;
+            const centerX = size / 2;
+            const centerY = size / 2;
+            
+            // Jeepney body (simplified, modern design)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(centerX - 120*scale, centerY - 40*scale, 240*scale, 80*scale);
+            
+            // Jeepney roof
+            ctx.fillRect(centerX - 100*scale, centerY - 70*scale, 200*scale, 30*scale);
+            
+            // Windows (modern style)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(centerX - 80*scale, centerY - 60*scale, 40*scale, 20*scale);
+            ctx.fillRect(centerX - 20*scale, centerY - 60*scale, 40*scale, 20*scale);
+            ctx.fillRect(centerX + 40*scale, centerY - 60*scale, 40*scale, 20*scale);
+            
+            // Wheels (modern circular design)
+            ctx.fillStyle = '#374151';
+            ctx.beginPath();
+            ctx.arc(centerX - 60*scale, centerY + 50*scale, 25*scale, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + 60*scale, centerY + 50*scale, 25*scale, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Wheel centers
+            ctx.fillStyle = '#6b7280';
+            ctx.beginPath();
+            ctx.arc(centerX - 60*scale, centerY + 50*scale, 12*scale, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + 60*scale, centerY + 50*scale, 12*scale, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Add "E" letter for smaller icons
+            if (size >= 72) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `bold ${Math.max(size * 0.15, 16)}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('E', centerX, centerY + 120*scale);
+            }
+            
+            // Add modern highlight effect
+            const highlightGradient = ctx.createLinearGradient(0, 0, size, size/3);
+            highlightGradient.addColorStop(0, 'rgba(255,255,255,0.4)');
+            highlightGradient.addColorStop(1, 'rgba(255,255,255,0)');
+            
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size/3, [radius, radius, 0, 0]);
+            ctx.fillStyle = highlightGradient;
+            ctx.fill();
+            
+            return canvas;
+        }
+        
+        function generateAllIcons() {
+            const preview = document.getElementById('iconPreview');
+            const status = document.getElementById('status');
+            
+            preview.innerHTML = '';
+            generatedIcons = [];
+            
+            status.innerHTML = '🎨 Generating icons...';
+            
+            iconSizes.forEach((iconData, index) => {
+                setTimeout(() => {
+                    const canvas = createIcon(iconData.size);
+                    
+                    // Create preview
+                    const iconItem = document.createElement('div');
+                    iconItem.className = 'icon-item';
+                    iconItem.innerHTML = `
+                        <canvas width="${iconData.size}" height="${iconData.size}"></canvas>
+                        <p>${iconData.size}x${iconData.size}</p>
+                        <button onclick="downloadIcon('${iconData.name}', ${index})" style="padding: 5px 10px; background: #22c55e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Download</button>
+                    `;
+                    
+                    const previewCanvas = iconItem.querySelector('canvas');
+                    const previewCtx = previewCanvas.getContext('2d');
+                    previewCtx.drawImage(canvas, 0, 0);
+                    
+                    preview.appendChild(iconItem);
+                    
+                    // Store for ZIP download
+                    canvas.toBlob(blob => {
+                        generatedIcons[index] = { name: iconData.name, blob: blob };
+                        
+                        if (index === iconSizes.length - 1) {
+                            status.innerHTML = '✅ All icons generated! Click individual download buttons or download as ZIP.';
+                        }
+                    });
+                }, index * 100);
+            });
+        }
+        
+        function downloadIcon(filename, index) {
+            const canvas = createIcon(iconSizes[index].size);
+            canvas.toBlob(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                a.click();
+            });
+        }
+        
+        async function downloadAsZip() {
+            if (generatedIcons.length === 0) {
+                alert('Please generate icons first!');
+                return;
+            }
+            
+            const zip = new JSZip();
+            const folder = zip.folder('e-jeep-icons');
+            
+            generatedIcons.forEach(icon => {
+                if (icon && icon.blob) {
+                    folder.file(icon.name, icon.blob);
+                }
+            });
+            
+            // Add installation instructions
+            folder.file('README.txt', `E-JEEP PWA Icons
+================
+
+These icons were generated for your E-JEEP Progressive Web App.
+
+Installation Instructions:
+1. Upload all PNG files to your 'assets/icons/' directory
+2. The manifest.json is already configured to use these icons
+3. Clear browser cache and reinstall the PWA
+4. Your app should now have proper icons!
+
+Icon Sizes Included:
+- 16x16, 32x32: Favicon
+- 57x57, 60x60, 72x72, 76x76: Apple Touch Icons (small)
+- 114x114, 120x120, 144x144, 152x152, 180x180: Apple Touch Icons (retina)
+- 192x192, 384x384, 512x512: Android Chrome icons
+- 96x96, 128x128: Additional PWA icons
+
+Generated on: ${new Date().toLocaleString()}
+`);
+            
+            const content = await zip.generateAsync({type: 'blob'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(content);
+            a.download = 'e-jeep-pwa-icons.zip';
+            a.click();
+        }
+        
+        // Add CanvasRenderingContext2D.roundRect polyfill for older browsers
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radii) {
+                if (typeof radii === 'number') {
+                    radii = [radii, radii, radii, radii];
+                } else if (radii.length === 1) {
+                    radii = [radii[0], radii[0], radii[0], radii[0]];
+                } else if (radii.length === 2) {
+                    radii = [radii[0], radii[1], radii[0], radii[1]];
+                }
+                
+                const [tl, tr, br, bl] = radii;
+                
+                this.beginPath();
+                this.moveTo(x + tl, y);
+                this.lineTo(x + width - tr, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + tr);
+                this.lineTo(x + width, y + height - br);
+                this.quadraticCurveTo(x + width, y + height, x + width - br, y + height);
+                this.lineTo(x + bl, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - bl);
+                this.lineTo(x, y + tl);
+                this.quadraticCurveTo(x, y, x + tl, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>
