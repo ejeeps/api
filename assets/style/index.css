@@ -380,7 +380,7 @@ body {
 .page-header {
     margin-bottom: 30px;
     animation: fadeIn 0.8s ease-out;
-    background: url('../images/login-bg.jpg');
+    background: url('../images/login-bg.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -1384,5 +1384,80 @@ a:focus-visible {
         min-width: 140px;
         padding: 10px 18px;
         font-size: 0.85rem;
+    }
+}
+
+/* Footer Styles */
+.footer {
+    background-image: url('../../assets/images/footer-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-top: 60px;
+    min-height: 200px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(3, 94, 8, 0.617);
+    z-index: 1;
+}
+
+.footer-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 20px;
+}
+
+.footer-content {
+    text-align: center;
+}
+
+.footer-text {
+    color: white;
+}
+
+.footer-text h3 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0 0 10px 0;
+    color: #ffffff;
+}
+
+.footer-text p {
+    margin: 5px 0;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.footer-text p:last-child {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 15px;
+}
+
+/* Responsive Footer */
+@media (max-width: 768px) {
+    .footer-text h3 {
+        font-size: 1.5rem;
+    }
+    
+    .footer-text p {
+        font-size: 0.9rem;
+    }
+    
+    .footer-text p:last-child {
+        font-size: 0.8rem;
     }
 }

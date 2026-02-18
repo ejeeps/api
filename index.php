@@ -247,6 +247,17 @@ if ($register === 'passenger') {
             </div>
         </div>
     </div>
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-text">
+                    <h3>E-JEEP</h3>
+                    <p>Modern Transportation, Cashless Payments</p>
+                    <p>&copy; 2026 E-JEEP. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
     <script src="assets/script/index/index.js"></script>
 </body>
 </html>
