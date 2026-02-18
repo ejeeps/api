@@ -37,6 +37,46 @@ $imageBasePath = $basePath;
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/index.css" rel="stylesheet" type="text/css">
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/dashboard.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+      /* Map container sizing */
+      #busTrackerMap { height: 60vh; min-height: 320px; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 18px rgba(0,0,0,0.12); }
+      /* Live Tracker Modal */
+      .tracker-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 1100; }
+      .tracker-modal.open { display: block; }
+      .tracker-modal .modal-content { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(960px, 92vw); height: min(78vh, 680px); background: #ffffff; border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.25); display: flex; flex-direction: column; overflow: hidden; }
+      .tracker-modal .modal-header { padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; }
+      .tracker-modal .modal-title { font-size: 1rem; font-weight: 600; }
+      .tracker-modal .modal-close { background: transparent; border: none; font-size: 1.25rem; cursor: pointer; padding: 6px; line-height: 1; }
+      .tracker-modal .modal-body { flex: 1; }
+      .tracker-modal .modal-body #busTrackerMap { height: 100%; min-height: 0; border-radius: 0; box-shadow: none; }
+      /* Floating live tracking button */
+      .floating-track-btn {
+        position: fixed;
+        right: 16px;
+        bottom: 96px; /* keep clear of bottom navbar */
+        z-index: 1000;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: #22c55e;
+        color: #ffffff;
+        border: none;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.05s ease, background 0.2s ease, box-shadow 0.2s ease;
+      }
+      .floating-track-btn:hover { background: #16a34a; box-shadow: 0 10px 18px rgba(0,0,0,0.24); }
+      .floating-track-btn:active { transform: translateY(1px); }
+      .floating-track-btn i { font-size: 1.2rem; }
+      @media (min-width: 1024px) { .floating-track-btn { right: 24px; bottom: 120px; } }
+    </style>
 </head>
 
 <body>
@@ -109,6 +149,60 @@ $imageBasePath = $basePath;
                 </div>
             </div>
 
+            <?php if (!empty($passengerInfo['card_number']) && ($passengerInfo['card_status'] ?? '') === 'active'): ?>
+            <!-- E-JEEP Virtual Card -->
+            <style>
+            .ejeep-card-wrap { margin-top: 16px; }
+            .ejeep-card {
+                position: relative;
+                width: 100%;
+                max-width: 420px;
+                aspect-ratio: 16/10;
+                
+                padding: 20px;
+                color: #fff;
+                background: radial-gradient(120% 120% at 0% 0%, #22c55e 0%, #16a34a 45%, #065f46 100%);
+                box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+                overflow: hidden;
+            }
+            .ejeep-card .card-brand { position:absolute; top:16px; right:16px; font-weight:700; letter-spacing:1px; }
+            .ejeep-card .chip { width:44px; height:32px; border-radius:6px; background:linear-gradient(135deg,#f8f8f8,#cfcfcf); box-shadow:inset 0 1px 2px rgba(0,0,0,0.2); }
+            .ejeep-card .row { display:flex; align-items:center; justify-content:space-between; }
+            .ejeep-card .number { margin-top:14px; font-size: clamp(1rem, 4vw, 1.2rem); letter-spacing:1.2px; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+            .ejeep-card .holder { margin-top:18px; font-size:0.9rem; opacity:0.9; }
+            .ejeep-card .meta { margin-top:6px; font-size:0.8rem; opacity:0.85; display:flex; gap:16px; }
+            .ejeep-card .glow { position:absolute; inset:-40%; background: radial-gradient(50% 50% at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%); filter: blur(30px); pointer-events:none; }
+            .ejeep-card .badge { position:absolute; bottom:16px; right:16px; background: rgba(34,197,94,0.18); padding:6px 10px; border-radius:999px; font-size:0.75rem; backdrop-filter: blur(4px); }
+            .ejeep-card .logo { display:flex; align-items:center; gap:8px; font-weight:700; }
+            .ejeep-card .logo .dot { width:10px; height:10px; border-radius:50%; background:#22c55e; box-shadow:0 0 8px rgba(34,197,94,0.9); }
+            @media (min-width: 640px){ .ejeep-card { aspect-ratio: 16/9; } }
+            </style>
+            <div class="dashboard-section ejeep-card-wrap">
+               
+                <div class="ejeep-card" aria-label="Your virtual E-JEEP card">
+                    <div class="glow"></div>
+                    <div class="row">
+                        <div class="logo"><span class="dot"></span><span>E‑JEEP</span></div>
+                        <div class="card-brand">VIRTUAL</div>
+                    </div>
+                    <div class="chip" title="Secure chip"></div>
+                    <div class="number">
+                        <?php
+                            $raw = preg_replace('/\D+/', '', (string)$passengerInfo['card_number']);
+                            $formatted = trim(chunk_split($raw, 4, ' '));
+                            echo htmlspecialchars($formatted);
+                        ?>
+                    </div>
+                    <div class="holder">CARDHOLDER: <?php echo htmlspecialchars(strtoupper(($passengerInfo['first_name'] ?? '') . ' ' . ($passengerInfo['last_name'] ?? ''))); ?></div>
+                    <div class="meta">
+                        <span>TYPE: <?php echo htmlspecialchars(strtoupper($passengerInfo['card_type'] ?? 'STANDARD')); ?></span>
+                        <span>BAL: ₱<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></span>
+                    </div>
+                    <div class="badge">ACTIVE</div>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- ID Card Image with Flip -->
             <div class="images-section">
                 <div class="license-flip-card" onclick="flipIdCard()">
@@ -161,41 +255,7 @@ $imageBasePath = $basePath;
                 </div>
             </div>
 
-            <!-- Profile Information -->
-            <div class="dashboard-section">
-                <h2 class="section-title">Profile Information</h2>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Name:</span>
-                        <span class="info-value"><?php echo htmlspecialchars($passengerInfo['first_name'] . ' ' . $passengerInfo['last_name']); ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Email:</span>
-                        <span class="info-value"><?php echo htmlspecialchars($passengerInfo['email']); ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Phone:</span>
-                        <span class="info-value"><?php echo htmlspecialchars($passengerInfo['phone_number']); ?></span>
-                    </div>
-                    <?php if (!empty($passengerInfo['address_line1'])): ?>
-                        <div class="info-item">
-                            <span class="info-label">Address:</span>
-                            <span class="info-value">
-                                <?php 
-                                $addressParts = array_filter([
-                                    $passengerInfo['address_line1'],
-                                    $passengerInfo['address_line2'],
-                                    $passengerInfo['city'],
-                                    $passengerInfo['province'],
-                                    $passengerInfo['postal_code']
-                                ]);
-                                echo htmlspecialchars(implode(', ', $addressParts)); 
-                                ?>
-                            </span>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
+            
         </div>
     </div>
 
@@ -211,7 +271,59 @@ $imageBasePath = $basePath;
         <img class="modal-content" id="modalImage">
     </div>
 
+    <!-- Live Bus Tracker Modal -->
+    <div id="trackerModal" class="tracker-modal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Live Bus Tracker</div>
+                <button type="button" class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="busTrackerMap"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Live Tracking Button -->
+    <button id="floatingTrackBtn" class="floating-track-btn" aria-label="Live Bus Tracker">
+        <i class="fas fa-location-arrow"></i>
+    </button>
+
+    <!-- Leaflet JS and live tracker -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/live-tracker.js"></script>
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/dashboard.js"></script>
+
+    <script>
+      // Floating button opens modal; modal close via overlay/close button; triggers Leaflet resize without re-render
+      (function(){
+        document.addEventListener('DOMContentLoaded', function(){
+          var btn = document.getElementById('floatingTrackBtn');
+          var modal = document.getElementById('trackerModal');
+          var closeBtn = modal ? modal.querySelector('.modal-close') : null;
+          if (!btn || !modal) return;
+
+          function openModal(){
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            // Allow CSS to render, then trigger resize so Leaflet invalidates size
+            setTimeout(function(){ window.dispatchEvent(new Event('resize')); }, 120);
+          }
+          function closeModal(){
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+          }
+
+          btn.addEventListener('click', openModal);
+          if (closeBtn) closeBtn.addEventListener('click', closeModal);
+          // Click outside content to close
+          modal.addEventListener('click', function(ev){ if (ev.target === modal) closeModal(); });
+          // ESC key to close
+          document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && modal.classList.contains('open')) closeModal(); });
+        });
+      })();
+    </script>
 </body>
 </html>
 
