@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Favicon</title>
+</head>
+<body>
+    <h1>Creating E-JEEP Favicon...</h1>
+    <canvas id="favicon" width="32" height="32"></canvas>
+    <p id="status">Generating...</p>
+    
+    <script>
+        const canvas = document.getElementById('favicon');
+        const ctx = canvas.getContext('2d');
+        
+        // Create E-JEEP favicon
+        const gradient = ctx.createLinearGradient(0, 0, 32, 32);
+        gradient.addColorStop(0, '#22c55e');
+        gradient.addColorStop(1, '#16a34a');
+        
+        // Background with rounded corners
+        ctx.beginPath();
+        ctx.roundRect(0, 0, 32, 32, 6);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Letter E
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('E', 16, 16);
+        
+        // Download automatically
+        canvas.toBlob(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'favicon.png';
+            a.click();
+            
+            document.getElementById('status').innerHTML = '✅ Favicon downloaded! Rename it to favicon.ico and place it in your root directory.';
+        });
+        
+        // Polyfill for roundRect
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>
