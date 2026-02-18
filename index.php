@@ -84,9 +84,64 @@ if ($register === 'passenger') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>E-JEEP - Registration Portal</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="E-JEEP - Modern cashless payment system for jeepney transportation. Register as driver or passenger for convenient, secure transactions.">
+    <meta name="keywords" content="jeepney, transportation, cashless payment, e-card, philippines, public transport">
+    <meta name="author" content="E-JEEP Team">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- PWA Theme Colors -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="msapplication-TileColor" content="#2563eb">
+    <meta name="msapplication-navbutton-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- PWA App Configuration -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="E-JEEP">
+    <meta name="application-name" content="E-JEEP">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/icon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="assets/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/icons/icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="assets/icons/icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="assets/icons/icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="assets/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="assets/icons/icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="assets/icons/icon-57x57.png">
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="assets/icons/icon-144x144.png">
+    <meta name="msapplication-square70x70logo" content="assets/icons/icon-70x70.png">
+    <meta name="msapplication-square150x150logo" content="assets/icons/icon-150x150.png">
+    <meta name="msapplication-wide310x150logo" content="assets/icons/icon-310x150.png">
+    <meta name="msapplication-square310x310logo" content="assets/icons/icon-310x310.png">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="E-JEEP - Modern Transportation System">
+    <meta property="og:description" content="Cashless payment system for jeepney transportation with driver and passenger management">
+    <meta property="og:image" content="assets/icons/icon-512x512.png">
+    <meta property="og:url" content="https://yoursite.com/api/">
+    <meta property="og:site_name" content="E-JEEP">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="E-JEEP - Modern Transportation System">
+    <meta name="twitter:description" content="Cashless payment system for jeepney transportation">
+    <meta name="twitter:image" content="assets/icons/icon-512x512.png">
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/style/index.css">
-  
 
 </head>
 <body>
@@ -173,6 +228,7 @@ if ($register === 'passenger') {
                 </p>
             </div>
 
+
         <div class="registration-types">
             <!-- Driver Registration Card -->
             <div class="registration-card">
@@ -247,6 +303,22 @@ if ($register === 'passenger') {
             </div>
         </div>
     </div>
+    
+    <!-- Simple Mobile Install Instructions -->
+    <div class="simple-install-section">
+        <div class="container">
+            <div class="install-instruction">
+                <div class="install-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <div class="install-text">
+                    <h3>📱 Install E-JEEP as Mobile App</h3>
+                    <p><strong>Android:</strong> Tap install button in Chrome address bar | <strong>iPhone:</strong> Share → Add to Home Screen</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-content">
@@ -258,6 +330,126 @@ if ($register === 'passenger') {
             </div>
         </div>
     </footer>
+    
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-prompt" class="pwa-install-prompt" style="display: none;">
+        <div class="pwa-install-content">
+            <div class="pwa-install-icon">
+                <i class="fas fa-download"></i>
+            </div>
+            <div class="pwa-install-text">
+                <h3>Install E-JEEP App</h3>
+                <p>Get the full app experience with offline access and faster loading!</p>
+            </div>
+            <div class="pwa-install-actions">
+                <button id="pwa-install-button" class="btn btn-primary">Install</button>
+                <button id="pwa-install-dismiss" class="btn btn-secondary">Not Now</button>
+            </div>
+        </div>
+    </div>
+
     <script src="assets/script/index/index.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        // PWA Service Worker Registration (for installation support only)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/api/sw.js', {
+                    scope: '/api/'
+                })
+                .then(registration => {
+                    console.log('SW registered for PWA installation: ', registration);
+                })
+                .catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installPrompt = document.getElementById('pwa-install-prompt');
+        const installButton = document.getElementById('pwa-install-button');
+        const dismissButton = document.getElementById('pwa-install-dismiss');
+
+        // Listen for the beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA install prompt triggered');
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            
+            // Show custom install prompt after a delay
+            setTimeout(() => {
+                showInstallPrompt();
+            }, 3000);
+        });
+
+        // Show install prompt
+        function showInstallPrompt() {
+            if (deferredPrompt && !localStorage.getItem('pwa-install-dismissed')) {
+                installPrompt.style.display = 'block';
+                installPrompt.style.animation = 'slideInUp 0.3s ease-out';
+            }
+        }
+
+        // Handle install button click
+        installButton.addEventListener('click', () => {
+            hideInstallPrompt();
+            
+            if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                
+                // Wait for the user to respond to the prompt
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        });
+
+        // Handle dismiss button click
+        dismissButton.addEventListener('click', () => {
+            hideInstallPrompt();
+            localStorage.setItem('pwa-install-dismissed', 'true');
+        });
+
+        // Hide install prompt
+        function hideInstallPrompt() {
+            installPrompt.style.animation = 'slideOutDown 0.3s ease-in';
+            setTimeout(() => {
+                installPrompt.style.display = 'none';
+            }, 300);
+        }
+
+
+        // Listen for app installation
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            hideInstallPrompt();
+            
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.className = 'pwa-install-success';
+            successMsg.innerHTML = `
+                <div class="success-content">
+                    <i class="fas fa-check-circle"></i>
+                    <span>E-JEEP installed successfully!</span>
+                </div>
+            `;
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+                successMsg.remove();
+            }, 3000);
+        });
+    </script>
 </body>
 </html>
