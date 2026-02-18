@@ -15,25 +15,24 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once __DIR__ . '/../../config/connection.php';
 
-// Configuration
-$windowMinutes = 5; // consider trips in last N minutes as potentially live
+// Show latest position per driver for today only
 
 try {
     // Latest trip per driver_assign_id in the recent window
     $sql = "
-        SELECT t.driver_assign_id, t.route_id, t.latitude, t.longitude, t.timestamp
+        SELECT t.driver_assign_id, t.route_id, t.latitude, t.longitude, t.timestamp, t.trip_id
         FROM trips t
         INNER JOIN (
             SELECT driver_assign_id, MAX(timestamp) AS max_ts
             FROM trips
-            WHERE timestamp >= (NOW() - INTERVAL :win MINUTE)
+            WHERE DATE(timestamp) = CURDATE()
             GROUP BY driver_assign_id
         ) latest ON latest.driver_assign_id = t.driver_assign_id AND latest.max_ts = t.timestamp
+        WHERE DATE(t.timestamp) = CURDATE()
         ORDER BY t.timestamp DESC
     ";
 
     $stmt = $pdo->prepare($sql);
-    $stmt->bindValue(':win', $windowMinutes, PDO::PARAM_INT);
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -51,6 +50,8 @@ try {
             'lat' => $lat,
             'lng' => $lng,
             'ts' => $r['timestamp'],
+            'trip_id' => isset($r['trip_id']) ? $r['trip_id'] : null,
+            'trip_date' => substr($r['timestamp'], 0, 10),
         ];
     }
 
