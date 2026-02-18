@@ -41,43 +41,7 @@ $imageBasePath = $basePath;
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <style>
-      /* Map container sizing */
-      #busTrackerMap { height: 60vh; min-height: 320px; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 18px rgba(0,0,0,0.12); }
-      /* Live Tracker Modal */
-      .tracker-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 1100; }
-      .tracker-modal.open { display: block; }
-      .tracker-modal .modal-content { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(960px, 92vw); height: min(78vh, 680px); background: #ffffff; border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.25); display: flex; flex-direction: column; overflow: hidden; }
-      .tracker-modal .modal-header { padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; }
-      .tracker-modal .modal-title { font-size: 1rem; font-weight: 600; }
-      .tracker-modal .modal-close { background: transparent; border: none; font-size: 1.25rem; cursor: pointer; padding: 6px; line-height: 1; }
-      .tracker-modal .modal-body { flex: 1; }
-      .tracker-modal .modal-body #busTrackerMap { height: 100%; min-height: 0; border-radius: 0; box-shadow: none; }
-      /* Floating live tracking button */
-      .floating-track-btn {
-        position: fixed;
-        right: 16px;
-        bottom: 96px; /* keep clear of bottom navbar */
-        z-index: 1000;
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        background: #22c55e;
-        color: #ffffff;
-        border: none;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: transform 0.05s ease, background 0.2s ease, box-shadow 0.2s ease;
-      }
-      .floating-track-btn:hover { background: #16a34a; box-shadow: 0 10px 18px rgba(0,0,0,0.24); }
-      .floating-track-btn:active { transform: translateY(1px); }
-      .floating-track-btn i { font-size: 1.2rem; }
-      @media (min-width: 1024px) { .floating-track-btn { right: 24px; bottom: 120px; } }
-    </style>
-</head>
+    </head>
 
 <body>
     <!-- Dashboard Header at Top -->
@@ -151,32 +115,6 @@ $imageBasePath = $basePath;
 
             <?php if (!empty($passengerInfo['card_number']) && ($passengerInfo['card_status'] ?? '') === 'active'): ?>
             <!-- E-JEEP Virtual Card -->
-            <style>
-            .ejeep-card-wrap { margin-top: 16px; }
-            .ejeep-card {
-                position: relative;
-                width: 100%;
-                max-width: 420px;
-                aspect-ratio: 16/10;
-                
-                padding: 20px;
-                color: #fff;
-                background: radial-gradient(120% 120% at 0% 0%, #22c55e 0%, #16a34a 45%, #065f46 100%);
-                box-shadow: 0 12px 24px rgba(0,0,0,0.25);
-                overflow: hidden;
-            }
-            .ejeep-card .card-brand { position:absolute; top:16px; right:16px; font-weight:700; letter-spacing:1px; }
-            .ejeep-card .chip { width:44px; height:32px; border-radius:6px; background:linear-gradient(135deg,#f8f8f8,#cfcfcf); box-shadow:inset 0 1px 2px rgba(0,0,0,0.2); }
-            .ejeep-card .row { display:flex; align-items:center; justify-content:space-between; }
-            .ejeep-card .number { margin-top:14px; font-size: clamp(1rem, 4vw, 1.2rem); letter-spacing:1.2px; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-            .ejeep-card .holder { margin-top:18px; font-size:0.9rem; opacity:0.9; }
-            .ejeep-card .meta { margin-top:6px; font-size:0.8rem; opacity:0.85; display:flex; gap:16px; }
-            .ejeep-card .glow { position:absolute; inset:-40%; background: radial-gradient(50% 50% at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%); filter: blur(30px); pointer-events:none; }
-            .ejeep-card .badge { position:absolute; bottom:16px; right:16px; background: rgba(34,197,94,0.18); padding:6px 10px; border-radius:999px; font-size:0.75rem; backdrop-filter: blur(4px); }
-            .ejeep-card .logo { display:flex; align-items:center; gap:8px; font-weight:700; }
-            .ejeep-card .logo .dot { width:10px; height:10px; border-radius:50%; background:#22c55e; box-shadow:0 0 8px rgba(34,197,94,0.9); }
-            @media (min-width: 640px){ .ejeep-card { aspect-ratio: 16/9; } }
-            </style>
             <div class="dashboard-section ejeep-card-wrap">
                
                 <div class="ejeep-card" aria-label="Your virtual E-JEEP card">
