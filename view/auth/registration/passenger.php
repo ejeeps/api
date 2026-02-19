@@ -28,6 +28,28 @@
     ?>
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/index.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/driver.css">
+    <style>
+        /* Loading state for Submit Registration button */
+        .btn.btn-submit.loading {
+            opacity: 0.85;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .btn.btn-submit .spinner {
+            width: 1em;
+            height: 1em;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: -2px;
+            animation: btn-spin 0.6s linear infinite;
+        }
+        @keyframes btn-spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -248,6 +270,29 @@
 
 <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/reg_passenger.js"></script>
 <script>
+// Submit Registration button loading state
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        var form = document.getElementById('passengerRegistrationForm');
+        if (!form) return;
+        var btn = document.getElementById('submitBtn');
+        if (!btn) return;
+
+        form.addEventListener('submit', function() {
+            if (btn.dataset.loading === '1') return; // prevent duplicate changes
+            btn.dataset.loading = '1';
+            btn.classList.add('loading');
+            btn.setAttribute('aria-busy', 'true');
+            btn.disabled = true;
+            // Fix width to avoid layout shift during loading
+            var w = btn.offsetWidth;
+            btn.style.width = w + 'px';
+            btn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Processing...</span>';
+        });
+    });
+})();
+</script>
+<script>
     // Mobile Menu Toggle
     document.addEventListener('DOMContentLoaded', function() {
         const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
@@ -296,4 +341,3 @@
 </script>
 </body>
 </html>
-
