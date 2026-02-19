@@ -34,9 +34,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <a href="<?php echo htmlspecialchars($basePath); ?>index.php">
-                    <img src="<?php echo htmlspecialchars($basePath); ?>assets/logo.png" alt="E-JEEP Logo" onerror="this.outerHTML='<span class=\'logo-text\'>E-JEEP</span>';">
-                </a>
+               <span class="logo-text">E-JEEP</span>
             </div>
             <button class="mobile-menu-toggle" aria-label="Toggle menu">
                 <span></span>

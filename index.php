@@ -84,6 +84,7 @@ if ($register === 'passenger') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>E-JEEP - Registration Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/style/index.css">
   
 
@@ -112,8 +113,59 @@ if ($register === 'passenger') {
     <!-- Main Content -->
     <div class="main-content">
         <div class="container">
+            <!-- Hero Jeepney Image -->
             <div class="page-header">
-               
+                <!-- Pure jeepney background image display -->
+            </div>
+
+            <!-- Tag List Scroller -->
+            <div class="taglist-scroller-container">
+                <div class="taglist-scroller">
+                    <div class="tag-item">
+                        <i class="fas fa-credit-card tag-icon"></i>
+                        <span class="tag-text">Cashless Payment</span>
+                    </div>
+                    <div class="tag-item">
+                        <i class="fas fa-id-card tag-icon"></i>
+                        <span class="tag-text">E-JEEP Card</span>
+                    </div>
+                    <div class="tag-item">
+                        <i class="fas fa-bolt tag-icon"></i>
+                        <span class="tag-text">Quick Transactions</span>
+                    </div>
+                    <div class="tag-item">
+                        <i class="fas fa-shield-alt tag-icon"></i>
+                        <span class="tag-text">Secure System</span>
+                    </div>
+                    <div class="tag-item">
+                        <i class="fas fa-user-plus tag-icon"></i>
+                        <span class="tag-text">Easy Registration</span>
+                    </div>
+                    <div class="tag-item">
+                        <i class="fas fa-star tag-icon"></i>
+                        <span class="tag-text">Convenient</span>
+                    </div>
+                    <div class="tag-item">
+                        <i class="fas fa-wallet tag-icon"></i>
+                        <span class="tag-text">Reloadable Balance</span>
+                    </div>
+                    <div class="tag-item">
+                        <i class="fas fa-check-circle tag-icon"></i>
+                        <span class="tag-text">Verified Accounts</span>
+                    </div>
+                    <div class="tag-item">
+                        <i class="fas fa-route tag-icon"></i>
+                        <span class="tag-text">Route Management</span>
+                    </div>
+                    <div class="tag-item">
+                        <i class="fas fa-chart-bar tag-icon"></i>
+                        <span class="tag-text">Track Transactions</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description Section -->
+            <div class="description-section">
                 <p class="page-description">
                     Welcome to E-JEEP Registration Portal. Whether you're a driver operating on routes 
                     or a passenger wanting to get your E-JEEP card for cashless payments when boarding, 
@@ -121,26 +173,12 @@ if ($register === 'passenger') {
                 </p>
             </div>
 
-            <!-- Tag List Scroller -->
-            <div class="taglist-scroller-container">
-                <div class="taglist-scroller">
-                    <div class="tag-item">🚌 Cashless Payment</div>
-                    <div class="tag-item">💳 E-JEEP Card</div>
-                    <div class="tag-item">⚡ Quick Transactions</div>
-                    <div class="tag-item">🔒 Secure System</div>
-                    <div class="tag-item">📱 Easy Registration</div>
-                    <div class="tag-item">🎯 Convenient</div>
-                    <div class="tag-item">💰 Reloadable Balance</div>
-                    <div class="tag-item">✅ Verified Accounts</div>
-                    <div class="tag-item">🛣️ Route Management</div>
-                    <div class="tag-item">📊 Track Transactions</div>
-                </div>
-            </div>
-
         <div class="registration-types">
             <!-- Driver Registration Card -->
             <div class="registration-card">
-                <div class="registration-icon">🚌</div>
+                <div class="registration-icon">
+                    <i class="fas fa-bus"></i>
+                </div>
                 <h2 class="registration-title">Driver Registration</h2>
                 <p class="registration-description">
                     Join our platform as a professional driver and operate on your designated routes. 
@@ -168,7 +206,9 @@ if ($register === 'passenger') {
 
             <!-- Passenger Registration Card -->
             <div class="registration-card">
-                <div class="registration-icon">👤</div>
+                <div class="registration-icon">
+                    <i class="fas fa-user"></i>
+                </div>
                 <h2 class="registration-title">Passenger Registration</h2>
                 <p class="registration-description">
                     Register as a passenger to get your E-JEEP card. Simply tap your card when you enter 
@@ -194,11 +234,30 @@ if ($register === 'passenger') {
             </div>
         </div>
 
-            <div class="login-link">
-                Already have an account? <a href="index.php?login=1" class="login-link-text">Login here</a>
+            <!-- Login Section -->
+            <div class="login-section">
+                <div class="login-card">
+                    <div class="login-icon">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <h3 class="login-title">Welcome Back!</h3>
+                    <p class="login-description">Already have an E-JEEP account? Access your dashboard to manage your card, view transactions, and more.</p>
+                    <a href="index.php?login=1" class="btn btn-secondary btn-login">Login to Your Account</a>
+                </div>
             </div>
         </div>
     </div>
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-text">
+                    <h3>E-JEEP</h3>
+                    <p>Modern Transportation, Cashless Payments</p>
+                    <p>&copy; 2026 E-JEEP. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
     <script src="assets/script/index/index.js"></script>
 </body>
 </html>
