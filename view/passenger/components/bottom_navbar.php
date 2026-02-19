@@ -160,7 +160,7 @@ $dashboard_view = $dashboard_view ?? false;
 }
 .logout-modal-icon img{
     width: 100px;
-    height: 50px;
+    height: 100px;
 }
 
 .logout-modal-actions {
