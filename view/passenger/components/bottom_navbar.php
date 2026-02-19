@@ -32,10 +32,15 @@ $dashboard_view = $dashboard_view ?? false;
             <span class="bottom-nav-icon"><i class="fas fa-cog"></i></span>
             <span class="bottom-nav-text">Settings</span>
         </a>
-        <a href="<?php echo $basePath . 'controller/auth/LogoutController.php'; ?>" class="bottom-nav-link">
+
+        <!-- Logout: href="#" prevents direct navigation; data-logout-trigger fires the confirmation modal -->
+        <a href="#"
+           class="bottom-nav-link"
+           data-logout-trigger
+           data-logout-url="<?php echo htmlspecialchars($basePath . 'controller/auth/LogoutController.php'); ?>"
+           aria-label="Logout">
             <span class="bottom-nav-icon"><i class="fas fa-sign-out-alt"></i></span>
             <span class="bottom-nav-text">Logout</span>
         </a>
     </div>
 </nav>
-
