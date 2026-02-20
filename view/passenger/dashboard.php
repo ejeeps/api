@@ -52,11 +52,25 @@ $imageBasePath = $basePath;
                 <p class="dashboard-subtitle">Welcome back, <?php echo htmlspecialchars($passengerInfo['first_name']); ?>!</p>
             </div>
             <div class="dashboard-profile-image">
+                <?php
+                    $fullName = htmlspecialchars($passengerInfo['first_name'] . ' ' . $passengerInfo['last_name']);
+                    $initials = strtoupper(substr($passengerInfo['first_name'], 0, 1) . substr($passengerInfo['last_name'], 0, 1));
+                ?>
                 <?php if (!empty($passengerInfo['profile_image']) && file_exists($imageBasePath . $passengerInfo['profile_image'])): ?>
-                    <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['profile_image']); ?>" alt="Profile" class="profile-avatar">
+                    <img
+                        src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['profile_image']); ?>"
+                        alt="Profile"
+                        class="profile-avatar"
+                        title="Click to view profile photo"
+                        onclick="openProfileZoom('img', '<?php echo htmlspecialchars($imageBasePath . $passengerInfo['profile_image']); ?>', '<?php echo $fullName; ?>')"
+                    >
                 <?php else: ?>
-                    <div class="profile-avatar-placeholder">
-                        <?php echo strtoupper(substr($passengerInfo['first_name'], 0, 1) . substr($passengerInfo['last_name'], 0, 1)); ?>
+                    <div
+                        class="profile-avatar-placeholder"
+                        title="Click to view profile"
+                        onclick="openProfileZoom('initials', '<?php echo $initials; ?>', '<?php echo $fullName; ?>')"
+                    >
+                        <?php echo $initials; ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -97,7 +111,7 @@ $imageBasePath = $basePath;
                 <div class="dashboard-card">
                     <div class="card-icon"><i class="fas fa-wallet"></i></div>
                     <h3 class="card-title">Card Balance</h3>
-                    <p class="card-value">₱<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></p>
+                    <p class="card-value">&#8369;<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></p>
                 </div>
 
                 <div class="dashboard-card">
@@ -120,7 +134,7 @@ $imageBasePath = $basePath;
                 <div class="ejeep-card" aria-label="Your virtual E-JEEP card">
                     <div class="glow"></div>
                     <div class="row">
-                        <div class="logo"><span class="dot"></span><span>E‑JEEP</span></div>
+                        <div class="logo"><span class="dot"></span><span>E&#8209;JEEP</span></div>
                         <div class="card-brand">VIRTUAL</div>
                     </div>
                     <div class="chip" title="Secure chip"></div>
@@ -134,7 +148,7 @@ $imageBasePath = $basePath;
                     <div class="holder">CARDHOLDER: <?php echo htmlspecialchars(strtoupper(($passengerInfo['first_name'] ?? '') . ' ' . ($passengerInfo['last_name'] ?? ''))); ?></div>
                     <div class="meta">
                         <span>TYPE: <?php echo htmlspecialchars(strtoupper($passengerInfo['card_type'] ?? 'STANDARD')); ?></span>
-                        <span>BAL: ₱<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></span>
+                        <span>BAL: &#8369;<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></span>
                     </div>
                     <div class="badge">ACTIVE</div>
                 </div>
@@ -153,7 +167,7 @@ $imageBasePath = $basePath;
                                     <?php if (!empty($passengerInfo['id_image_front']) && file_exists($imageBasePath . $passengerInfo['id_image_front'])): ?>
                                         <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['id_image_front']); ?>" alt="ID Card Front" class="license-image" id="idImageFront">
                                         <div class="image-overlay">
-                                            <button class="view-fullscreen-btn" onclick="event.stopPropagation(); viewFullscreen('idImageFront')">🔍 View Fullscreen</button>
+                                            <button class="view-fullscreen-btn" onclick="event.stopPropagation(); viewFullscreen('idImageFront')">&#128269; View Fullscreen</button>
                                         </div>
                                     <?php else: ?>
                                         <div class="image-placeholder">
@@ -165,7 +179,7 @@ $imageBasePath = $basePath;
                                 <?php if (!empty($passengerInfo['id_number'])): ?>
                                     <p class="license-info">ID #: <?php echo htmlspecialchars($passengerInfo['id_number']); ?></p>
                                 <?php endif; ?>
-                                <p class="flip-hint">👆 Click to flip to back</p>
+                                <p class="flip-hint">&#128070; Click to flip to back</p>
                             </div>
                         </div>
 
@@ -177,7 +191,7 @@ $imageBasePath = $basePath;
                                     <?php if (!empty($passengerInfo['id_image_back']) && file_exists($imageBasePath . $passengerInfo['id_image_back'])): ?>
                                         <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['id_image_back']); ?>" alt="ID Card Back" class="license-image" id="idImageBack">
                                         <div class="image-overlay">
-                                            <button class="view-fullscreen-btn" onclick="event.stopPropagation(); viewFullscreen('idImageBack')">🔍 View Fullscreen</button>
+                                            <button class="view-fullscreen-btn" onclick="event.stopPropagation(); viewFullscreen('idImageBack')">&#128269; View Fullscreen</button>
                                         </div>
                                     <?php else: ?>
                                         <div class="image-placeholder">
@@ -186,7 +200,7 @@ $imageBasePath = $basePath;
                                         </div>
                                     <?php endif; ?>
                                 </div>
-                                <p class="flip-hint">👆 Click to flip to front</p>
+                                <p class="flip-hint">&#128070; Click to flip to front</p>
                             </div>
                         </div>
                     </div>
@@ -203,10 +217,18 @@ $imageBasePath = $basePath;
     include __DIR__ . '/components/bottom_navbar.php';
     ?>
 
-    <!-- Fullscreen Image Modal -->
+    <!-- Fullscreen Image Modal (existing — untouched) -->
     <div id="imageModal" class="image-modal" onclick="closeFullscreen()">
         <span class="modal-close">&times;</span>
         <img class="modal-content" id="modalImage">
+    </div>
+
+    <!-- ── Profile Zoom Modal (NEW) ── -->
+    <div id="profileZoomModal" class="profile-zoom-modal" role="dialog" aria-modal="true" aria-label="Profile photo">
+        <div class="profile-zoom-inner">
+            <button class="profile-zoom-close" onclick="closeProfileZoom()" aria-label="Close">&times;</button>
+            <!-- filled dynamically by JS -->
+        </div>
     </div>
 
     <!-- Live Bus Tracker Modal -->
