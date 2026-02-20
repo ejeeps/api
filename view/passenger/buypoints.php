@@ -44,7 +44,6 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
     <style>
         .balance-card {
             background: linear-gradient(135deg, var(--primary-color) 0%, #2c3e50 100%);
-            border-radius: 16px;
             padding: 25px;
             margin-bottom: 30px;
             color: white;
@@ -81,7 +80,6 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
         .amount-option {
             padding: 20px;
             border: 2px solid #e9ecef;
-            border-radius: 12px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -220,7 +218,6 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
         .payment-method {
             padding: 15px;
             border: 2px solid #e9ecef;
-            border-radius: 12px;
             margin-bottom: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -242,7 +239,6 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
         .payment-icon {
             width: 50px;
             height: 50px;
-            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -293,7 +289,6 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
             background-color: #f8f9fa;
             border-left: 4px solid var(--primary-color);
             padding: 15px;
-            border-radius: 8px;
             margin-bottom: 25px;
         }
 
@@ -511,7 +506,7 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
                 <!-- Form Actions -->
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
-                        <i class="fas fa-shield-alt"></i> Pay Securely with PayMongo
+                        <i class="fas fa-shield-alt"></i> Pay Securely with Ejeeps
                     </button>
                     <a href="<?php echo isset($dashboard_view) ? 'index.php' : '../../view/passenger/dashboard.php'; ?>" class="btn btn-secondary">Cancel</a>
                 </div>
