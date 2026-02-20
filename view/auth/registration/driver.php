@@ -49,6 +49,50 @@
         @keyframes btn-spin {
             to { transform: rotate(360deg); }
         }
+
+        /* ── Password visibility toggle ── */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-wrapper .form-input {
+            /* leave room for the toggle button */
+            padding-right: 2.75rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 0.65rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            padding: 0.25rem;
+            cursor: pointer;
+            color: #6b7280;          /* neutral grey – matches common form icon colour */
+            line-height: 0;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease;
+            /* keep the button out of the tab order flow but still focusable */
+            flex-shrink: 0;
+        }
+        .password-toggle:hover,
+        .password-toggle:focus-visible {
+            color: #111827;          /* darken on hover / keyboard focus */
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
+        }
+        .password-toggle svg {
+            width: 1.2rem;
+            height: 1.2rem;
+            pointer-events: none;
+        }
+        /* hide the "eye-off" icon by default; show when data-visible="true" */
+        .password-toggle .icon-eye-off { display: none; }
+        .password-toggle[data-visible="true"] .icon-eye     { display: none; }
+        .password-toggle[data-visible="true"] .icon-eye-off { display: block; }
     </style>
 </head>
 <body>
@@ -132,17 +176,66 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="email" class="form-label">Email Address <span class="required">*</span></label>
-                            <input type="email" id="email" name="email" class="form-input" required>
+                            <input type="email" id="email" name="email" placeholder="Input email address" class="form-input" required>
                         </div>
+
+                        <!-- Password with eye toggle -->
                         <div class="form-group">
                             <label for="password" class="form-label">Password <span class="required">*</span></label>
-                            <input type="password" id="password" name="password" class="form-input" required minlength="8">
+                            <div class="password-wrapper">
+                                <input type="password" id="password" name="password" placeholder="Input Password" class="form-input" required minlength="8" autocomplete="new-password">
+                                <button type="button"
+                                        class="password-toggle"
+                                        aria-label="Show password"
+                                        aria-controls="password"
+                                        data-visible="false">
+                                    <!-- Eye icon (password hidden) -->
+                                    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                         aria-hidden="true" focusable="false">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    <!-- Eye-off icon (password visible) -->
+                                    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                         aria-hidden="true" focusable="false">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                        <line x1="1" y1="1" x2="23" y2="23"/>
+                                    </svg>
+                                </button>
+                            </div>
                             <small class="form-hint">Minimum 8 characters</small>
                         </div>
+
+                        <!-- Confirm Password with eye toggle -->
                         <div class="form-group">
                             <label for="confirm_password" class="form-label">Confirm Password <span class="required">*</span></label>
-                            <input type="password" id="confirm_password" name="confirm_password" class="form-input" required>
+                            <div class="password-wrapper">
+                                <input type="password" id="confirm_password" name="confirm_password" placeholder="Input confirmed password" class="form-input" required autocomplete="new-password">
+                                <button type="button"
+                                        class="password-toggle"
+                                        aria-label="Show confirm password"
+                                        aria-controls="confirm_password"
+                                        data-visible="false">
+                                    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                         aria-hidden="true" focusable="false">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                         aria-hidden="true" focusable="false">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                        <line x1="1" y1="1" x2="23" y2="23"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
+
                     </div>
                 </div>
 
@@ -293,8 +386,58 @@
     </div>
 
 <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/driver/reg_driver.js"></script>
+
+<!-- ── Password visibility toggle (Register page only) ── -->
 <script>
-// Submit Registration button loading state
+(function () {
+    'use strict';
+
+    /**
+     * Toggles a single password field between hidden and visible,
+     * and keeps the toggle button's aria-label + data-visible in sync.
+     *
+     * @param {HTMLButtonElement} btn   The toggle button element
+     */
+    function initPasswordToggle(btn) {
+        var targetId = btn.getAttribute('aria-controls');
+        var input    = targetId ? document.getElementById(targetId) : null;
+
+        if (!input) {
+            console.warn('[password-toggle] No input found for aria-controls="' + targetId + '"');
+            return;
+        }
+
+        btn.addEventListener('click', function () {
+            var isVisible = btn.getAttribute('data-visible') === 'true';
+
+            if (isVisible) {
+                // Hide the password
+                input.type = 'password';
+                btn.setAttribute('data-visible', 'false');
+                btn.setAttribute('aria-label', btn.getAttribute('aria-label').replace('Hide', 'Show'));
+            } else {
+                // Reveal the password
+                input.type = 'text';
+                btn.setAttribute('data-visible', 'true');
+                btn.setAttribute('aria-label', btn.getAttribute('aria-label').replace('Show', 'Hide'));
+            }
+
+            // Return focus to the input so screen-reader users hear the updated value
+            input.focus();
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var toggles = document.querySelectorAll('#driverRegistrationForm .password-toggle');
+        toggles.forEach(function (btn) {
+            initPasswordToggle(btn);
+        });
+    });
+}());
+</script>
+
+<!-- ── Submit button loading state ── -->
+<script>
 (function() {
     document.addEventListener('DOMContentLoaded', function() {
         var form = document.getElementById('driverRegistrationForm');
@@ -303,12 +446,11 @@
         if (!btn) return;
 
         form.addEventListener('submit', function() {
-            if (btn.dataset.loading === '1') return; // prevent duplicate changes
+            if (btn.dataset.loading === '1') return;
             btn.dataset.loading = '1';
             btn.classList.add('loading');
             btn.setAttribute('aria-busy', 'true');
             btn.disabled = true;
-            // Fix width to avoid layout shift during loading
             var w = btn.offsetWidth;
             btn.style.width = w + 'px';
             btn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Processing...</span>';
@@ -316,8 +458,9 @@
     });
 })();
 </script>
+
+<!-- ── Mobile Menu Toggle ── -->
 <script>
-    // Mobile Menu Toggle
     document.addEventListener('DOMContentLoaded', function() {
         const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
         const navLinks = document.querySelector('.nav-links');
@@ -330,7 +473,6 @@
                 body.classList.toggle('menu-open');
             });
 
-            // Close menu when clicking on a link
             const navLinkItems = navLinks.querySelectorAll('.nav-link');
             navLinkItems.forEach(link => {
                 link.addEventListener('click', function() {
@@ -340,7 +482,6 @@
                 });
             });
 
-            // Close menu when clicking outside
             document.addEventListener('click', function(event) {
                 const isClickInsideMenu = navLinks.contains(event.target);
                 const isClickOnToggle = mobileMenuToggle.contains(event.target);
@@ -352,7 +493,6 @@
                 }
             });
 
-            // Close menu on window resize to desktop
             window.addEventListener('resize', function() {
                 if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
                     mobileMenuToggle.classList.remove('active');

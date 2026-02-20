@@ -51,6 +51,91 @@ try {
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/dashboard.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+        /* ── Profile Zoom Modal ── */
+        .profile-zoom-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99998;
+            background: rgba(0, 0, 0, 0.82);
+            align-items: center;
+            justify-content: center;
+            animation: profileFadeIn .2s ease;
+        }
+        .profile-zoom-modal.open {
+            display: flex;
+        }
+        @keyframes profileFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .profile-zoom-inner {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .profile-zoom-img {
+            width: min(320px, 80vw);
+            height: min(320px, 80vw);
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 32px rgba(0,0,0,.5);
+            animation: profileZoomIn .25s cubic-bezier(.34,1.56,.64,1);
+        }
+        @keyframes profileZoomIn {
+            from { transform: scale(.6); opacity: 0; }
+            to   { transform: scale(1);  opacity: 1; }
+        }
+        .profile-zoom-placeholder {
+            width: min(280px, 72vw);
+            height: min(280px, 72vw);
+            border-radius: 50%;
+            background: #16a34a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(72px, 18vw, 120px);
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 4px;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 32px rgba(0,0,0,.5);
+            animation: profileZoomIn .25s cubic-bezier(.34,1.56,.64,1);
+        }
+        .profile-zoom-close {
+            position: absolute;
+            top: -48px;
+            right: -8px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 36px;
+            line-height: 1;
+            cursor: pointer;
+            opacity: .85;
+            transition: opacity .15s;
+        }
+        .profile-zoom-close:hover { opacity: 1; }
+        .profile-zoom-name {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: .5px;
+            text-shadow: 0 2px 8px rgba(0,0,0,.4);
+        }
+        .dashboard-profile-image .profile-avatar,
+        .dashboard-profile-image .profile-avatar-placeholder {
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .dashboard-profile-image .profile-avatar:hover,
+        .dashboard-profile-image .profile-avatar-placeholder:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 16px rgba(0,0,0,.25);
+        }
+
         .transaction-card {
             background: var(--bg-white);
             border-radius: 12px;
@@ -223,10 +308,14 @@ try {
                 <p class="dashboard-subtitle">View your E-JEEP card transactions</p>
             </div>
             <div class="dashboard-profile-image">
+                <?php
+                    $fullName = htmlspecialchars($passengerInfo['first_name'] . ' ' . $passengerInfo['last_name']);
+                    $initials = strtoupper(substr($passengerInfo['first_name'], 0, 1) . substr($passengerInfo['last_name'], 0, 1));
+                ?>
                 <?php if (!empty($passengerInfo['profile_image']) && file_exists($imageBasePath . $passengerInfo['profile_image'])): ?>
-                    <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['profile_image']); ?>" alt="Profile" class="profile-avatar">
+                    <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['profile_image']); ?>" alt="Profile" class="profile-avatar" title="Click to view profile photo" onclick="openProfileZoom('img', '<?php echo htmlspecialchars($imageBasePath . $passengerInfo['profile_image']); ?>', '<?php echo $fullName; ?>')">
                 <?php else: ?>
-                    <div class="profile-avatar-placeholder">
+                    <div class="profile-avatar-placeholder" title="Click to view profile" onclick="openProfileZoom('initials', '<?php echo $initials; ?>', '<?php echo $fullName; ?>')">
                         <?php echo strtoupper(substr($passengerInfo['first_name'], 0, 1) . substr($passengerInfo['last_name'], 0, 1)); ?>
                     </div>
                 <?php endif; ?>
@@ -308,7 +397,61 @@ try {
     include __DIR__ . '/components/bottom_navbar.php';
     ?>
 
+    <!-- Profile Zoom Modal -->
+    <div id="profileZoomModal" class="profile-zoom-modal" role="dialog" aria-modal="true" aria-label="Profile photo">
+        <div class="profile-zoom-inner">
+            <button class="profile-zoom-close" onclick="closeProfileZoom()" aria-label="Close">&times;</button>
+        </div>
+    </div>
+
     <script>
+        // ── Profile Zoom Feature ──────────────────────────────────────────────
+        function openProfileZoom(type, value, name) {
+            var modal    = document.getElementById('profileZoomModal');
+            var inner    = modal.querySelector('.profile-zoom-inner');
+            var closeBtn = inner.querySelector('.profile-zoom-close');
+            inner.innerHTML = '';
+            inner.appendChild(closeBtn);
+            if (type === 'img') {
+                var img       = document.createElement('img');
+                img.src       = value;
+                img.alt       = name || 'Profile Photo';
+                img.className = 'profile-zoom-img';
+                inner.appendChild(img);
+            } else {
+                var ph         = document.createElement('div');
+                ph.className   = 'profile-zoom-placeholder';
+                ph.textContent = value;
+                inner.appendChild(ph);
+            }
+            if (name) {
+                var nameEl         = document.createElement('div');
+                nameEl.className   = 'profile-zoom-name';
+                nameEl.textContent = name;
+                inner.appendChild(nameEl);
+            }
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProfileZoom() {
+            document.getElementById('profileZoomModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var pModal = document.getElementById('profileZoomModal');
+            if (pModal) {
+                pModal.addEventListener('click', function (e) {
+                    if (e.target === pModal) closeProfileZoom();
+                });
+            }
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && pModal && pModal.classList.contains('open')) closeProfileZoom();
+            });
+        });
+        // ─────────────────────────────────────────────────────────────────────
+
         function filterTransactions(type) {
             // Update active tab
             document.querySelectorAll('.filter-tab').forEach(tab => {
@@ -347,4 +490,3 @@ try {
     </script>
 </body>
 </html>
-

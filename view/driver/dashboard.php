@@ -63,7 +63,6 @@ $imageBasePath = $basePath;
         .profile-zoom-img {
             width: min(320px, 80vw);
             height: min(320px, 80vw);
-            border-radius: 50%;
             object-fit: cover;
             border: 4px solid #fff;
             box-shadow: 0 8px 32px rgba(0,0,0,.5);
