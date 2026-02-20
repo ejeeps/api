@@ -477,53 +477,6 @@ $imageBasePath = $basePath;
         <i class="fas fa-location-arrow"></i>
     </button>
 
-    <!-- ══════════════════════════════════════════
-         LOGOUT CONFIRMATION MODAL
-         — placed just before </body> so it renders
-           on top of all other page content
-    ══════════════════════════════════════════ -->
-    <div class="logout-modal-overlay"
-         id="logoutModalOverlay"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="logoutModalTitle">
-
-        <div class="logout-modal-box">
-
-            <!-- ✕ top-right close button -->
-            <button class="logout-modal-close-x" id="logoutModalCloseX" aria-label="Close dialog">
-                <i class="fas fa-times"></i>
-            </button>
-
-            <!-- Warning icon -->
-            <div class="logout-modal-icon">
-                <i class="fas fa-sign-out-alt"></i>
-            </div>
-
-            <!-- Heading & description -->
-            <h3 id="logoutModalTitle">Logout Confirmation</h3>
-            <p>
-                Are you sure you want to logout of your<br>
-                <strong>E-JEEP account</strong>?<br>
-                <span style="font-size:.82rem;">
-                    You will need to login again to access your dashboard.
-                </span>
-            </p>
-
-            <!-- Action buttons -->
-            <div class="logout-modal-actions">
-                <button class="btn-logout-cancel"  id="logoutCancelBtn"  type="button">
-                    <i class="fas fa-times"          style="margin-right:6px;"></i>Cancel
-                </button>
-                <button class="btn-logout-confirm" id="logoutConfirmBtn" type="button">
-                    <i class="fas fa-sign-out-alt"  style="margin-right:6px;"></i>Yes, Logout
-                </button>
-            </div>
-
-        </div>
-    </div>
-    <!-- END LOGOUT MODAL -->
-
     <!-- Leaflet JS and live tracker -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
