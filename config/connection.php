@@ -2,7 +2,7 @@
 // Detect environment
 $isLocal = in_array($_SERVER['SERVER_NAME'], [
     'localhost',
-    '192.168.0.103',
+    '192.168.102.212',
     '127.0.0.1'
 ]);
 

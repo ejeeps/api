@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS cards (
     
     -- Card Identification
     card_id_number VARCHAR(50) NOT NULL UNIQUE COMMENT 'Unique card identification number',
+    card_id_content VARCHAR(50) DEFAULT NULL COMMENT 'Content of the card id number',
     card_type ENUM('driver','student', 'senior', 'regular', 'employee', 'special','admin') DEFAULT 'regular' COMMENT 'Type of card',
     
     -- Card Status
