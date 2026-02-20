@@ -95,8 +95,15 @@ $imageBasePath = $basePath;
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: background 0.2s, color 0.2s;
+            gap: 16px;
+        }
+        .profile-zoom-img {
+            width: min(320px, 80vw);
+            height: min(320px, 80vw);
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 32px rgba(0,0,0,.5);
+            animation: profileZoomIn .25s cubic-bezier(.34,1.56,.64,1);
         }
 
         .logout-modal-close-x:hover {
