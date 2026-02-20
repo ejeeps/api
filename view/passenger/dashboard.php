@@ -41,6 +41,234 @@ $imageBasePath = $basePath;
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <style>
+        /* ── Profile Zoom Modal ── */
+        .profile-zoom-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99998;
+            background: rgba(0, 0, 0, 0.82);
+            align-items: center;
+            justify-content: center;
+            animation: profileFadeIn .2s ease;
+        }
+        .profile-zoom-modal.open {
+            display: flex;
+        }
+        @keyframes profileFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .profile-zoom-inner {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .profile-zoom-img {
+            width: min(320px, 80vw);
+            height: min(320px, 80vw);
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 32px rgba(0,0,0,.5);
+            animation: profileZoomIn .25s cubic-bezier(.34,1.56,.64,1);
+        }
+        @keyframes profileZoomIn {
+            from { transform: scale(.6); opacity: 0; }
+            to   { transform: scale(1);  opacity: 1; }
+        }
+        .profile-zoom-placeholder {
+            width: min(280px, 72vw);
+            height: min(280px, 72vw);
+            border-radius: 50%;
+            background: #16a34a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(72px, 18vw, 120px);
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 4px;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 32px rgba(0,0,0,.5);
+            animation: profileZoomIn .25s cubic-bezier(.34,1.56,.64,1);
+        }
+        .profile-zoom-close {
+            position: absolute;
+            top: -48px;
+            right: -8px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 36px;
+            line-height: 1;
+            cursor: pointer;
+            opacity: .85;
+            transition: opacity .15s;
+        }
+        .profile-zoom-close:hover { opacity: 1; }
+        .profile-zoom-name {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: .5px;
+            text-shadow: 0 2px 8px rgba(0,0,0,.4);
+        }
+
+        /* Make profile avatar clickable */
+        .dashboard-profile-image .profile-avatar,
+        .dashboard-profile-image .profile-avatar-placeholder {
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .dashboard-profile-image .profile-avatar:hover,
+        .dashboard-profile-image .profile-avatar-placeholder:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 16px rgba(0,0,0,.25);
+        }
+
+        /* ── Logout Modal ── */
+
+        /* Backdrop overlay */
+        .logout-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-modal-overlay.active {
+            display: flex;
+        }
+
+        /* Modal card */
+        .logout-modal-box {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 40px 36px 32px;
+            width: 92%;
+            max-width: 420px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            position: relative;
+            animation: logoutModalPop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes logoutModalPop {
+            from { opacity: 0; transform: scale(0.88) translateY(20px); }
+            to   { opacity: 1; transform: scale(1)   translateY(0);     }
+        }
+
+        /* X Close button */
+        .logout-modal-close-x {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            background: #f4f7f5;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #718096;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-modal-close-x:hover {
+            background: #e2e8f0;
+            color: #1a202c;
+        }
+
+        /* Red icon circle */
+        .logout-modal-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #fff3f3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.8rem;
+            color: #e53e3e;
+        }
+
+        .logout-modal-box h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0 0 10px;
+        }
+
+        .logout-modal-box p {
+            font-size: 0.93rem;
+            color: #718096;
+            line-height: 1.65;
+            margin: 0 0 28px;
+        }
+
+        /* Buttons row */
+        .logout-modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .logout-modal-actions button {
+            flex: 1;
+            padding: 13px 18px;
+            border-radius: 12px;
+            font-size: 0.93rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .logout-modal-actions button:active {
+            transform: scale(0.97);
+        }
+
+        /* Cancel — grey */
+        .btn-logout-cancel {
+            background: #f4f7f5;
+            color: #1a202c;
+            border: 1.5px solid #e2e8f0 !important;
+        }
+
+        .btn-logout-cancel:hover {
+            background: #e2e8f0;
+        }
+
+        /* Confirm — red */
+        .btn-logout-confirm {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(229, 62, 62, 0.30);
+        }
+
+        .btn-logout-confirm:hover {
+            box-shadow: 0 6px 20px rgba(229, 62, 62, 0.45);
+            filter: brightness(1.06);
+        }
+
+        .btn-logout-confirm:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            filter: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -223,11 +451,11 @@ $imageBasePath = $basePath;
         <img class="modal-content" id="modalImage">
     </div>
 
-    <!-- ── Profile Zoom Modal (NEW) ── -->
+    <!-- ── Profile Zoom Modal ── -->
     <div id="profileZoomModal" class="profile-zoom-modal" role="dialog" aria-modal="true" aria-label="Profile photo">
         <div class="profile-zoom-inner">
             <button class="profile-zoom-close" onclick="closeProfileZoom()" aria-label="Close">&times;</button>
-            <!-- filled dynamically by JS -->
+            <!-- Content filled dynamically by JS -->
         </div>
     </div>
 
@@ -256,7 +484,65 @@ $imageBasePath = $basePath;
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/dashboard.js"></script>
 
     <script>
-      // ── Live Bus Tracker modal ──────────────────────────────────────────────
+      // ── Profile Zoom Feature ──────────────────────────────────────────────
+      function openProfileZoom(type, value, name) {
+        var modal    = document.getElementById('profileZoomModal');
+        var inner    = modal.querySelector('.profile-zoom-inner');
+        var closeBtn = inner.querySelector('.profile-zoom-close');
+
+        // Clear previous dynamic content, keep the close button
+        inner.innerHTML = '';
+        inner.appendChild(closeBtn);
+
+        if (type === 'img') {
+          var img       = document.createElement('img');
+          img.src       = value;
+          img.alt       = name || 'Profile Photo';
+          img.className = 'profile-zoom-img';
+          inner.appendChild(img);
+        } else {
+          // Initials placeholder
+          var ph           = document.createElement('div');
+          ph.className     = 'profile-zoom-placeholder';
+          ph.textContent   = value;
+          inner.appendChild(ph);
+        }
+
+        if (name) {
+          var nameEl           = document.createElement('div');
+          nameEl.className     = 'profile-zoom-name';
+          nameEl.textContent   = name;
+          inner.appendChild(nameEl);
+        }
+
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeProfileZoom() {
+        document.getElementById('profileZoomModal').classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        var profileModal = document.getElementById('profileZoomModal');
+        if (profileModal) {
+          // Click on dark backdrop closes modal
+          profileModal.addEventListener('click', function (e) {
+            if (e.target === profileModal) closeProfileZoom();
+          });
+        }
+        // ESC closes profile zoom (logout ESC is handled in its own IIFE)
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') {
+            var pModal = document.getElementById('profileZoomModal');
+            if (pModal && pModal.classList.contains('open')) closeProfileZoom();
+          }
+        });
+      });
+      // ─────────────────────────────────────────────────────────────────────
+
+      // ── Live Bus Tracker modal ────────────────────────────────────────────
       (function () {
         document.addEventListener('DOMContentLoaded', function () {
           var btn      = document.getElementById('floatingTrackBtn');
@@ -281,6 +567,72 @@ $imageBasePath = $basePath;
             if (ev.key === 'Escape' && modal.classList.contains('open')) closeTracker();
           });
         });
+      })();
+
+      // ── Logout Confirmation Modal ─────────────────────────────────────────
+      (function () {
+        'use strict';
+
+        var pendingLogoutUrl = '';   // set when a trigger is clicked
+
+        var overlay    = document.getElementById('logoutModalOverlay');
+        var cancelBtn  = document.getElementById('logoutCancelBtn');
+        var confirmBtn = document.getElementById('logoutConfirmBtn');
+        var closeXBtn  = document.getElementById('logoutModalCloseX');
+
+        /** Show the modal */
+        function openLogoutModal(url) {
+          pendingLogoutUrl = url;
+          overlay.classList.add('active');
+          document.body.style.overflow = 'hidden';
+          cancelBtn.focus();
+        }
+
+        /** Hide the modal */
+        function closeLogoutModal() {
+          overlay.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+
+        /** Redirect to logout endpoint */
+        function doLogout() {
+          confirmBtn.disabled = true;
+          confirmBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Logging out…';
+          window.location.href = pendingLogoutUrl;
+        }
+
+        // Attach to all [data-logout-trigger] elements on the page.
+        // Reads data-logout-url from each trigger so the correct
+        // LogoutController.php path is used regardless of $basePath.
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('[data-logout-trigger]').forEach(function (el) {
+            el.addEventListener('click', function (e) {
+              e.preventDefault();
+              var url = el.getAttribute('data-logout-url') ||
+                        '<?php echo htmlspecialchars($basePath); ?>controller/auth/LogoutController.php';
+              openLogoutModal(url);
+            });
+          });
+        });
+
+        // Button listeners
+        cancelBtn.addEventListener('click',  closeLogoutModal);
+        closeXBtn.addEventListener('click',  closeLogoutModal);
+        confirmBtn.addEventListener('click', doLogout);
+
+        // Click on the dim backdrop → close
+        overlay.addEventListener('click', function (e) {
+          if (e.target === overlay) closeLogoutModal();
+        });
+
+        // Escape key → close
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && overlay.classList.contains('active')) {
+            closeLogoutModal();
+          }
+        });
+
       })();
     </script>
 </body>
