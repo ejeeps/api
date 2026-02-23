@@ -169,7 +169,7 @@ $dashboard_view = $dashboard_view ?? false;
 }
 .logout-modal-actions button {
     flex:1;
-    padding:20px;
+    padding:10px;
     border-radius:12px;
     font-weight:600;
     cursor:pointer;
