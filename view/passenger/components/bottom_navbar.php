@@ -114,7 +114,6 @@ $dashboard_view = $dashboard_view ?? false;
 }
 .logout-modal-box {
     background: #ffffff;
-    border-radius: 20px;
     padding: 40px 36px 50px;
     width: 92%;
     max-width: 420px;
@@ -170,7 +169,6 @@ $dashboard_view = $dashboard_view ?? false;
 .logout-modal-actions button {
     flex:1;
     padding:10px;
-    border-radius:12px;
     font-weight:600;
     cursor:pointer;
     border:none;
