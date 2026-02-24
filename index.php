@@ -344,6 +344,10 @@ if ($register === 'passenger') {
                     <h3>E-JEEP</h3>
                     <p>Modern Transportation, Cashless Payments</p>
                     <p>&copy; 2026 E-JEEP. All rights reserved.</p>
+                    <p class="footer-links">
+                        <a href="view/legal/privacy.php">Privacy Policy</a> | 
+                        <a href="view/legal/terms.php">Terms of Service</a>
+                    </p>
                 </div>
             </div>
         </div>
