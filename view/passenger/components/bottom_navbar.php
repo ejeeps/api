@@ -8,9 +8,6 @@ $basePath = $basePath ?? '../../';
 $dashboard_view = $dashboard_view ?? false;
 ?>
 
-<!-- ═══════════════════════════════════════
-     BOTTOM NAVIGATION BAR
-═════════════════════════════════════════ -->
 <nav class="bottom-navbar">
     <div class="bottom-nav-container">
 
