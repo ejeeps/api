@@ -51,9 +51,6 @@ $dashboard_view = $dashboard_view ?? false;
 </nav>
 
 
-<!-- ═══════════════════════════════════════
-     LOGOUT CONFIRMATION MODAL
-═════════════════════════════════════════ -->
 <div class="logout-modal-overlay"
      id="logoutModalOverlay"
      role="dialog"
@@ -95,9 +92,7 @@ $dashboard_view = $dashboard_view ?? false;
 </div>
 
 
-<!-- ═══════════════════════════════════════
-     LOGOUT MODAL CSS
-═════════════════════════════════════════ -->
+
 <style>
 .logout-modal-overlay {
     display: none;
