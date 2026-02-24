@@ -1,0 +1,36 @@
+{
+    "short_name": "E-JEEP",
+    "name": "E-JEEP - Modern Transportation",
+    "description": "Cashless payment system for jeepney transportation",
+    "icons": [
+        {
+            "src": "assets/icons/icon-192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "assets/icons/icon-512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        },
+        {
+            "src": "assets/icons/icon-192-maskable.png",
+            "type": "image/png",
+            "sizes": "192x192",
+            "purpose": "maskable"
+        }
+    ],
+    "start_url": "/api/index.php?source=pwa",
+    "background_color": "#16a34a",
+    "display": "standalone",
+    "scope": "/api/",
+    "theme_color": "#16a34a",
+    "orientation": "portrait",
+    "categories": [
+        "transportation",
+        "finance",
+        "utilities"
+    ],
+    "lang": "en",
+    "dir": "ltr"
+}

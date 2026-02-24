@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#16a34a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="E-JEEP">
+    <meta name="description" content="E-JEEP Passenger Registration">
     <title>Passenger Registration - E-JEEP</title>
     <?php
     // Get base path - works when included from index.php
@@ -26,8 +31,11 @@
         }
     }
     ?>
+    <link rel="manifest" href="<?php echo htmlspecialchars($basePath); ?>manifest.json">
+    <link rel="apple-touch-icon" href="<?php echo htmlspecialchars($basePath); ?>assets/icons/icon-192.png">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/index.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/driver.css">
+    <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
     <style>
         /* Loading state for Submit Registration button */
         .btn.btn-submit.loading {
