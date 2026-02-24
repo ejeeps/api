@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-JEEP Icon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #16a34a;
+        }
+
+        .icon-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon-preview img {
+            display: block;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .icon-preview span {
+            font-size: 12px;
+            color: #666;
+        }
+
+        button {
+            background: #16a34a;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+
+        button:hover {
+            background: #15803d;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #dcfce7;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>E-JEEP Icon Generator</h1>
+    <p>Click the button below to generate all PWA icon sizes from the SVG source.</p>
+
+    <button onclick="generateIcons()">Generate All Icons</button>
+
+    <div id="status"></div>
+    <div id="previews"></div>
+
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+
+        // SVG source - same as icon-source.svg
+        const svgSource = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <ellipse cx="256" cy="355" rx="180" ry="15" fill="#000000" opacity="0.15"/>
+  <circle cx="145" cy="320" r="38" fill="#1f2937"/>
+  <circle cx="145" cy="320" r="22" fill="#4b5563"/>
+  <circle cx="145" cy="320" r="12" fill="#9ca3af"/>
+  <circle cx="145" cy="320" r="5" fill="#d1d5db"/>
+  <circle cx="367" cy="320" r="38" fill="#1f2937"/>
+  <circle cx="367" cy="320" r="22" fill="#4b5563"/>
+  <circle cx="367" cy="320" r="12" fill="#9ca3af"/>
+  <circle cx="367" cy="320" r="5" fill="#d1d5db"/>
+  <path d="M85 295 L85 235 L100 220 L412 220 L427 235 L427 295 L410 295 L410 250 L102 250 L102 295 Z" fill="#15803d"/>
+  <path d="M100 220 L115 175 L397 175 L412 220 Z" fill="#16a34a"/>
+  <path d="M110 175 L125 145 L387 145 L402 175 Z" fill="#166534"/>
+  <path d="M120 178 L132 148 L380 148 L392 178 Z" fill="#14532d"/>
+  <path d="M128 172 L138 155 L374 155 L384 172 Z" fill="#bfdbfe"/>
+  <path d="M128 172 L138 155 L374 155 L384 172 Z" fill="#dbeafe" opacity="0.6"/>
+  <rect x="145" y="188" width="48" height="32" fill="#14532d"/>
+  <rect x="149" y="192" width="40" height="24" fill="#bfdbfe"/>
+  <rect x="149" y="192" width="40" height="24" fill="#dbeafe" opacity="0.5"/>
+  <rect x="203" y="188" width="48" height="32" fill="#14532d"/>
+  <rect x="207" y="192" width="40" height="24" fill="#bfdbfe"/>
+  <rect x="207" y="192" width="40" height="24" fill="#dbeafe" opacity="0.5"/>
+  <rect x="261" y="188" width="48" height="32" fill="#14532d"/>
+  <rect x="265" y="192" width="40" height="24" fill="#bfdbfe"/>
+  <rect x="265" y="192" width="40" height="24" fill="#dbeafe" opacity="0.5"/>
+  <rect x="319" y="188" width="48" height="32" fill="#14532d"/>
+  <rect x="323" y="192" width="40" height="24" fill="#bfdbfe"/>
+  <rect x="323" y="192" width="40" height="24" fill="#dbeafe" opacity="0.5"/>
+  <rect x="80" y="265" width="35" height="35" rx="4" fill="#374151"/>
+  <rect x="85" y="270" width="25" height="6" fill="#6b7280"/>
+  <rect x="85" y="279" width="25" height="6" fill="#6b7280"/>
+  <rect x="85" y="288" width="25" height="6" fill="#6b7280"/>
+  <circle cx="97" cy="250" r="12" fill="#fbbf24"/>
+  <circle cx="97" cy="250" r="8" fill="#fcd34d"/>
+  <circle cx="97" cy="250" r="4" fill="#fef3c7"/>
+  <circle cx="415" cy="250" r="10" fill="#ef4444"/>
+  <circle cx="415" cy="250" r="6" fill="#f87171"/>
+  <rect x="75" y="210" width="8" height="20" fill="#374151"/>
+  <ellipse cx="72" cy="215" rx="6" ry="10" fill="#4b5563"/>
+  <rect x="200" y="240" width="15" height="4" rx="2" fill="#374151"/>
+  <rect x="115" y="298" width="282" height="14" rx="3" fill="#374151"/>
+  <rect x="120" y="300" width="272" height="10" rx="2" fill="#4b5563"/>
+  <rect x="105" y="235" width="302" height="5" fill="#22c55e"/>
+  <rect x="105" y="237" width="302" height="2" fill="#4ade80"/>
+  <circle cx="110" cy="200" r="4" fill="#fbbf24"/>
+  <rect x="380" y="240" width="20" height="3" fill="#14532d"/>
+  <rect x="380" y="246" width="20" height="3" fill="#14532d"/>
+  <rect x="380" y="252" width="20" height="3" fill="#14532d"/>
+  <path d="M107 295 Q145 275 183 295" fill="none" stroke="#14532d" stroke-width="3"/>
+  <path d="M329 295 Q367 275 405 295" fill="none" stroke="#14532d" stroke-width="3"/>
+</svg>`;
+
+        async function generateIcons() {
+            const status = document.getElementById('status');
+            const previews = document.getElementById('previews');
+            status.style.display = 'block';
+            previews.innerHTML = '';
+
+            const generatedIcons = [];
+
+            for (const size of sizes) {
+                status.textContent = `Generating ${size}x${size} icon...`;
+
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                // Create image from SVG
+                const img = new Image();
+                const svgBlob = new Blob([svgSource], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(svgBlob);
+
+                await new Promise((resolve) => {
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0, size, size);
+                        URL.revokeObjectURL(url);
+                        resolve();
+                    };
+                    img.src = url;
+                });
+
+                // Convert to PNG
+                const pngUrl = canvas.toDataURL('image/png');
+                generatedIcons.push({ size, url: pngUrl });
+
+                // Show preview
+                const preview = document.createElement('div');
+                preview.className = 'icon-preview';
+                preview.innerHTML = `
+                    <img src="${pngUrl}" width="${Math.min(size, 100)}" height="${Math.min(size, 100)}" alt="${size}x${size}">
+                    <span>${size}x${size}</span>
+                `;
+                previews.appendChild(preview);
+            }
+
+            status.innerHTML = `
+                <strong>Icons generated successfully!</strong><br><br>
+                To save the icons, right-click each preview and select "Save image as..."<br>
+                Save them with these filenames in the <code>assets/icons/</code> folder:<br>
+                <ul style="margin-top: 10px; text-align: left; display: inline-block;">
+                    ${sizes.map(s => `<li>icon-${s}x${s}.png</li>`).join('')}
+                </ul>
+            `;
+        }
+    </script>
+</body>
+
+</html>

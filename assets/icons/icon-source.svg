@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  
+  <!-- Realistic Jeepney Illustration -->
+  
+  <!-- Shadow underneath -->
+  <ellipse cx="256" cy="355" rx="180" ry="15" fill="#000000" opacity="0.15"/>
+  
+  <!-- Rear wheel (left) - behind body -->
+  <circle cx="145" cy="320" r="38" fill="#1f2937"/>
+  <circle cx="145" cy="320" r="22" fill="#4b5563"/>
+  <circle cx="145" cy="320" r="12" fill="#9ca3af"/>
+  <circle cx="145" cy="320" r="5" fill="#d1d5db"/>
+  
+  <!-- Front wheel (right) - behind body -->
+  <circle cx="367" cy="320" r="38" fill="#1f2937"/>
+  <circle cx="367" cy="320" r="22" fill="#4b5563"/>
+  <circle cx="367" cy="320" r="12" fill="#9ca3af"/>
+  <circle cx="367" cy="320" r="5" fill="#d1d5db"/>
+  
+  <!-- Main body - lower section (darker green) -->
+  <path d="M85 295 L85 235 L100 220 L412 220 L427 235 L427 295 L410 295 L410 250 L102 250 L102 295 Z" fill="#15803d"/>
+  
+  <!-- Main body - upper section (lighter green) -->
+  <path d="M100 220 L115 175 L397 175 L412 220 Z" fill="#16a34a"/>
+  
+  <!-- Roof -->
+  <path d="M110 175 L125 145 L387 145 L402 175 Z" fill="#166534"/>
+  
+  <!-- Windshield frame -->
+  <path d="M120 178 L132 148 L380 148 L392 178 Z" fill="#14532d"/>
+  
+  <!-- Windshield glass -->
+  <path d="M128 172 L138 155 L374 155 L384 172 Z" fill="#bfdbfe"/>
+  <path d="M128 172 L138 155 L374 155 L384 172 Z" fill="#dbeafe" opacity="0.6"/>
+  
+  <!-- Side windows with frames -->
+  <!-- Window 1 -->
+  <rect x="145" y="188" width="48" height="32" fill="#14532d"/>
+  <rect x="149" y="192" width="40" height="24" fill="#bfdbfe"/>
+  <rect x="149" y="192" width="40" height="24" fill="#dbeafe" opacity="0.5"/>
+  
+  <!-- Window 2 -->
+  <rect x="203" y="188" width="48" height="32" fill="#14532d"/>
+  <rect x="207" y="192" width="40" height="24" fill="#bfdbfe"/>
+  <rect x="207" y="192" width="40" height="24" fill="#dbeafe" opacity="0.5"/>
+  
+  <!-- Window 3 -->
+  <rect x="261" y="188" width="48" height="32" fill="#14532d"/>
+  <rect x="265" y="192" width="40" height="24" fill="#bfdbfe"/>
+  <rect x="265" y="192" width="40" height="24" fill="#dbeafe" opacity="0.5"/>
+  
+  <!-- Window 4 -->
+  <rect x="319" y="188" width="48" height="32" fill="#14532d"/>
+  <rect x="323" y="192" width="40" height="24" fill="#bfdbfe"/>
+  <rect x="323" y="192" width="40" height="24" fill="#dbeafe" opacity="0.5"/>
+  
+  <!-- Front grill/bumper area -->
+  <rect x="80" y="265" width="35" height="35" rx="4" fill="#374151"/>
+  <rect x="85" y="270" width="25" height="6" fill="#6b7280"/>
+  <rect x="85" y="279" width="25" height="6" fill="#6b7280"/>
+  <rect x="85" y="288" width="25" height="6" fill="#6b7280"/>
+  
+  <!-- Headlights with glow effect -->
+  <circle cx="97" cy="250" r="12" fill="#fbbf24"/>
+  <circle cx="97" cy="250" r="8" fill="#fcd34d"/>
+  <circle cx="97" cy="250" r="4" fill="#fef3c7"/>
+  
+  <!-- Taillight -->
+  <circle cx="415" cy="250" r="10" fill="#ef4444"/>
+  <circle cx="415" cy="250" r="6" fill="#f87171"/>
+  
+  <!-- Side mirror -->
+  <rect x="75" y="210" width="8" height="20" fill="#374151"/>
+  <ellipse cx="72" cy="215" rx="6" ry="10" fill="#4b5563"/>
+  
+  <!-- Door handle -->
+  <rect x="200" y="240" width="15" height="4" rx="2" fill="#374151"/>
+  
+  <!-- Running board/step -->
+  <rect x="115" y="298" width="282" height="14" rx="3" fill="#374151"/>
+  <rect x="120" y="300" width="272" height="10" rx="2" fill="#4b5563"/>
+  
+  <!-- Decorative chrome strip -->
+  <rect x="105" y="235" width="302" height="5" fill="#22c55e"/>
+  <rect x="105" y="237" width="302" height="2" fill="#4ade80"/>
+  
+  <!-- Hood ornament/detail -->
+  <circle cx="110" cy="200" r="4" fill="#fbbf24"/>
+  
+  <!-- Side vent details -->
+  <rect x="380" y="240" width="20" height="3" fill="#14532d"/>
+  <rect x="380" y="246" width="20" height="3" fill="#14532d"/>
+  <rect x="380" y="252" width="20" height="3" fill="#14532d"/>
+  
+  <!-- Wheel wells -->
+  <path d="M107 295 Q145 275 183 295" fill="none" stroke="#14532d" stroke-width="3"/>
+  <path d="M329 295 Q367 275 405 295" fill="none" stroke="#14532d" stroke-width="3"/>
+</svg>
