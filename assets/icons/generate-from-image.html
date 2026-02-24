@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-JEEP Icon Generator from Image</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #16a34a;
+        }
+
+        .source-preview {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .source-preview img {
+            max-width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .source-preview p {
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .icon-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon-preview img {
+            display: block;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .icon-preview span {
+            font-size: 12px;
+            color: #666;
+        }
+
+        button {
+            background: #16a34a;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+
+        button:hover {
+            background: #15803d;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #dcfce7;
+            border-radius: 8px;
+            display: none;
+        }
+
+        #status.error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .download-all {
+            margin-top: 20px;
+            padding: 15px;
+            background: #dbeafe;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .download-all button {
+            background: #2563eb;
+            margin: 5px;
+        }
+
+        .download-all button:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>E-JEEP Icon Generator from Image</h1>
+    <p>Click the button below to generate all PWA icon sizes from the source image.</p>
+
+    <div class="source-preview">
+        <img id="sourceImage" src="images/login-bg.png" alt="Source Icon">
+        <p>Source: icon-512x512.png</p>
+    </div>
+
+    <button id="generateBtn" onclick="generateIcons()">Generate All Icons</button>
+
+    <div id="status"></div>
+    <div id="previews"></div>
+    <div id="downloads"></div>
+
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const sourceImagePath = 'icon-512x512.png';
+
+        async function generateIcons() {
+            const status = document.getElementById('status');
+            const previews = document.getElementById('previews');
+            const downloads = document.getElementById('downloads');
+            const btn = document.getElementById('generateBtn');
+
+            status.style.display = 'block';
+            status.className = '';
+            previews.innerHTML = '';
+            downloads.innerHTML = '';
+            btn.disabled = true;
+
+            const generatedIcons = [];
+
+            // Load source image
+            const sourceImg = new Image();
+            sourceImg.crossOrigin = 'anonymous';
+
+            try {
+                await new Promise((resolve, reject) => {
+                    sourceImg.onload = resolve;
+                    sourceImg.onerror = () => reject(new Error('Failed to load source image'));
+                    sourceImg.src = sourceImagePath;
+                });
+
+                for (const size of sizes) {
+                    status.textContent = `Generating ${size}x${size} icon...`;
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+
+                    // Clear canvas to ensure transparency
+                    ctx.clearRect(0, 0, size, size);
+
+                    // Draw source image scaled to fit
+                    ctx.drawImage(sourceImg, 0, 0, size, size);
+
+                    // Convert to PNG
+                    const pngUrl = canvas.toDataURL('image/png');
+                    generatedIcons.push({ size, url: pngUrl });
+
+                    // Show preview
+                    const preview = document.createElement('div');
+                    preview.className = 'icon-preview';
+                    preview.innerHTML = `
+                        <img src="${pngUrl}" width="${Math.min(size, 100)}" height="${Math.min(size, 100)}" alt="${size}x${size}">
+                        <span>${size}x${size}</span>
+                    `;
+                    previews.appendChild(preview);
+                }
+
+                // Create download section
+                const downloadDiv = document.createElement('div');
+                downloadDiv.className = 'download-all';
+                downloadDiv.innerHTML = `
+                    <h3>Download Icons</h3>
+                    <p>Click each button to download the icon files:</p>
+                    ${generatedIcons.map(icon => `
+                        <button onclick="downloadIcon('${icon.url}', 'icon-${icon.size}x${icon.size}.png')">
+                            Download ${icon.size}x${icon.size}
+                        </button>
+                    `).join('')}
+                `;
+                downloads.appendChild(downloadDiv);
+
+                status.innerHTML = `
+                    <strong>Icons generated successfully!</strong><br><br>
+                    All ${sizes.length} icon sizes have been generated from the source image.<br>
+                    Click the buttons above to download each icon file.
+                `;
+
+            } catch (error) {
+                status.className = 'error';
+                status.innerHTML = `
+                    <strong>Error generating icons:</strong><br>
+                    ${error.message}<br><br>
+                    Make sure the source image (icon-512x512.png) exists in the same folder.
+                `;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function downloadIcon(dataUrl, filename) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+
+</html>
