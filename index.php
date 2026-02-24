@@ -169,8 +169,14 @@ if ($register === 'passenger') {
                     </div>
                 </div>
             </div>
-
-            <!-- Description Section -->
+            <!-- Download as app section -->
+            <div class="download-section" id="install-section" style="display: none;">
+                <button id="install-btn" class="btn btn-install">
+                    <i class="fas fa-download"></i>
+                    Install as App
+                </button>
+                <p class="install-hint">Install E-JEEP on your device for quick access</p>
+            </div>
             <div class="description-section">
                 <p class="page-description">
                     Welcome to E-JEEP Registration Portal. Whether you're a driver operating on routes 
