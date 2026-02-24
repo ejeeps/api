@@ -192,32 +192,7 @@ if ($register === 'passenger') {
                         </div>
                     </div>
 
-                    <!-- App Stats -->
-                    <div class="app-stats">
-                        <div class="stat-item">
-                            <div class="stat-value">
-                                <i class="fas fa-star"></i> 4.8
-                            </div>
-                            <div class="stat-label">2.5K reviews</div>
-                        </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <div class="stat-value">50K+</div>
-                            <div class="stat-label">Downloads</div>
-                        </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <div class="stat-value">3MB</div>
-                            <div class="stat-label">Size</div>
-                        </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <div class="stat-value">
-                                <i class="fas fa-users"></i> 12K+
-                            </div>
-                            <div class="stat-label">Active Users</div>
-                        </div>
-                    </div>
+                  
 
                     <!-- Install Button -->
                     <div class="install-action">
@@ -228,42 +203,7 @@ if ($register === 'passenger') {
                         <p class="install-note">Free • No ads • No in-app purchases</p>
                     </div>
 
-                    <!-- Feature Screenshots -->
-                    <div class="app-screenshots">
-                        <h3 class="section-title">App Preview</h3>
-                        <div class="screenshots-scroll">
-                            <div class="screenshot-item">
-                                <div class="screenshot-placeholder">
-                                    <i class="fas fa-id-card"></i>
-                                    <span>E-JEEP Card</span>
-                                </div>
-                            </div>
-                            <div class="screenshot-item">
-                                <div class="screenshot-placeholder">
-                                    <i class="fas fa-qrcode"></i>
-                                    <span>Quick Tap</span>
-                                </div>
-                            </div>
-                            <div class="screenshot-item">
-                                <div class="screenshot-placeholder">
-                                    <i class="fas fa-wallet"></i>
-                                    <span>Balance</span>
-                                </div>
-                            </div>
-                            <div class="screenshot-item">
-                                <div class="screenshot-placeholder">
-                                    <i class="fas fa-history"></i>
-                                    <span>History</span>
-                                </div>
-                            </div>
-                            <div class="screenshot-item">
-                                <div class="screenshot-placeholder">
-                                    <i class="fas fa-route"></i>
-                                    <span>Routes</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                  
 
                     <!-- What's New Section -->
                     <div class="whats-new">
@@ -303,10 +243,6 @@ if ($register === 'passenger') {
                         <div class="meta-item">
                             <i class="fas fa-shield-alt"></i>
                             <span>Safe & Secure</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-wifi"></i>
-                            <span>Works Offline</span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-mobile-alt"></i>
