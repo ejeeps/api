@@ -20,10 +20,10 @@
             "purpose": "maskable"
         }
     ],
-    "start_url": "/api/index.php?source=pwa",
+    "start_url": "/index.php?source=pwa",
     "background_color": "#16a34a",
     "display": "standalone",
-    "scope": "/api/",
+    "scope": "/",
     "theme_color": "#16a34a",
     "orientation": "portrait",
     "categories": [
