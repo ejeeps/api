@@ -169,13 +169,155 @@ if ($register === 'passenger') {
                     </div>
                 </div>
             </div>
-            <!-- Download as app section -->
-            <div class="download-section" id="install-section" style="display: none;">
-                <button id="install-btn" class="btn btn-install">
-                    <i class="fas fa-download"></i>
-                    Install as App
-                </button>
-                <p class="install-hint">Install E-JEEP on your device for quick access</p>
+            <!-- Download as app section - Play Store Style -->
+            <div class="app-store-section" id="install-section" style="display: none;">
+                <div class="app-store-card">
+                    <!-- App Header with Icon and Basic Info -->
+                    <div class="app-header">
+                        <div class="app-icon-wrapper">
+                            <div class="app-icon">
+                                <i class="fas fa-bus"></i>
+                            </div>
+                            <div class="app-badge">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="app-info">
+                            <h2 class="app-name">E-JEEP</h2>
+                            <p class="app-developer">By E-JEEP Team</p>
+                            <div class="app-badges">
+                                <span class="badge-verified"><i class="fas fa-shield-alt"></i> Verified</span>
+                                <span class="badge-official"><i class="fas fa-star"></i> Official</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- App Stats -->
+                    <div class="app-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">
+                                <i class="fas fa-star"></i> 4.8
+                            </div>
+                            <div class="stat-label">2.5K reviews</div>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <div class="stat-value">50K+</div>
+                            <div class="stat-label">Downloads</div>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <div class="stat-value">3MB</div>
+                            <div class="stat-label">Size</div>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <div class="stat-value">
+                                <i class="fas fa-users"></i> 12K+
+                            </div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                    </div>
+
+                    <!-- Install Button -->
+                    <div class="install-action">
+                        <button id="install-btn" class="btn btn-install-store">
+                            <i class="fas fa-download"></i>
+                            <span class="install-text">Install</span>
+                        </button>
+                        <p class="install-note">Free • No ads • No in-app purchases</p>
+                    </div>
+
+                    <!-- Feature Screenshots -->
+                    <div class="app-screenshots">
+                        <h3 class="section-title">App Preview</h3>
+                        <div class="screenshots-scroll">
+                            <div class="screenshot-item">
+                                <div class="screenshot-placeholder">
+                                    <i class="fas fa-id-card"></i>
+                                    <span>E-JEEP Card</span>
+                                </div>
+                            </div>
+                            <div class="screenshot-item">
+                                <div class="screenshot-placeholder">
+                                    <i class="fas fa-qrcode"></i>
+                                    <span>Quick Tap</span>
+                                </div>
+                            </div>
+                            <div class="screenshot-item">
+                                <div class="screenshot-placeholder">
+                                    <i class="fas fa-wallet"></i>
+                                    <span>Balance</span>
+                                </div>
+                            </div>
+                            <div class="screenshot-item">
+                                <div class="screenshot-placeholder">
+                                    <i class="fas fa-history"></i>
+                                    <span>History</span>
+                                </div>
+                            </div>
+                            <div class="screenshot-item">
+                                <div class="screenshot-placeholder">
+                                    <i class="fas fa-route"></i>
+                                    <span>Routes</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- What's New Section -->
+                    <div class="whats-new">
+                        <div class="whats-new-header">
+                            <h3 class="section-title">What's New</h3>
+                            <span class="version-tag">Version 2.1.0</span>
+                        </div>
+                        <div class="update-content">
+                            <p class="update-date">Updated Feb 23, 2026</p>
+                            <ul class="update-list">
+                                <li><i class="fas fa-bolt"></i> Faster card tap processing</li>
+                                <li><i class="fas fa-map-marker-alt"></i> Real-time route tracking</li>
+                                <li><i class="fas fa-bell"></i> Push notifications for transactions</li>
+                                <li><i class="fas fa-shield-alt"></i> Enhanced security features</li>
+                                <li><i class="fas fa-bug"></i> Bug fixes and improvements</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- App Description -->
+                    <div class="app-description">
+                        <h3 class="section-title">About this app</h3>
+                        <p class="description-text">
+                            E-JEEP is the official app for modern jeepney transportation with cashless payments. 
+                            Get your E-JEEP card, tap to pay when boarding, track your balance, and view your 
+                            transaction history - all in one convenient app.
+                        </p>
+                        <div class="description-tags">
+                            <span class="desc-tag">Transportation</span>
+                            <span class="desc-tag">Payments</span>
+                            <span class="desc-tag">Lifestyle</span>
+                        </div>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div class="app-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Safe & Secure</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-wifi"></i>
+                            <span>Works Offline</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>All Devices</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-globe"></i>
+                            <span>Philippines</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="description-section">
                 <p class="page-description">
