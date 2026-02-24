@@ -89,7 +89,7 @@ if ($register === 'passenger') {
     <meta name="apple-mobile-web-app-title" content="E-JEEP">
     <meta name="description" content="E-JEEP - Modern Transportation with Cashless Payments">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
     <title>E-JEEP - Registration Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/style/index.css">
