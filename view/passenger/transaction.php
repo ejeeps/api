@@ -398,7 +398,7 @@ try {
             </div>
         </div>
     </div>
-
+<?php include 'view/components/live_bus_tracker.php'; ?>
     <!-- Bottom Navigation Bar -->
     <?php
     $activePage = 'transaction';
