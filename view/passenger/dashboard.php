@@ -356,9 +356,9 @@ $imageBasePath = $basePath;
                 </div>
 
                 <div class="dashboard-card">
-                    <div class="card-icon"><i class="fas fa-user"></i></div>
-                    <h3 class="card-title">Account Status</h3>
-                    <p class="card-value"><?php echo ucfirst(str_replace('_', ' ', $passengerInfo['status'] ?? 'N/A')); ?></p>
+                    <div class="card-icon"><i class="fas fa-building"></i></div>
+                    <h3 class="card-title">Organization</h3>
+                    <p class="card-value"><?php echo $passengerInfo['organization_name'] ? htmlspecialchars($passengerInfo['organization_name']) : 'None'; ?></p>
                 </div>
             </div>
 
@@ -380,10 +380,13 @@ $imageBasePath = $basePath;
                             echo htmlspecialchars($formatted);
                         ?>
                     </div>
-                    <div class="holder">CARDHOLDER: <?php echo htmlspecialchars(strtoupper(($passengerInfo['first_name'] ?? '') . ' ' . ($passengerInfo['last_name'] ?? ''))); ?></div>
+                    <div class="holder"><?php echo htmlspecialchars(strtoupper(($passengerInfo['first_name'] ?? '') . ' ' . ($passengerInfo['last_name'] ?? ''))); ?></div>
                     <div class="meta">
-                        <span>TYPE: <?php echo htmlspecialchars(strtoupper($passengerInfo['card_type'] ?? 'STANDARD')); ?></span>
+                        <span><?php echo htmlspecialchars(strtoupper($passengerInfo['card_type'] ?? 'STANDARD')); ?></span>
                         <span>BAL: &#8369;<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></span>
+                        <?php if ($passengerInfo['organization_name']): ?>
+                            <span>ORG: <?php echo htmlspecialchars(strtoupper($passengerInfo['organization_name'])); ?></span>
+                        <?php endif; ?>
                     </div>
                     <div class="badge">ACTIVE</div>
                 </div>
