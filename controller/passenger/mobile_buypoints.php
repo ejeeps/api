@@ -34,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $paymentMethod = $_POST['payment_method'];
 
         // Validate amount
-        if ($amount < 50 || $amount > 10000) {
-            throw new Exception("Amount must be between ₱50.00 and ₱10,000.00");
+        if ($amount < 20 || $amount > 10000) {
+            throw new Exception("Amount must be between ₱20.00 and ₱10,000.00");
         }
 
         // Initialize PayMongo service
@@ -258,15 +258,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label class="form-label">Select Amount</label>
                     <div class="amount-options">
+                        <div class="amount-option" onclick="selectAmount(20)">₱20</div>
                         <div class="amount-option" onclick="selectAmount(50)">₱50</div>
                         <div class="amount-option" onclick="selectAmount(100)">₱100</div>
                         <div class="amount-option" onclick="selectAmount(200)">₱200</div>
                         <div class="amount-option" onclick="selectAmount(500)">₱500</div>
                         <div class="amount-option" onclick="selectAmount(1000)">₱1000</div>
-                        <div class="amount-option" onclick="selectAmount(2000)">₱2000</div>
                     </div>
                     <input type="number" name="amount" id="amount" class="form-input" 
-                           placeholder="Enter custom amount" min="50" max="10000" step="0.01" required>
+                           placeholder="Enter custom amount" min="20" max="10000" step="0.01" required
                 </div>
 
                 <div class="form-group">
