@@ -6,6 +6,14 @@
  * and update user balances when payments are successful.
  */
 
+// DEBUG: Log ALL requests immediately (before any includes)
+$debugLog = __DIR__ . '/../../logs/webhook_debug.log';
+$debugEntry = '[' . date('Y-m-d H:i:s') . '] ' . $_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REQUEST_URI'] . "\n";
+$debugEntry .= 'Headers: ' . json_encode(getallheaders()) . "\n";
+$debugEntry .= 'Body: ' . file_get_contents('php://input') . "\n";
+$debugEntry .= str_repeat('-', 50) . "\n";
+file_put_contents($debugLog, $debugEntry, FILE_APPEND | LOCK_EX);
+
 require_once __DIR__ . '/../../config/connection.php';
 require_once __DIR__ . '/../../services/PayMongoService.php';
 
