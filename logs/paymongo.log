@@ -89,3 +89,5 @@
 [2026-03-27 03:38:52] [TEST] Payment Callback Received | Data: {"user_id":1,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"none"}
 [2026-03-27 03:39:31] [TEST] Payment Callback Received | Data: {"user_id":1,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"none"}
 [2026-03-27 03:46:16] [TEST] Payment Callback Received | Data: {"user_id":1,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"none"}
+[2026-03-27 04:46:58] [TEST] PayMongo API Error | Data: {"http_code":404,"url":"https:\/\/api.paymongo.com\/v1\/payment_intents\/pi_FBGpEeiLsJkoUCqyyh65qzTh","method":"GET","errors":[{"code":"resource_not_found","detail":"No such payment intent with id pi_FBGpEeiLsJkoUCqyyh65qzTh.","source":null}]}
+[2026-03-27 04:49:10] [LIVE] Payment Processed Successfully | Data: {"user_id":4,"amount":50,"new_balance":36.5,"transaction_ref":23,"card_id":4}
