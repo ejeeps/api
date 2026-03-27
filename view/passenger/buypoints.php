@@ -28,7 +28,7 @@ if (isset($dashboard_view)) {
 $imageBasePath = $basePath;
 
 // Predefined reload amounts
-$reloadAmounts = [20, 50, 100, 200, 500, 1000];
+$reloadAmounts = [1, 20, 50, 100, 200, 500];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -482,7 +482,7 @@ $reloadAmounts = [20, 50, 100, 200, 500, 1000];
                     <?php endif; ?>
                 </div>
                 <div class="info-box-text">
-                    Select an amount below and choose your preferred payment method. You will be redirected to a secure PayMongo checkout page to complete your payment. Your balance will be updated after successful payment. Minimum reload amount is ₱20.00.
+                    Select an amount below and choose your preferred payment method. You will be redirected to a secure PayMongo checkout page to complete your payment. Your balance will be updated after successful payment. Minimum reload amount is ₱1.00.
                     <?php if (defined('PAYMONGO_MODE') && PAYMONGO_MODE === 'test'): ?>
                         <br><br><strong>🧪 Test Mode:</strong> You can use test payment methods. No real money will be charged.
                     <?php endif; ?>
@@ -513,9 +513,9 @@ $reloadAmounts = [20, 50, 100, 200, 500, 1000];
                         <label for="custom_amount" class="form-label">Or Enter Custom Amount</label>
                         <div class="custom-amount-input">
                             <span class="currency-symbol">₱</span>
-                            <input type="number" id="custom_amount" name="amount" class="form-input" placeholder="0.00" min="20" step="0.01" required>
+                            <input type="number" id="custom_amount" name="amount" class="form-input" placeholder="0.00" min="1" step="0.01" required>
                         </div>
-                        <small class="form-hint">Minimum amount: ₱20.00</small>
+                        <small class="form-hint">Minimum amount: ₱1.00</small>
                     </div>
                 </div>
 
@@ -714,9 +714,9 @@ $reloadAmounts = [20, 50, 100, 200, 500, 1000];
             const amount = document.getElementById('custom_amount').value;
             const submitBtn = document.getElementById('submitBtn');
             
-            if (!amount || parseFloat(amount) < 20) {
+            if (!amount || parseFloat(amount) < 1) {
                 e.preventDefault();
-                alert('Please enter a minimum amount of ₱20.00');
+                alert('Please enter a minimum amount of ₱1.00');
                 return false;
             }
             

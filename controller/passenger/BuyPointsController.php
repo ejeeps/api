@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $amount = floatval($_POST['amount']);
 
         // Validate amount
-        if ($amount < 20) {
-            throw new Exception("Minimum reload amount is ₱20.00.");
+        if ($amount < 1) {
+            throw new Exception("Minimum reload amount is ₱1.00.");
         }
 
         if ($amount > 10000) {
