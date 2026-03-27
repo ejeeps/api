@@ -4,20 +4,16 @@
  * 
  * This controller handles PayMongo webhook events to process payments
  * and update user balances when payments are successful.
+ * 
+ * IMPORTANT: Per PayMongo best practices, we respond IMMEDIATELY with HTTP 200
+ * and process the webhook in the background.
  */
 
 require_once __DIR__ . '/../../config/connection.php';
 require_once __DIR__ . '/../../services/PayMongoService.php';
 
-// Set content type for webhook response
+// Set headers for webhook response
 header('Content-Type: application/json');
-
-// Log webhook received
-logPayMongoTransaction('Webhook Received', [
-    'method' => $_SERVER['REQUEST_METHOD'],
-    'headers' => getallheaders(),
-    'raw_input' => file_get_contents('php://input')
-]);
 
 // Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -26,33 +22,59 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Get raw POST data BEFORE sending response
+$rawPayload = file_get_contents('php://input');
+
+// RESPOND IMMEDIATELY with HTTP 200 (per PayMongo best practices)
+// This prevents timeouts and retries
+http_response_code(200);
+echo json_encode(['status' => 'received', 'message' => 'Webhook received']);
+
+// Flush output to send response immediately
+if (function_exists('fastcgi_finish_request')) {
+    fastcgi_finish_request();
+} else {
+    // For non-FastCGI environments
+    if (ob_get_level() > 0) {
+        ob_end_flush();
+    }
+    flush();
+}
+
+// Continue processing in background after response is sent
+ignore_user_abort(true);
+set_time_limit(60); // Allow up to 60 seconds for processing
+
+// Now process the webhook
 try {
-    // Get raw POST data
-    $rawPayload = file_get_contents('php://input');
+    // Log webhook received
+    logPayMongoTransaction('Webhook Received', [
+        'method' => $_SERVER['REQUEST_METHOD'],
+        'raw_input_length' => strlen($rawPayload)
+    ]);
     
     if (empty($rawPayload)) {
-        throw new Exception('Empty payload received');
+        logPayMongoTransaction('Webhook Error', ['error' => 'Empty payload received']);
+        exit;
     }
 
     // Parse JSON payload
     $payload = json_decode($rawPayload, true);
     
     if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Invalid JSON payload: ' . json_last_error_msg());
+        logPayMongoTransaction('Webhook Error', ['error' => 'Invalid JSON: ' . json_last_error_msg()]);
+        exit;
     }
 
-    // Validate webhook signature (if webhook secret is configured)
+    // Validate webhook signature (optional but recommended)
     $payMongoService = new PayMongoService();
     $headers = getallheaders();
     
     if (!empty(PAYMONGO_WEBHOOK_SECRET) && isset($headers['Paymongo-Signature'])) {
         if (!$payMongoService->validateWebhook($rawPayload, $headers['Paymongo-Signature'])) {
             logPayMongoTransaction('Webhook Signature Validation Failed', [
-                'signature' => $headers['Paymongo-Signature'] ?? 'missing'
+                'signature' => substr($headers['Paymongo-Signature'] ?? '', 0, 50) . '...'
             ]);
-            
-            http_response_code(401);
-            echo json_encode(['error' => 'Invalid signature']);
             exit;
         }
     }
@@ -92,26 +114,20 @@ try {
 
         default:
             logPayMongoTransaction('Unhandled Webhook Event', [
-                'event_type' => $eventType,
-                'payload' => $payload
+                'event_type' => $eventType
             ]);
             break;
     }
 
-    // Return success response
-    http_response_code(200);
-    echo json_encode(['status' => 'success', 'message' => 'Webhook processed']);
+    logPayMongoTransaction('Webhook Processing Complete', [
+        'event_type' => $eventType
+    ]);
 
 } catch (Exception $e) {
     logPayMongoTransaction('Webhook Processing Error', [
         'error' => $e->getMessage(),
         'trace' => $e->getTraceAsString()
     ]);
-
-    // Always return 200 to prevent PayMongo from retrying
-    // The error is logged for debugging
-    http_response_code(200);
-    echo json_encode(['status' => 'received', 'message' => 'Webhook received but processing failed']);
 }
 
 /**
