@@ -1,6 +1,6 @@
 <?php
 /**
- * Process the ₱1.00 payment manually
+ * Process payment manually - finds transaction by payment_intent_id
  */
 
 require_once __DIR__ . '/config/connection.php';
@@ -34,55 +34,34 @@ try {
         exit;
     }
     
-    // Get metadata
-    $metadata = $paymentIntent['attributes']['metadata'] ?? [];
-    $userId = $metadata['user_id'] ?? null;
-    $transactionRef = $metadata['transaction_reference'] ?? null;
-    
-    echo "User ID: {$userId}\n";
-    echo "Transaction Ref: {$transactionRef}\n";
-    
-    if (!$userId) {
-        echo "ERROR: No user_id in metadata\n";
-        exit;
-    }
-    
-    // Find transaction
-    $stmt = $pdo->prepare('SELECT id, status FROM transactions WHERE payment_intent_id = ?');
+    // Find transaction by payment_intent_id in database
+    $stmt = $pdo->prepare('SELECT id, status, user_id, card_id, amount FROM transactions WHERE payment_intent_id = ?');
     $stmt->execute([$paymentIntentId]);
     $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$transaction) {
-        echo "ERROR: Transaction not found in database\n";
+        echo "ERROR: Transaction not found in database for this payment intent\n";
         exit;
     }
     
-    echo "Transaction ID: {$transaction['id']}, Current Status: {$transaction['status']}\n";
+    $userId = $transaction['user_id'];
+    $cardId = $transaction['card_id'];
+    $dbAmount = $transaction['amount'];
+    
+    echo "Transaction ID: {$transaction['id']}\n";
+    echo "User ID: {$userId}\n";
+    echo "Card ID: {$cardId}\n";
+    echo "Current Status: {$transaction['status']}\n";
     
     if ($transaction['status'] === 'completed') {
-        echo "Transaction already completed!\n";
+        echo "\nTransaction already completed!\n";
         exit;
     }
     
-    // Get user's card
-    $stmt = $pdo->prepare('
-        SELECT c.id as card_id, c.balance 
-        FROM passengers p 
-        JOIN card_assign_passengers cap ON p.id = cap.passenger_id 
-        JOIN cards c ON cap.card_id = c.id 
-        WHERE p.user_id = ? AND cap.assignment_status = "active" AND c.status = "active"
-        LIMIT 1
-    ');
-    $stmt->execute([$userId]);
-    $card = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$card) {
-        echo "ERROR: No active card found for user {$userId}\n";
-        exit;
-    }
-    
-    $cardId = $card['card_id'];
-    $oldBalance = $card['balance'];
+    // Get current balance
+    $stmt = $pdo->prepare('SELECT balance FROM cards WHERE id = ?');
+    $stmt->execute([$cardId]);
+    $oldBalance = $stmt->fetchColumn();
     
     // Update transaction
     $stmt = $pdo->prepare('
