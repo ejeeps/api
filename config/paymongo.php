@@ -49,8 +49,9 @@ define('PAYMONGO_PAYMENT_METHODS', [
 // Alternative mobile-friendly payment methods (fewer options to force visibility)
 define('PAYMONGO_MOBILE_METHODS', [
     'card',
-    'gcash', 
-    'paymaya'
+    'gcash',
+    'paymaya',
+    'qrph'          // QR Philippines
 ]);
 
 /**
