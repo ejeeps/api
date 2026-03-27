@@ -108,8 +108,10 @@ try {
         'trace' => $e->getTraceAsString()
     ]);
 
-    http_response_code(500);
-    echo json_encode(['error' => 'Webhook processing failed']);
+    // Always return 200 to prevent PayMongo from retrying
+    // The error is logged for debugging
+    http_response_code(200);
+    echo json_encode(['status' => 'received', 'message' => 'Webhook received but processing failed']);
 }
 
 /**
@@ -141,7 +143,10 @@ function handlePaymentSucceeded($eventData, $payMongoService) {
                 'transaction_reference' => $result['transaction_reference']
             ]);
         } else {
-            throw new Exception($result['error'] ?? 'Failed to process payment');
+            logPayMongoTransaction('Payment Processing Failed', [
+                'error' => $result['error'] ?? 'Failed to process payment',
+                'payment_intent_id' => $paymentIntentId
+            ]);
         }
 
     } catch (Exception $e) {
@@ -149,7 +154,7 @@ function handlePaymentSucceeded($eventData, $payMongoService) {
             'error' => $e->getMessage(),
             'event_data' => $eventData
         ]);
-        throw $e;
+        // Don't throw - let the main handler return 200
     }
 }
 
@@ -192,7 +197,7 @@ function handlePaymentFailed($eventData, $payMongoService) {
             'error' => $e->getMessage(),
             'event_data' => $eventData
         ]);
-        throw $e;
+        // Don't throw - let the main handler return 200
     }
 }
 
@@ -391,7 +396,7 @@ function handlePaymentExpired($eventData, $payMongoService) {
             'error' => $e->getMessage(),
             'event_data' => $eventData
         ]);
-        throw $e;
+        // Don't throw - let the main handler return 200
     }
 }
 
