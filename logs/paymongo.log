@@ -88,3 +88,4 @@
 [2026-03-17 03:32:23] [TEST] Payment Cancelled | Data: {"user_id":4,"transaction_reference":"TXN_4_1773714716_7107","affected_rows":1}
 [2026-03-27 03:38:52] [TEST] Payment Callback Received | Data: {"user_id":1,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"none"}
 [2026-03-27 03:39:31] [TEST] Payment Callback Received | Data: {"user_id":1,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"none"}
+[2026-03-27 03:46:16] [TEST] Payment Callback Received | Data: {"user_id":1,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"none"}

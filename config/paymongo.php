@@ -30,7 +30,7 @@ if ($isLocal) {
 define('PAYMONGO_BASE_URL', 'https://api.paymongo.com/v1');
 
 // PayMongo Webhook Configuration
-define('PAYMONGO_WEBHOOK_SECRET', ''); // You'll need to set this after creating webhooks
+define('PAYMONGO_WEBHOOK_SECRET', 'whsk_eSGcUuqGyLj1MGMVA6xF5NDL'); // Your webhook secret from PayMongo dashboard
 
 // Application Configuration - Auto-detect based on server
 if ($isLocal) {
