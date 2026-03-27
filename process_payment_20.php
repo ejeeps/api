@@ -6,7 +6,7 @@
 require_once __DIR__ . '/config/connection.php';
 require_once __DIR__ . '/services/PayMongoService.php';
 
-$paymentIntentId = 'pi_YhA52R5XVi3YWPFU8';
+$paymentIntentId = 'pi_YhA52R5XVi3YWPFU8WFE9dWt';
 
 try {
     $database = new Database();
