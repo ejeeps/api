@@ -234,25 +234,48 @@ function handleCheckoutPaymentPaid($eventData, $payMongoService) {
             return;
         }
 
-        // Check for user_id in metadata
+        // Check for user_id in metadata first
         $metadata = $paymentIntent['attributes']['metadata'] ?? [];
         $userId = $metadata['user_id'] ?? null;
+        $transactionId = $metadata['transaction_id'] ?? null;
 
+        // If no user_id in metadata, look up from database by payment_intent_id
         if (!$userId) {
-            logPayMongoTransaction('Checkout.Payment.Paid - No user_id in metadata', [
-                'payment_intent_id' => $paymentIntentId,
-                'metadata' => $metadata
+            logPayMongoTransaction('Checkout.Payment.Paid - No user_id in metadata, looking up from database', [
+                'payment_intent_id' => $paymentIntentId
             ]);
-            return;
+            
+            $database = new Database();
+            $pdo = $database->getConnection();
+            
+            $stmt = $pdo->prepare('SELECT id, user_id, card_id FROM transactions WHERE payment_intent_id = ? LIMIT 1');
+            $stmt->execute([$paymentIntentId]);
+            $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($transaction) {
+                $userId = $transaction['user_id'];
+                $transactionId = $transaction['id'];
+                logPayMongoTransaction('Checkout.Payment.Paid - Found transaction in database', [
+                    'payment_intent_id' => $paymentIntentId,
+                    'user_id' => $userId,
+                    'transaction_id' => $transactionId
+                ]);
+            } else {
+                logPayMongoTransaction('Checkout.Payment.Paid - Transaction not found in database', [
+                    'payment_intent_id' => $paymentIntentId
+                ]);
+                return; // Can't process without knowing the user
+            }
         }
 
         logPayMongoTransaction('Processing Checkout Payment Paid', [
             'payment_intent_id' => $paymentIntentId,
-            'user_id' => $userId
+            'user_id' => $userId,
+            'transaction_id' => $transactionId
         ]);
 
         // Process the successful payment
-        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
+        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId, $transactionId);
 
         if (!$result['success']) {
             logPayMongoTransaction('Checkout.Payment.Paid - Processing failed', [
@@ -312,25 +335,48 @@ function handlePaymentPaid($eventData, $payMongoService) {
             return;
         }
 
-        // Check for user_id in metadata
+        // Check for user_id in metadata first
         $metadata = $paymentIntent['attributes']['metadata'] ?? [];
         $userId = $metadata['user_id'] ?? null;
+        $transactionId = $metadata['transaction_id'] ?? null;
 
+        // If no user_id in metadata, look up from database by payment_intent_id
         if (!$userId) {
-            logPayMongoTransaction('Payment.Paid - No user_id in metadata', [
-                'payment_intent_id' => $paymentIntentId,
-                'metadata' => $metadata
+            logPayMongoTransaction('Payment.Paid - No user_id in metadata, looking up from database', [
+                'payment_intent_id' => $paymentIntentId
             ]);
-            return; // Don't throw exception, just log and return
+            
+            $database = new Database();
+            $pdo = $database->getConnection();
+            
+            $stmt = $pdo->prepare('SELECT id, user_id, card_id FROM transactions WHERE payment_intent_id = ? LIMIT 1');
+            $stmt->execute([$paymentIntentId]);
+            $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($transaction) {
+                $userId = $transaction['user_id'];
+                $transactionId = $transaction['id'];
+                logPayMongoTransaction('Payment.Paid - Found transaction in database', [
+                    'payment_intent_id' => $paymentIntentId,
+                    'user_id' => $userId,
+                    'transaction_id' => $transactionId
+                ]);
+            } else {
+                logPayMongoTransaction('Payment.Paid - Transaction not found in database', [
+                    'payment_intent_id' => $paymentIntentId
+                ]);
+                return; // Can't process without knowing the user
+            }
         }
 
         logPayMongoTransaction('Processing Payment.Paid Event', [
             'payment_intent_id' => $paymentIntentId,
-            'user_id' => $userId
+            'user_id' => $userId,
+            'transaction_id' => $transactionId
         ]);
 
         // Process the successful payment
-        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
+        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId, $transactionId);
 
         if (!$result['success']) {
             logPayMongoTransaction('Payment.Paid - Processing failed', [
