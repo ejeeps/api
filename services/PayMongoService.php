@@ -69,13 +69,18 @@ class PayMongoService {
     /**
      * Create a checkout session
      */
-    public function createCheckoutSession($paymentIntentId, $successUrl = null, $cancelUrl = null, $amount = null, $mobileOptimized = false) {
+    public function createCheckoutSession($paymentIntentId, $successUrl = null, $cancelUrl = null, $amount = null, $mobileOptimized = false, $selectedPaymentMethod = null) {
         $url = $this->baseUrl . '/checkout_sessions';
-        
-        // Use mobile-optimized payment methods if requested
-        $paymentMethods = $mobileOptimized && defined('PAYMONGO_MOBILE_METHODS') 
-            ? PAYMONGO_MOBILE_METHODS 
-            : PAYMONGO_PAYMENT_METHODS;
+
+        // If a specific payment method is selected, use only that method
+        // Otherwise use mobile-optimized or default payment methods
+        if ($selectedPaymentMethod && in_array($selectedPaymentMethod, PAYMONGO_PAYMENT_METHODS)) {
+            $paymentMethods = [$selectedPaymentMethod];
+        } elseif ($mobileOptimized && defined('PAYMONGO_MOBILE_METHODS')) {
+            $paymentMethods = PAYMONGO_MOBILE_METHODS;
+        } else {
+            $paymentMethods = PAYMONGO_PAYMENT_METHODS;
+        }
         
         $data = [
             'data' => [
@@ -199,23 +204,55 @@ class PayMongoService {
         try {
             // Get payment intent details
             $paymentIntent = $this->getPaymentIntent($paymentIntentId);
-            
+
             if (!$paymentIntent || $paymentIntent['attributes']['status'] !== 'succeeded') {
                 throw new Exception('Payment not successful');
             }
 
             $amount = convertToPesos($paymentIntent['attributes']['amount']);
-            $metadata = $paymentIntent['attributes']['metadata'];
-            
+            $metadata = $paymentIntent['attributes']['metadata'] ?? [];
+
             // Start transaction
             $this->db->beginTransaction();
 
+            // Check if this payment was already processed (idempotency check)
+            $stmt = $this->db->prepare("
+                SELECT id, status, card_id FROM transactions
+                WHERE payment_intent_id = ? AND status = 'completed'
+                LIMIT 1
+            ");
+            $stmt->execute([$paymentIntentId]);
+            $existingCompleted = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($existingCompleted) {
+                // Payment already processed, return success with existing data
+                $stmt = $this->db->prepare("SELECT balance FROM cards WHERE id = ?");
+                $stmt->execute([$existingCompleted['card_id']]);
+                $cardBalance = $stmt->fetchColumn() ?: 0;
+
+                $this->db->commit();
+
+                logPayMongoTransaction('Payment Already Processed - Idempotency', [
+                    'user_id' => $userId,
+                    'payment_intent_id' => $paymentIntentId,
+                    'transaction_id' => $existingCompleted['id']
+                ]);
+
+                return [
+                    'success' => true,
+                    'amount' => $amount,
+                    'new_balance' => $cardBalance,
+                    'transaction_reference' => $existingCompleted['id'],
+                    'already_processed' => true
+                ];
+            }
+
             // Get passenger's card information
             $stmt = $this->db->prepare("
-                SELECT c.id as card_id, c.balance 
-                FROM passengers p 
-                JOIN card_assign_passengers cap ON p.id = cap.passenger_id 
-                JOIN cards c ON cap.card_id = c.id 
+                SELECT c.id as card_id, c.balance
+                FROM passengers p
+                JOIN card_assign_passengers cap ON p.id = cap.passenger_id
+                JOIN cards c ON cap.card_id = c.id
                 WHERE p.user_id = ? AND cap.assignment_status = 'active' AND c.status = 'active'
                 LIMIT 1
             ");
@@ -231,14 +268,27 @@ class PayMongoService {
             $stmt = $this->db->prepare("UPDATE cards SET balance = ? WHERE id = ?");
             $stmt->execute([$newBalance, $cardInfo['card_id']]);
 
+            // Get payment method details if available
+            $paymentMethod = $metadata['payment_method'] ?? 'paymongo';
+            $paymentMethodDetails = null;
+            if (isset($paymentIntent['attributes']['payment_method']['data'])) {
+                $paymentMethodData = $paymentIntent['attributes']['payment_method']['data'];
+                $paymentMethodDetails = json_encode([
+                    'type' => $paymentMethodData['attributes']['type'] ?? null,
+                    'last4' => $paymentMethodData['attributes']['details']['last4'] ?? null,
+                    'brand' => $paymentMethodData['attributes']['details']['brand'] ?? null
+                ]);
+            }
+
             // Update existing transaction or create new one
             if ($existingTransactionId) {
                 $stmt = $this->db->prepare("
-                    UPDATE transactions 
-                    SET card_id = ?, status = 'completed', processed_at = NOW(), updated_at = NOW()
+                    UPDATE transactions
+                    SET card_id = ?, status = 'completed', processed_at = NOW(), updated_at = NOW(),
+                        payment_method = ?, payment_method_details = ?
                     WHERE id = ? AND user_id = ?
                 ");
-                $stmt->execute([$cardInfo['card_id'], $existingTransactionId, $userId]);
+                $stmt->execute([$cardInfo['card_id'], $paymentMethod, $paymentMethodDetails, $existingTransactionId, $userId]);
                 $transactionRef = $existingTransactionId;
             } else {
                 // Create transaction record (fallback)
@@ -246,16 +296,18 @@ class PayMongoService {
                 $stmt = $this->db->prepare("
                     INSERT INTO transactions (
                         user_id, card_id, transaction_reference, payment_intent_id,
-                        amount, transaction_type, status, payment_method, 
-                        created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, 'top_up', 'completed', 'paymongo', NOW(), NOW())
+                        amount, transaction_type, status, payment_method, payment_method_details,
+                        created_at, updated_at, processed_at
+                    ) VALUES (?, ?, ?, ?, ?, 'top_up', 'completed', ?, ?, NOW(), NOW(), NOW())
                 ");
                 $stmt->execute([
-                    $userId, 
-                    $cardInfo['card_id'], 
-                    $transactionRef, 
-                    $paymentIntentId, 
-                    $amount
+                    $userId,
+                    $cardInfo['card_id'],
+                    $transactionRef,
+                    $paymentIntentId,
+                    $amount,
+                    $paymentMethod,
+                    $paymentMethodDetails
                 ]);
             }
 
@@ -265,7 +317,8 @@ class PayMongoService {
                 'user_id' => $userId,
                 'amount' => $amount,
                 'new_balance' => $newBalance,
-                'transaction_ref' => $transactionRef
+                'transaction_ref' => $transactionRef,
+                'card_id' => $cardInfo['card_id']
             ]);
 
             return [
@@ -279,7 +332,7 @@ class PayMongoService {
             if ($this->db->inTransaction()) {
                 $this->db->rollback();
             }
-            
+
             logPayMongoTransaction('Payment Processing Failed', [
                 'error' => $e->getMessage(),
                 'user_id' => $userId,
