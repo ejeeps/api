@@ -447,6 +447,13 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
                 <div class="alert alert-warning">
                     <strong>Processing:</strong> <?php echo htmlspecialchars($_GET['pending']); ?>
                 </div>
+                <!-- Check Payment Status Button -->
+                <div style="margin-top: 10px; text-align: center;">
+                    <button id="checkStatusBtn" onclick="checkPaymentStatus(true)" class="btn btn-primary" style="background: #1665f8; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                        <i class="fas fa-sync-alt"></i> Check Payment Status
+                    </button>
+                </div>
+                <div id="checkStatusResult" style="margin-top: 10px;"></div>
             <?php endif; ?>
 
             <?php if (isset($_GET['info'])): ?>
@@ -739,6 +746,112 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
                     option.classList.remove('selected');
                 });
                 selectedAmount = amount;
+            }
+        });
+
+        // Check Payment Status Functionality
+        let checkStatusInterval = null;
+        let isCheckingStatus = false;
+
+        function checkPaymentStatus(showLoading = false) {
+            if (isCheckingStatus) return;
+            
+            isCheckingStatus = true;
+            const btn = document.getElementById('checkStatusBtn');
+            const resultDiv = document.getElementById('checkStatusResult');
+            
+            if (showLoading && btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+            }
+            
+            fetch('<?php echo htmlspecialchars($basePath); ?>controller/passenger/CheckPaymentStatusController.php')
+                .then(response => response.json())
+                .then(data => {
+                    isCheckingStatus = false;
+                    
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check Payment Status';
+                    }
+                    
+                    if (data.success) {
+                        if (data.status === 'completed') {
+                            // Payment completed - show success and reload
+                            resultDiv.innerHTML = `
+                                <div class="alert alert-success">
+                                    <strong>✓ ${data.message}</strong><br>
+                                    Amount: ₱${parseFloat(data.amount).toFixed(2)}<br>
+                                    New Balance: ₱${parseFloat(data.new_balance).toFixed(2)}
+                                </div>
+                            `;
+                            // Reload page after 3 seconds to show updated balance
+                            setTimeout(() => window.location.reload(), 3000);
+                        } else if (data.has_pending) {
+                            // Still pending
+                            resultDiv.innerHTML = `
+                                <div class="alert alert-warning">
+                                    <strong>⏳ ${data.message}</strong><br>
+                                    Reference: ${data.transaction_reference}<br>
+                                    Amount: ₱${parseFloat(data.amount).toFixed(2)}
+                                </div>
+                            `;
+                        } else {
+                            // No pending transactions
+                            resultDiv.innerHTML = `
+                                <div class="alert" style="background-color: #e7f3ff; border: 1px solid #b3d7ff; color: #0056b3;">
+                                    <strong>ℹ️ ${data.message}</strong>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-error">
+                                <strong>Error:</strong> ${data.error || 'Failed to check status'}
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    isCheckingStatus = false;
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check Payment Status';
+                    }
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-error">
+                            <strong>Error:</strong> Failed to check payment status. Please try again.
+                        </div>
+                    `;
+                });
+        }
+
+        // Auto-check status if there's a pending message on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const pendingAlert = document.querySelector('.alert.alert-warning');
+            if (pendingAlert) {
+                // Auto-check every 10 seconds for up to 2 minutes
+                let checkCount = 0;
+                const maxChecks = 12;
+                
+                checkStatusInterval = setInterval(() => {
+                    checkCount++;
+                    checkPaymentStatus(false);
+                    
+                    if (checkCount >= maxChecks) {
+                        clearInterval(checkStatusInterval);
+                    }
+                }, 10000);
+                
+                // Initial check
+                checkPaymentStatus(false);
+            }
+        });
+
+        // Clean up interval when leaving page
+        window.addEventListener('beforeunload', function() {
+            if (checkStatusInterval) {
+                clearInterval(checkStatusInterval);
             }
         });
     </script>

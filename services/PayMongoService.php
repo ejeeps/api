@@ -105,12 +105,9 @@ class PayMongoService {
                     'billing' => [
                         'name' => 'E-JEEP Customer',
                         'email' => 'customer@ejeep.com'
-                    ],
-                    // Additional mobile optimization
-                    'metadata' => [
-                        'mobile_optimized' => 'true',
-                        'force_show_all_methods' => 'true'
                     ]
+                    // Note: We don't send metadata here to preserve the payment intent's original metadata
+                    // which contains user_id, transaction_reference, etc.
                 ]
             ]
         ];
