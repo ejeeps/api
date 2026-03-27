@@ -1,7 +1,6 @@
 <?php
 /**
- * Database Connection Test
- * Upload this to your server and access via browser to test DB connection
+ * Database Connection Test & Transaction List
  */
 
 require_once __DIR__ . '/config/connection.php';
@@ -12,29 +11,49 @@ try {
     
     echo "✅ Database Connection Successful!\n\n";
     
-    // Test query - get recent transactions
-    $stmt = $pdo->query('SELECT id, status, payment_intent_id, amount, user_id, created_at FROM transactions ORDER BY created_at DESC LIMIT 5');
+    // Get ALL transactions
+    $stmt = $pdo->query('SELECT id, status, payment_intent_id, amount, user_id, card_id, created_at FROM transactions ORDER BY created_at DESC LIMIT 10');
     $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    echo "Recent Transactions:\n";
-    echo str_repeat('-', 80) . "\n";
+    echo "All Recent Transactions:\n";
+    echo str_repeat('-', 100) . "\n";
     foreach ($transactions as $t) {
-        echo "ID: {$t['id']} | User: {$t['user_id']} | Status: {$t['status']} | Amount: {$t['amount']} | PI: " . substr($t['payment_intent_id'], 0, 20) . "... | Date: {$t['created_at']}\n";
+        echo "ID: {$t['id']} | User: {$t['user_id']} | Card: {$t['card_id']} | Status: {$t['status']} | Amount: {$t['amount']} | PI: {$t['payment_intent_id']} | Date: {$t['created_at']}\n";
     }
     
-    echo "\n" . str_repeat('-', 80) . "\n";
+    echo "\n" . str_repeat('-', 100) . "\n";
     
-    // Check for stuck transactions
-    $stmt = $pdo->query('SELECT COUNT(*) as count FROM transactions WHERE status = "processing"');
-    $stuck = $stmt->fetch(PDO::FETCH_ASSOC);
-    echo "\nStuck transactions (processing): {$stuck['count']}\n";
+    // Check for the specific payment intent
+    $searchPI = 'pi_BwJdMJGGP9svThh4c67p1j3o';
+    echo "\nSearching for PI: {$searchPI}\n";
+    $stmt = $pdo->prepare('SELECT * FROM transactions WHERE payment_intent_id LIKE ?');
+    $stmt->execute(['%' . substr($searchPI, 0, 20) . '%']);
+    $found = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Check for completed transactions today
-    $stmt = $pdo->query('SELECT COUNT(*) as count, SUM(amount) as total FROM transactions WHERE status = "completed" AND DATE(created_at) = CURDATE()');
-    $today = $stmt->fetch(PDO::FETCH_ASSOC);
-    echo "Completed transactions today: {$today['count']} (Total: ₱" . number_format($today['total'] ?? 0, 2) . ")\n";
+    if ($found) {
+        echo "Found matching transactions:\n";
+        print_r($found);
+    } else {
+        echo "No transaction found with this payment intent\n";
+    }
+    
+    // Show user 4's card balance
+    $stmt = $pdo->query('
+        SELECT c.id, c.balance, p.user_id 
+        FROM cards c 
+        JOIN card_assign_passengers cap ON c.id = cap.card_id 
+        JOIN passengers p ON cap.passenger_id = p.id 
+        WHERE p.user_id = 4 AND cap.assignment_status = "active"
+    ');
+    $card = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    echo "\nUser 4 Card Info:\n";
+    if ($card) {
+        echo "Card ID: {$card['id']}, Balance: ₱{$card['balance']}\n";
+    } else {
+        echo "No active card found\n";
+    }
     
 } catch (Exception $e) {
-    echo "❌ Database Connection Failed!\n";
-    echo "Error: " . $e->getMessage() . "\n";
+    echo "❌ Error: " . $e->getMessage() . "\n";
 }
