@@ -1,12 +1,12 @@
 <?php
 /**
- * Process the ₱20 payment manually
+ * Process the ₱1.00 payment manually
  */
 
 require_once __DIR__ . '/config/connection.php';
 require_once __DIR__ . '/services/PayMongoService.php';
 
-$paymentIntentId = 'pi_YhA52R5XVi3YWPFU8WFE9dWt';
+$paymentIntentId = 'pi_BwJdMJGGP9svThh4c67p1j3o';
 
 try {
     $database = new Database();
