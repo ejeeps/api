@@ -71,15 +71,25 @@ try {
         case 'payment_intent.succeeded':
             handlePaymentSucceeded($eventData, $payMongoService);
             break;
-            
+
         case 'payment_intent.payment_failed':
             handlePaymentFailed($eventData, $payMongoService);
             break;
-            
+
         case 'checkout_session.payment_paid':
+        case 'checkout_session.payment.paid':
             handleCheckoutPaymentPaid($eventData, $payMongoService);
             break;
-            
+
+        case 'payment.paid':
+            handlePaymentPaid($eventData, $payMongoService);
+            break;
+
+        case 'qrph.expired':
+        case 'payment_method.expired':
+            handlePaymentExpired($eventData, $payMongoService);
+            break;
+
         default:
             logPayMongoTransaction('Unhandled Webhook Event', [
                 'event_type' => $eventType,
@@ -217,6 +227,92 @@ function handleCheckoutPaymentPaid($eventData, $payMongoService) {
 
     } catch (Exception $e) {
         logPayMongoTransaction('Checkout Payment Paid Handling Error', [
+            'error' => $e->getMessage(),
+            'event_data' => $eventData
+        ]);
+        throw $e;
+    }
+}
+
+/**
+ * Handle payment.paid event (alternative event for successful payments)
+ */
+function handlePaymentPaid($eventData, $payMongoService) {
+    try {
+        $paymentIntentId = $eventData['attributes']['payment_intent_id'] ?? '';
+
+        if (!$paymentIntentId) {
+            throw new Exception('Missing payment intent ID in payment.paid event');
+        }
+
+        // Get payment intent details to extract metadata
+        $paymentIntent = $payMongoService->getPaymentIntent($paymentIntentId);
+
+        if ($paymentIntent && isset($paymentIntent['attributes']['metadata']['user_id'])) {
+            $userId = $paymentIntent['attributes']['metadata']['user_id'];
+
+            logPayMongoTransaction('Processing Payment.Paid Event', [
+                'payment_intent_id' => $paymentIntentId,
+                'user_id' => $userId
+            ]);
+
+            // Process the successful payment
+            $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
+
+            if (!$result['success']) {
+                throw new Exception($result['error'] ?? 'Failed to process payment');
+            }
+        } else {
+            logPayMongoTransaction('Payment.Paid - No user_id in metadata', [
+                'payment_intent_id' => $paymentIntentId,
+                'metadata' => $paymentIntent['attributes']['metadata'] ?? 'not found'
+            ]);
+        }
+
+    } catch (Exception $e) {
+        logPayMongoTransaction('Payment Paid Handling Error', [
+            'error' => $e->getMessage(),
+            'event_data' => $eventData
+        ]);
+        throw $e;
+    }
+}
+
+/**
+ * Handle expired payment methods (QR PH, etc.)
+ */
+function handlePaymentExpired($eventData, $payMongoService) {
+    try {
+        $paymentIntentId = $eventData['attributes']['payment_intent_id'] ?? '';
+        $sourceId = $eventData['attributes']['source']['id'] ?? '';
+
+        logPayMongoTransaction('Payment Method Expired', [
+            'payment_intent_id' => $paymentIntentId,
+            'source_id' => $sourceId,
+            'event_type' => $eventData['type'] ?? 'unknown'
+        ]);
+
+        if ($paymentIntentId) {
+            // Update transaction status to failed/cancelled
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $stmt = $pdo->prepare("
+                UPDATE transactions
+                SET status = 'cancelled', updated_at = NOW(),
+                    description = CONCAT(description, ' - Payment expired')
+                WHERE payment_intent_id = ?
+            ");
+            $stmt->execute([$paymentIntentId]);
+
+            logPayMongoTransaction('Transaction Marked as Expired', [
+                'payment_intent_id' => $paymentIntentId,
+                'affected_rows' => $stmt->rowCount()
+            ]);
+        }
+
+    } catch (Exception $e) {
+        logPayMongoTransaction('Payment Expired Handling Error', [
             'error' => $e->getMessage(),
             'event_data' => $eventData
         ]);
