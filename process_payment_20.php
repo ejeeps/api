@@ -1,92 +1,81 @@
 <?php
 /**
- * Process payment manually - finds transaction by payment_intent_id
+ * Fix all stuck transactions and add the successful ₱1.00 payment
  */
 
 require_once __DIR__ . '/config/connection.php';
 require_once __DIR__ . '/services/PayMongoService.php';
 
-$paymentIntentId = 'pi_BwJdMJGGP9svThh4c67p1j3o';
-
 try {
     $database = new Database();
     $pdo = $database->getConnection();
     
-    echo "Processing payment: {$paymentIntentId}\n\n";
+    echo "=== FIXING TRANSACTIONS ===\n\n";
     
-    // Check PayMongo
-    $payMongoService = new PayMongoService();
-    $paymentIntent = $payMongoService->getPaymentIntent($paymentIntentId);
+    // Step 1: Cancel stuck transactions (ID 17 and 18)
+    echo "Step 1: Cancelling stuck transactions...\n";
     
-    if (!$paymentIntent) {
-        echo "ERROR: Could not retrieve payment from PayMongo\n";
-        exit;
-    }
+    $stmt = $pdo->prepare('
+        UPDATE transactions 
+        SET status = "cancelled", 
+            updated_at = NOW(),
+            description = CONCAT(COALESCE(description, ""), " - Cancelled: payment not completed")
+        WHERE id IN (17, 18) AND status = "processing"
+    ');
+    $stmt->execute();
+    echo "Cancelled {$stmt->rowCount()} stuck transactions\n\n";
     
-    $status = $paymentIntent['attributes']['status'];
-    $amount = convertToPesos($paymentIntent['attributes']['amount']);
+    // Step 2: Create transaction for the successful payment
+    echo "Step 2: Creating transaction for successful ₱1.00 payment...\n";
     
-    echo "PayMongo Status: {$status}\n";
-    echo "Amount: ₱" . number_format($amount, 2) . "\n";
+    $paymentIntentId = 'pi_BwJdMJGGP9svThh4c67p1j3o';
+    $userId = 4;
+    $cardId = 3;
+    $amount = 1.00;
     
-    if ($status !== 'succeeded') {
-        echo "ERROR: Payment not successful. Status: {$status}\n";
-        exit;
-    }
-    
-    // Find transaction by payment_intent_id in database
-    $stmt = $pdo->prepare('SELECT id, status, user_id, card_id, amount FROM transactions WHERE payment_intent_id = ?');
+    // Check if already exists
+    $stmt = $pdo->prepare('SELECT id FROM transactions WHERE payment_intent_id = ?');
     $stmt->execute([$paymentIntentId]);
-    $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$transaction) {
-        echo "ERROR: Transaction not found in database for this payment intent\n";
-        exit;
+    if ($stmt->fetch()) {
+        echo "Transaction already exists for this payment intent\n";
+    } else {
+        // Generate transaction reference
+        $transactionRef = 'TXN_' . $userId . '_' . time() . '_' . rand(1000, 9999);
+        
+        // Create transaction
+        $stmt = $pdo->prepare('
+            INSERT INTO transactions (
+                user_id, card_id, transaction_reference, payment_intent_id,
+                amount, transaction_type, status, payment_method, 
+                description, processed_at, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, "top_up", "completed", "paymongo", 
+                "Points top-up via PayMongo - qrph (manual reconciliation)", NOW(), NOW(), NOW())
+        ');
+        $stmt->execute([$userId, $cardId, $transactionRef, $paymentIntentId, $amount]);
+        
+        $newId = $pdo->lastInsertId();
+        echo "Created transaction ID: {$newId}\n";
+        echo "Reference: {$transactionRef}\n";
     }
     
-    $userId = $transaction['user_id'];
-    $cardId = $transaction['card_id'];
-    $dbAmount = $transaction['amount'];
+    // Step 3: Update card balance
+    echo "\nStep 3: Updating card balance...\n";
     
-    echo "Transaction ID: {$transaction['id']}\n";
-    echo "User ID: {$userId}\n";
-    echo "Card ID: {$cardId}\n";
-    echo "Current Status: {$transaction['status']}\n";
-    
-    if ($transaction['status'] === 'completed') {
-        echo "\nTransaction already completed!\n";
-        exit;
-    }
-    
-    // Get current balance
     $stmt = $pdo->prepare('SELECT balance FROM cards WHERE id = ?');
     $stmt->execute([$cardId]);
     $oldBalance = $stmt->fetchColumn();
+    echo "Old Balance: ₱" . number_format($oldBalance, 2) . "\n";
     
-    // Update transaction
-    $stmt = $pdo->prepare('
-        UPDATE transactions 
-        SET status = "completed", 
-            processed_at = NOW(),
-            updated_at = NOW()
-        WHERE id = ?
-    ');
-    $stmt->execute([$transaction['id']]);
-    
-    // Update card balance
     $stmt = $pdo->prepare('UPDATE cards SET balance = balance + ? WHERE id = ?');
     $stmt->execute([$amount, $cardId]);
     
-    // Get new balance
     $stmt = $pdo->prepare('SELECT balance FROM cards WHERE id = ?');
     $stmt->execute([$cardId]);
     $newBalance = $stmt->fetchColumn();
-    
-    echo "\n✅ SUCCESS!\n";
-    echo "Transaction ID: {$transaction['id']} marked as completed\n";
-    echo "Old Balance: ₱" . number_format($oldBalance, 2) . "\n";
     echo "Amount Added: ₱" . number_format($amount, 2) . "\n";
     echo "New Balance: ₱" . number_format($newBalance, 2) . "\n";
+    
+    echo "\n✅ ALL DONE!\n";
     
 } catch (Exception $e) {
     echo "\n❌ ERROR: " . $e->getMessage() . "\n";

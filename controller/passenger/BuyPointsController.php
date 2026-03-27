@@ -61,15 +61,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("User information not found.");
             }
 
+            // Get user's active card
+            $stmt = $pdo->prepare("
+                SELECT c.id as card_id 
+                FROM cards c 
+                JOIN card_assign_passengers cap ON c.id = cap.card_id 
+                WHERE cap.passenger_id = ? AND cap.assignment_status = 'active' AND c.status = 'active'
+                LIMIT 1
+            ");
+            $stmt->execute([$userInfo['passenger_id']]);
+            $cardInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+            $cardId = $cardInfo['card_id'] ?? null;
+
             // Create pending transaction record
             $stmt = $pdo->prepare("
                 INSERT INTO transactions (
-                    user_id, transaction_reference, amount, transaction_type, 
+                    user_id, card_id, transaction_reference, amount, transaction_type, 
                     status, payment_method, description, created_at, updated_at
-                ) VALUES (?, ?, ?, 'top_up', 'pending', 'paymongo', ?, NOW(), NOW())
+                ) VALUES (?, ?, ?, ?, 'top_up', 'pending', 'paymongo', ?, NOW(), NOW())
             ");
             $stmt->execute([
-                $userId, 
+                $userId,
+                $cardId,
                 $transactionRef, 
                 $amount, 
                 "Points top-up via PayMongo - {$paymentMethod}"
