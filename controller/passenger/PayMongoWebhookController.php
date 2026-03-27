@@ -201,36 +201,76 @@ function handlePaymentFailed($eventData, $payMongoService) {
  */
 function handleCheckoutPaymentPaid($eventData, $payMongoService) {
     try {
-        // Extract payment intent from checkout session
-        $paymentIntentId = $eventData['attributes']['payment_intent']['id'] ?? '';
-        
-        if ($paymentIntentId) {
-            // Get payment intent details to extract metadata
-            $paymentIntent = $payMongoService->getPaymentIntent($paymentIntentId);
-            
-            if ($paymentIntent && isset($paymentIntent['attributes']['metadata']['user_id'])) {
-                $userId = $paymentIntent['attributes']['metadata']['user_id'];
-                
-                logPayMongoTransaction('Processing Checkout Payment Paid', [
-                    'payment_intent_id' => $paymentIntentId,
-                    'user_id' => $userId
-                ]);
+        // Extract payment intent from checkout session - try multiple paths
+        $paymentIntentId = $eventData['attributes']['payment_intent']['id'] ??
+                          $eventData['attributes']['payment_intent_id'] ??
+                          $eventData['payment_intent_id'] ??
+                          '';
 
-                // Process the successful payment
-                $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
+        if (!$paymentIntentId) {
+            logPayMongoTransaction('Checkout.Payment.Paid - No payment_intent_id found', [
+                'event_data_keys' => array_keys($eventData),
+                'attributes_keys' => isset($eventData['attributes']) ? array_keys($eventData['attributes']) : 'no attributes'
+            ]);
+            return;
+        }
 
-                if (!$result['success']) {
-                    throw new Exception($result['error'] ?? 'Failed to process payment');
-                }
-            }
+        logPayMongoTransaction('Checkout.Payment.Paid - Found payment_intent_id', [
+            'payment_intent_id' => $paymentIntentId
+        ]);
+
+        // Get payment intent details to extract metadata
+        $paymentIntent = $payMongoService->getPaymentIntent($paymentIntentId);
+
+        if (!$paymentIntent) {
+            logPayMongoTransaction('Checkout.Payment.Paid - Could not retrieve payment intent', [
+                'payment_intent_id' => $paymentIntentId
+            ]);
+            return;
+        }
+
+        // Check for user_id in metadata
+        $metadata = $paymentIntent['attributes']['metadata'] ?? [];
+        $userId = $metadata['user_id'] ?? null;
+
+        if (!$userId) {
+            logPayMongoTransaction('Checkout.Payment.Paid - No user_id in metadata', [
+                'payment_intent_id' => $paymentIntentId,
+                'metadata' => $metadata
+            ]);
+            return;
+        }
+
+        logPayMongoTransaction('Processing Checkout Payment Paid', [
+            'payment_intent_id' => $paymentIntentId,
+            'user_id' => $userId
+        ]);
+
+        // Process the successful payment
+        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
+
+        if (!$result['success']) {
+            logPayMongoTransaction('Checkout.Payment.Paid - Processing failed', [
+                'payment_intent_id' => $paymentIntentId,
+                'user_id' => $userId,
+                'error' => $result['error'] ?? 'Unknown error'
+            ]);
+        } else {
+            logPayMongoTransaction('Checkout.Payment.Paid - Processing successful', [
+                'payment_intent_id' => $paymentIntentId,
+                'user_id' => $userId,
+                'amount' => $result['amount'],
+                'new_balance' => $result['new_balance']
+            ]);
         }
 
     } catch (Exception $e) {
         logPayMongoTransaction('Checkout Payment Paid Handling Error', [
             'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
             'event_data' => $eventData
         ]);
-        throw $e;
+        // Don't re-throw - we want to return 200 to PayMongo
     }
 }
 
@@ -239,42 +279,77 @@ function handleCheckoutPaymentPaid($eventData, $payMongoService) {
  */
 function handlePaymentPaid($eventData, $payMongoService) {
     try {
-        $paymentIntentId = $eventData['attributes']['payment_intent_id'] ?? '';
+        // Try different possible locations for payment_intent_id
+        $paymentIntentId = $eventData['attributes']['payment_intent_id'] ??
+                          $eventData['payment_intent_id'] ??
+                          $eventData['attributes']['source']['payment_intent_id'] ??
+                          '';
 
         if (!$paymentIntentId) {
-            throw new Exception('Missing payment intent ID in payment.paid event');
+            logPayMongoTransaction('Payment.Paid - No payment_intent_id found', [
+                'event_data_keys' => array_keys($eventData),
+                'attributes_keys' => isset($eventData['attributes']) ? array_keys($eventData['attributes']) : 'no attributes'
+            ]);
+            return; // Don't throw exception, just log and return
         }
+
+        logPayMongoTransaction('Payment.Paid - Found payment_intent_id', [
+            'payment_intent_id' => $paymentIntentId
+        ]);
 
         // Get payment intent details to extract metadata
         $paymentIntent = $payMongoService->getPaymentIntent($paymentIntentId);
 
-        if ($paymentIntent && isset($paymentIntent['attributes']['metadata']['user_id'])) {
-            $userId = $paymentIntent['attributes']['metadata']['user_id'];
-
-            logPayMongoTransaction('Processing Payment.Paid Event', [
-                'payment_intent_id' => $paymentIntentId,
-                'user_id' => $userId
+        if (!$paymentIntent) {
+            logPayMongoTransaction('Payment.Paid - Could not retrieve payment intent', [
+                'payment_intent_id' => $paymentIntentId
             ]);
+            return;
+        }
 
-            // Process the successful payment
-            $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
+        // Check for user_id in metadata
+        $metadata = $paymentIntent['attributes']['metadata'] ?? [];
+        $userId = $metadata['user_id'] ?? null;
 
-            if (!$result['success']) {
-                throw new Exception($result['error'] ?? 'Failed to process payment');
-            }
-        } else {
+        if (!$userId) {
             logPayMongoTransaction('Payment.Paid - No user_id in metadata', [
                 'payment_intent_id' => $paymentIntentId,
-                'metadata' => $paymentIntent['attributes']['metadata'] ?? 'not found'
+                'metadata' => $metadata
+            ]);
+            return; // Don't throw exception, just log and return
+        }
+
+        logPayMongoTransaction('Processing Payment.Paid Event', [
+            'payment_intent_id' => $paymentIntentId,
+            'user_id' => $userId
+        ]);
+
+        // Process the successful payment
+        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
+
+        if (!$result['success']) {
+            logPayMongoTransaction('Payment.Paid - Processing failed', [
+                'payment_intent_id' => $paymentIntentId,
+                'user_id' => $userId,
+                'error' => $result['error'] ?? 'Unknown error'
+            ]);
+            // Don't throw exception, just log the error
+        } else {
+            logPayMongoTransaction('Payment.Paid - Processing successful', [
+                'payment_intent_id' => $paymentIntentId,
+                'user_id' => $userId,
+                'amount' => $result['amount'],
+                'new_balance' => $result['new_balance']
             ]);
         }
 
     } catch (Exception $e) {
         logPayMongoTransaction('Payment Paid Handling Error', [
             'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
             'event_data' => $eventData
         ]);
-        throw $e;
+        // Don't re-throw - we want to return 200 to PayMongo even if processing fails
     }
 }
 
