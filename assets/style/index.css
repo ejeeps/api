@@ -263,6 +263,7 @@ body {
     padding: 40px 20px;
     min-height: calc(100vh - 70px);
     position: relative;
+ 
 }
 
 /* Fallback for browsers without backdrop-filter support */

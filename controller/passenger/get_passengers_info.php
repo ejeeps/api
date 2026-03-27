@@ -31,11 +31,14 @@ function getPassengerInfo($pdo, $userId) {
                     c.issued_date,
                     c.expiry_date,
                     ap.assigned_at,
-                    ap.assignment_status
+                    ap.assignment_status,
+                    o.name AS organization_name,
+                    o.code AS organization_code
                 FROM users u 
                 LEFT JOIN passengers p ON u.id = p.user_id 
                 LEFT JOIN card_assign_passengers ap ON p.id = ap.passenger_id AND ap.assignment_status = 'active'
                 LEFT JOIN cards c ON ap.card_id = c.id
+                LEFT JOIN organizations o ON COALESCE(ap.organization_id, c.organization_id) = o.id
                 WHERE u.id = ?
             ");
         } else {

@@ -66,6 +66,11 @@ try {
  */
 function handleSuccessCallback($userId, $payMongoService) {
     try {
+        // Initialize database connection
+        $database = new Database();
+        $pdo = $database->getConnection();
+        $transaction = null;
+        
         // Get checkout session ID from URL parameters
         $checkoutSessionId = $_GET['checkout_session_id'] ?? null;
         
@@ -75,11 +80,8 @@ function handleSuccessCallback($userId, $payMongoService) {
             
             if ($transactionRef) {
                 // Find the transaction by reference
-                $database = new Database();
-                $pdo = $database->getConnection();
-                
                 $stmt = $pdo->prepare("
-                    SELECT payment_intent_id, checkout_session_id, status, amount 
+                    SELECT id, payment_intent_id, checkout_session_id, status, amount, transaction_reference
                     FROM transactions 
                     WHERE transaction_reference = ? AND user_id = ?
                     ORDER BY created_at DESC 
@@ -92,20 +94,43 @@ function handleSuccessCallback($userId, $payMongoService) {
                     $checkoutSessionId = $transaction['checkout_session_id'];
                 }
             }
+        } else {
+            // We have checkout_session_id, find the transaction
+            $stmt = $pdo->prepare("
+                SELECT id, payment_intent_id, checkout_session_id, status, amount, transaction_reference
+                FROM transactions 
+                WHERE checkout_session_id = ? AND user_id = ?
+                ORDER BY created_at DESC 
+                LIMIT 1
+            ");
+            $stmt->execute([$checkoutSessionId, $userId]);
+            $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
         }
 
         if (!$checkoutSessionId) {
             throw new Exception('No checkout session found. Please try again.');
         }
 
-        // Get checkout session details
+        // Get checkout session details from PayMongo
         $checkoutSession = $payMongoService->getCheckoutSession($checkoutSessionId);
         
         if (!$checkoutSession) {
             throw new Exception('Failed to retrieve checkout session details.');
         }
 
-        $paymentIntentId = $checkoutSession['attributes']['payment_intent_id'];
+        // Try to get payment_intent_id from checkout session, fallback to transaction record
+        $paymentIntentId = $checkoutSession['attributes']['payment_intent']['data']['id'] ?? 
+                          $checkoutSession['attributes']['payment_intent_id'] ?? 
+                          null;
+        
+        // If still no payment_intent_id, get it from our database
+        if (!$paymentIntentId && $transaction) {
+            $paymentIntentId = $transaction['payment_intent_id'];
+        }
+        
+        if (!$paymentIntentId) {
+            throw new Exception('Payment intent ID not found. Please contact support.');
+        }
         
         // Get payment intent details
         $paymentIntent = $payMongoService->getPaymentIntent($paymentIntentId);
@@ -126,7 +151,8 @@ function handleSuccessCallback($userId, $payMongoService) {
 
         if ($paymentStatus === 'succeeded') {
             // Payment was successful, process it
-            $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
+            $existingTransactionId = $transaction['id'] ?? null;
+            $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId, $existingTransactionId);
             
             if ($result['success']) {
                 // Clear pending transaction from session

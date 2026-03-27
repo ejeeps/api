@@ -195,7 +195,7 @@ class PayMongoService {
     /**
      * Process successful payment
      */
-    public function processSuccessfulPayment($paymentIntentId, $userId) {
+    public function processSuccessfulPayment($paymentIntentId, $userId, $existingTransactionId = null) {
         try {
             // Get payment intent details
             $paymentIntent = $this->getPaymentIntent($paymentIntentId);
@@ -216,7 +216,7 @@ class PayMongoService {
                 FROM passengers p 
                 JOIN card_assign_passengers cap ON p.id = cap.passenger_id 
                 JOIN cards c ON cap.card_id = c.id 
-                WHERE p.user_id = ? AND cap.status = 'active' AND c.status = 'active'
+                WHERE p.user_id = ? AND cap.assignment_status = 'active' AND c.status = 'active'
                 LIMIT 1
             ");
             $stmt->execute([$userId]);
@@ -231,22 +231,33 @@ class PayMongoService {
             $stmt = $this->db->prepare("UPDATE cards SET balance = ? WHERE id = ?");
             $stmt->execute([$newBalance, $cardInfo['card_id']]);
 
-            // Create transaction record
-            $transactionRef = generateTransactionReference($userId);
-            $stmt = $this->db->prepare("
-                INSERT INTO transactions (
-                    user_id, card_id, transaction_reference, payment_intent_id,
-                    amount, transaction_type, status, payment_method, 
-                    created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, 'top_up', 'completed', 'paymongo', NOW(), NOW())
-            ");
-            $stmt->execute([
-                $userId, 
-                $cardInfo['card_id'], 
-                $transactionRef, 
-                $paymentIntentId, 
-                $amount
-            ]);
+            // Update existing transaction or create new one
+            if ($existingTransactionId) {
+                $stmt = $this->db->prepare("
+                    UPDATE transactions 
+                    SET card_id = ?, status = 'completed', processed_at = NOW(), updated_at = NOW()
+                    WHERE id = ? AND user_id = ?
+                ");
+                $stmt->execute([$cardInfo['card_id'], $existingTransactionId, $userId]);
+                $transactionRef = $existingTransactionId;
+            } else {
+                // Create transaction record (fallback)
+                $transactionRef = generateTransactionReference($userId);
+                $stmt = $this->db->prepare("
+                    INSERT INTO transactions (
+                        user_id, card_id, transaction_reference, payment_intent_id,
+                        amount, transaction_type, status, payment_method, 
+                        created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, 'top_up', 'completed', 'paymongo', NOW(), NOW())
+                ");
+                $stmt->execute([
+                    $userId, 
+                    $cardInfo['card_id'], 
+                    $transactionRef, 
+                    $paymentIntentId, 
+                    $amount
+                ]);
+            }
 
             $this->db->commit();
 

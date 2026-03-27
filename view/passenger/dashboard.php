@@ -34,12 +34,13 @@ $imageBasePath = $basePath;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
     <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="E-JEEP Passenger">
     <meta name="description" content="E-JEEP Passenger Dashboard">
-    <link rel="manifest" href="../../manifest.json">
-    <link rel="apple-touch-icon" href="../../assets/icons/icon-192.png">
+    <link rel="manifest" href="<?php echo htmlspecialchars($basePath); ?>manifest.json">
+    <link rel="apple-touch-icon" href="<?php echo htmlspecialchars($basePath); ?>assets/icons/icon-192x192.png">
     <title>Passenger Dashboard - E-JEEP</title>
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/index.css" rel="stylesheet" type="text/css">
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/dashboard.css" rel="stylesheet" type="text/css">
