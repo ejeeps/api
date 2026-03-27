@@ -109,14 +109,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Detect mobile device
             $isMobile = preg_match('/(android|iphone|ipad|mobile)/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
-            
-            // Create checkout session (use mobile optimization if on mobile)
+
+            // Create checkout session with selected payment method
+            // This ensures only the selected method shows on PayMongo's checkout page
             $checkoutSession = $payMongoService->createCheckoutSession(
-                $paymentIntent['id'], 
-                null, 
-                null, 
-                $amount, 
-                $isMobile
+                $paymentIntent['id'],
+                null,
+                null,
+                $amount,
+                $isMobile,
+                $paymentMethod  // Pass selected payment method to restrict options
             );
 
             if (!$checkoutSession) {

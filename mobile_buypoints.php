@@ -103,13 +103,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $stmt->execute([$paymentIntent['id'], $transactionId]);
 
-        // Create mobile-optimized checkout session
+        // Create mobile-optimized checkout session with selected payment method
+        // This ensures only the selected method shows on PayMongo's checkout page
         $checkoutSession = $payMongoService->createCheckoutSession(
-            $paymentIntent['id'], 
-            null, 
-            null, 
-            $amount, 
-            true // Force mobile optimization
+            $paymentIntent['id'],
+            null,
+            null,
+            $amount,
+            true,  // Force mobile optimization
+            $paymentMethod  // Pass selected payment method to restrict options
         );
 
         if (!$checkoutSession) {

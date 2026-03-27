@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS cards (
     status ENUM('active', 'inactive', 'blocked', 'expired') DEFAULT 'active',
     
     -- Card Details
-    balance DECIMAL(10, 2) DEFAULT 0.00 COMMENT 'Current card balance',
+    balance DECIMAL(10, 2) DEFAULT 0.00 COMMENT 'Current card balance - matches transactions.amount precision',
     issued_date DATE DEFAULT NULL COMMENT 'Date when card was issued',
     expiry_date DATE DEFAULT NULL COMMENT 'Card expiration date',
     
