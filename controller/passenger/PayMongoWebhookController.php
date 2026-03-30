@@ -9,16 +9,20 @@
  * after fastcgi_finish_request(), so "respond first, process later" never updated the database.
  */
 
+require_once __DIR__ . '/../../config/paymongo.php';
 require_once __DIR__ . '/../../config/connection.php';
 require_once __DIR__ . '/../../services/PayMongoService.php';
 
-// Set headers for webhook response
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
-// Only accept POST requests
+// Browsers send GET; PayMongo sends POST. Some CDNs show a generic 500/404 for GET on API paths.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
+    http_response_code(200);
+    echo json_encode([
+        'ok' => true,
+        'endpoint' => 'PayMongoWebhookController',
+        'hint' => 'This URL only accepts POST from PayMongo webhooks. Open in a browser is expected to show this message.',
+    ]);
     exit;
 }
 
@@ -65,7 +69,7 @@ try {
             ]);
             // Return 200 so PayMongo does not retry forever; check logs and fix secret / algorithm.
             http_response_code(200);
-            echo json_encode(['status' => 'received', 'message' => 'Signature invalid — not processed']);
+            echo json_encode(['status' => 'received', 'message' => 'Signature invalid - not processed']);
             exit;
         }
     }
@@ -146,15 +150,20 @@ try {
         'event_type' => $eventType
     ]);
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     logPayMongoTransaction('Webhook Processing Error', [
         'error' => $e->getMessage(),
         'trace' => $e->getTraceAsString()
     ]);
+    http_response_code(200);
+    echo json_encode([
+        'status' => 'received',
+        'message' => 'Webhook error logged (check logs/paymongo.log)',
+    ]);
+    exit;
 }
 
 http_response_code(200);
-header('Content-Type: application/json');
 echo json_encode(['status' => 'received', 'message' => 'Webhook processed']);
 
 /**
