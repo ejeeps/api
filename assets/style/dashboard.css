@@ -1155,6 +1155,39 @@
     border-radius: 10px;
 }
 
+.trips-today-card--clickable {
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.trips-today-card--clickable:hover {
+    border-color: rgba(22, 163, 74, 0.4);
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.1);
+}
+
+.trips-today-card--clickable:active {
+    transform: scale(0.992);
+}
+
+.trips-today-card--clickable:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.trips-today-map-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #15803d;
+}
+
+.trips-today-map-hint .fa-map-location-dot {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
 @media (min-width: 640px) {
     .trips-today-card {
         flex-direction: row;

@@ -16,7 +16,9 @@ require_once __DIR__ . '/../../config/connection.php';
 require_once __DIR__ . '/../../controller/passenger/get_passengers_info.php';
 require_once __DIR__ . '/../../controller/passenger/get_dashboard_trips_today.php';
 $passengerInfo = getPassengerInfo($pdo, $_SESSION['user_id']);
-$tripsTodayRoutes = getDashboardTripsToday($pdo);
+// Use card_id (no spaces) so the "ongoing" badge reflects this passenger's open trips.
+$cardIdNumber = !empty($passengerInfo['card_number']) ? preg_replace('/\D+/', '', (string)$passengerInfo['card_number']) : null;
+$tripsTodayRoutes = getDashboardTripsToday($pdo, $cardIdNumber);
 if (!$passengerInfo) {
     $redirectPath = isset($dashboard_view) ? 'index.php' : '../../index.php';
     header("Location: " . $redirectPath . "?login=1&error=" . urlencode("Passenger information not found."));
@@ -46,6 +48,7 @@ $imageBasePath = $basePath;
     <title>Passenger Dashboard - E-JEEP</title>
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/index.css" rel="stylesheet" type="text/css">
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/dashboard.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
 
@@ -274,6 +277,130 @@ $imageBasePath = $basePath;
             cursor: not-allowed;
             filter: none;
         }
+
+        /* Route map modal (trips today — OSRM + Leaflet) */
+        .route-map-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99990;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .route-map-modal.open {
+            display: flex;
+        }
+        .route-map-modal__panel {
+            background: #fff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: min(920px, 100vw - 24px);
+            max-height: min(88vh, 720px);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+            overflow: hidden;
+            animation: routeMapModalIn 0.26s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes routeMapModalIn {
+            from { opacity: 0; transform: scale(0.94) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .route-map-modal__header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .route-map-modal__header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #14532d;
+            line-height: 1.35;
+            padding-right: 8px;
+        }
+        .route-map-modal__close {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 10px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 1.35rem;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .route-map-modal__close:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        .route-map-modal__body {
+            position: relative;
+            flex: 1;
+            min-height: min(52vh, 400px);
+            display: flex;
+            flex-direction: column;
+        }
+        .route-map-modal__map {
+            flex: 1;
+            min-height: min(52vh, 400px);
+            width: 100%;
+            background: #e8f5e9;
+        }
+        .route-map-modal__loading {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.82);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #166534;
+            gap: 10px;
+        }
+        .route-map-modal__loading::before {
+            content: '';
+            width: 22px;
+            height: 22px;
+            border: 3px solid #bbf7d0;
+            border-top-color: #16a34a;
+            border-radius: 50%;
+            animation: routeMapSpin 0.75s linear infinite;
+        }
+        @keyframes routeMapSpin {
+            to { transform: rotate(360deg); }
+        }
+        .route-map-modal__error {
+            margin: 0;
+            padding: 10px 16px 14px;
+            font-size: 0.88rem;
+            color: #92400e;
+            background: #fffbeb;
+            border-top: 1px solid #fde68a;
+        }
+        .route-map-marker__dot {
+            display: block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.35);
+        }
+        .route-map-marker--start .route-map-marker__dot { background: #22c55e; }
+        .route-map-marker--end .route-map-marker__dot { background: #ef4444; }
     </style>
 </head>
 
@@ -391,8 +518,24 @@ $imageBasePath = $basePath;
                             $lastTs = !empty($row['last_activity']) ? strtotime((string)$row['last_activity']) : false;
                             $lastLabel = $lastTs ? date('g:i A', $lastTs) : '';
                             $ongoing = $pending > 0;
+                            $routeGeo = [
+                                'startLat' => isset($row['start_lat']) && $row['start_lat'] !== null && $row['start_lat'] !== '' ? (float)$row['start_lat'] : null,
+                                'startLng' => isset($row['start_lng']) && $row['start_lng'] !== null && $row['start_lng'] !== '' ? (float)$row['start_lng'] : null,
+                                'endLat' => isset($row['end_lat']) && $row['end_lat'] !== null && $row['end_lat'] !== '' ? (float)$row['end_lat'] : null,
+                                'endLng' => isset($row['end_lng']) && $row['end_lng'] !== null && $row['end_lng'] !== '' ? (float)$row['end_lng'] : null,
+                            ];
+                            $routeGeoJson = htmlspecialchars(json_encode($routeGeo), ENT_QUOTES, 'UTF-8');
+                            $routeMapLabel = 'View route on map: ' . $from . ' to ' . $to;
                             ?>
-                            <li class="trips-today-card">
+                            <li
+                                class="trips-today-card trips-today-card--clickable"
+                                tabindex="0"
+                                role="button"
+                                data-route-geo="<?php echo $routeGeoJson; ?>"
+                                data-route-from="<?php echo htmlspecialchars($from, ENT_QUOTES, 'UTF-8'); ?>"
+                                data-route-to="<?php echo htmlspecialchars($to, ENT_QUOTES, 'UTF-8'); ?>"
+                                aria-label="<?php echo htmlspecialchars($routeMapLabel, ENT_QUOTES, 'UTF-8'); ?>"
+                            >
                                 <div class="trips-today-card-main">
                                     <div class="trips-today-route-line">
                                         <span class="trips-today-from"><?php echo htmlspecialchars($from); ?></span>
@@ -413,6 +556,7 @@ $imageBasePath = $basePath;
                                     <?php if ($lastLabel !== ''): ?>
                                         <span class="trips-today-time">Last activity <?php echo htmlspecialchars($lastLabel); ?></span>
                                     <?php endif; ?>
+                                    <span class="trips-today-map-hint" aria-hidden="true"><i class="fas fa-map-location-dot"></i> Map</span>
                                 </div>
                             </li>
                         <?php endforeach; ?>
@@ -576,6 +720,21 @@ $imageBasePath = $basePath;
         <img class="modal-content" id="modalImage">
     </div>
 
+    <!-- Route map (OSRM + Leaflet) -->
+    <div id="routeMapModal" class="route-map-modal" role="dialog" aria-modal="true" aria-labelledby="routeMapModalTitle" aria-hidden="true">
+        <div class="route-map-modal__panel">
+            <div class="route-map-modal__header">
+                <h3 id="routeMapModalTitle">Route</h3>
+                <button type="button" class="route-map-modal__close" id="routeMapModalClose" aria-label="Close map">&times;</button>
+            </div>
+            <div class="route-map-modal__body">
+                <div id="routeMapModalLoading" class="route-map-modal__loading" hidden>Loading route…</div>
+                <div id="routeMapModalMap" class="route-map-modal__map" role="img" aria-label="Route map"></div>
+                <p id="routeMapModalError" class="route-map-modal__error" role="alert" hidden></p>
+            </div>
+        </div>
+    </div>
+
     <!-- ── Profile Zoom Modal ── -->
     <div id="profileZoomModal" class="profile-zoom-modal" role="dialog" aria-modal="true" aria-label="Profile photo">
         <div class="profile-zoom-inner">
@@ -586,6 +745,7 @@ $imageBasePath = $basePath;
 
        <?php include 'view/components/live_bus_tracker.php'; ?>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/dashboard.js"></script>
 
     <script>

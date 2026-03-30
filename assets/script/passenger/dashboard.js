@@ -127,4 +127,208 @@
     window.flipVirtualEjeepCard = flipVirtualEjeepCard;
     window.copyVirtualCardNumber = copyVirtualCardNumber;
     window.toggleVirtualBalanceVisibility = toggleVirtualBalanceVisibility;
+
+    /* ── Trips today: route map modal (Leaflet + OSRM) ───────────────────── */
+    var routeMapInstance = null;
+
+    function parseRouteGeoFromCard(card) {
+        var raw = card.getAttribute('data-route-geo');
+        if (!raw) return null;
+        try {
+            var o = JSON.parse(raw);
+            if (!o || typeof o !== 'object') return null;
+            var slat = o.startLat;
+            var slng = o.startLng;
+            var elat = o.endLat;
+            var elng = o.endLng;
+            if (slat == null || slng == null || elat == null || elng == null) return null;
+            slat = parseFloat(slat);
+            slng = parseFloat(slng);
+            elat = parseFloat(elat);
+            elng = parseFloat(elng);
+            if ([slat, slng, elat, elng].some(function (n) { return Number.isNaN(n); })) return null;
+            return { startLat: slat, startLng: slng, endLat: elat, endLng: elng };
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function destroyRouteMap() {
+        if (routeMapInstance) {
+            try {
+                routeMapInstance.remove();
+            } catch (e) {
+                /* ignore */
+            }
+            routeMapInstance = null;
+        }
+    }
+
+    function openRouteMapModal(card) {
+        if (typeof L === 'undefined') {
+            return;
+        }
+        var modal = document.getElementById('routeMapModal');
+        var mapEl = document.getElementById('routeMapModalMap');
+        var titleEl = document.getElementById('routeMapModalTitle');
+        var errEl = document.getElementById('routeMapModalError');
+        var loadingEl = document.getElementById('routeMapModalLoading');
+        if (!modal || !mapEl) return;
+
+        var from = card.getAttribute('data-route-from') || '';
+        var to = card.getAttribute('data-route-to') || '';
+        if (titleEl) {
+            titleEl.textContent = from && to ? from + ' → ' + to : 'Route';
+        }
+        if (errEl) {
+            errEl.hidden = true;
+            errEl.textContent = '';
+        }
+        if (loadingEl) {
+            loadingEl.hidden = false;
+        }
+
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        destroyRouteMap();
+        mapEl.innerHTML = '';
+
+        var coords = parseRouteGeoFromCard(card);
+        if (!coords) {
+            if (loadingEl) loadingEl.hidden = true;
+            if (errEl) {
+                errEl.textContent = 'Map coordinates are not set for this route yet. Ask your operator to add start and end points for this route.';
+                errEl.hidden = false;
+            }
+            return;
+        }
+
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                buildRouteMap(coords, mapEl, loadingEl, errEl);
+            });
+        });
+    }
+
+    function buildRouteMap(coords, mapEl, loadingEl, errEl) {
+        routeMapInstance = L.map(mapEl, { scrollWheelZoom: true });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(routeMapInstance);
+
+        var layerGroup = L.layerGroup().addTo(routeMapInstance);
+
+        var url = 'https://router.project-osrm.org/route/v1/driving/' +
+            coords.startLng + ',' + coords.startLat + ';' +
+            coords.endLng + ',' + coords.endLat +
+            '?geometries=geojson&overview=full';
+
+        fetch(url)
+            .then(function (r) {
+                return r.json();
+            })
+            .then(function (data) {
+                if (loadingEl) loadingEl.hidden = true;
+                var ok = data && (data.code === 'Ok' || data.code === 0);
+                var route = ok && data.routes && data.routes[0];
+                if (!route || !route.geometry) {
+                    throw new Error('no route');
+                }
+                var gjLayer = L.geoJSON(route.geometry, {
+                    style: { color: '#16a34a', weight: 5, opacity: 0.92 }
+                }).addTo(layerGroup);
+
+                var startIcon = L.divIcon({
+                    className: 'route-map-marker route-map-marker--start',
+                    html: '<span class="route-map-marker__dot"></span>',
+                    iconSize: [18, 18],
+                    iconAnchor: [9, 9]
+                });
+                var endIcon = L.divIcon({
+                    className: 'route-map-marker route-map-marker--end',
+                    html: '<span class="route-map-marker__dot"></span>',
+                    iconSize: [18, 18],
+                    iconAnchor: [9, 9]
+                });
+                L.marker([coords.startLat, coords.startLng], { icon: startIcon }).addTo(layerGroup);
+                L.marker([coords.endLat, coords.endLng], { icon: endIcon }).addTo(layerGroup);
+
+                routeMapInstance.fitBounds(gjLayer.getBounds(), { padding: [40, 40] });
+                routeMapInstance.invalidateSize();
+            })
+            .catch(function () {
+                if (loadingEl) loadingEl.hidden = true;
+                if (errEl) {
+                    errEl.textContent = 'Could not load the road route from OSRM. Showing a straight line between start and end.';
+                    errEl.hidden = false;
+                }
+                var latlngs = [[coords.startLat, coords.startLng], [coords.endLat, coords.endLng]];
+                L.polyline(latlngs, { color: '#16a34a', weight: 4, dashArray: '10 8', opacity: 0.9 }).addTo(layerGroup);
+                L.circleMarker([coords.startLat, coords.startLng], {
+                    radius: 7,
+                    color: '#15803d',
+                    fillColor: '#22c55e',
+                    fillOpacity: 1,
+                    weight: 2
+                }).addTo(layerGroup);
+                L.circleMarker([coords.endLat, coords.endLng], {
+                    radius: 7,
+                    color: '#b91c1c',
+                    fillColor: '#ef4444',
+                    fillOpacity: 1,
+                    weight: 2
+                }).addTo(layerGroup);
+                routeMapInstance.fitBounds(L.latLngBounds(latlngs), { padding: [48, 48] });
+                routeMapInstance.invalidateSize();
+            });
+    }
+
+    function closeRouteMapModal() {
+        var modal = document.getElementById('routeMapModal');
+        if (modal) {
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+        document.body.style.overflow = '';
+        destroyRouteMap();
+        var mapEl = document.getElementById('routeMapModalMap');
+        if (mapEl) mapEl.innerHTML = '';
+    }
+
+    function initTripsTodayRouteMap() {
+        document.querySelectorAll('.trips-today-card--clickable').forEach(function (card) {
+            card.addEventListener('click', function () {
+                openRouteMapModal(card);
+            });
+            card.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openRouteMapModal(card);
+                }
+            });
+        });
+        var modal = document.getElementById('routeMapModal');
+        if (modal) {
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeRouteMapModal();
+            });
+        }
+        var closeBtn = document.getElementById('routeMapModalClose');
+        if (closeBtn) closeBtn.addEventListener('click', closeRouteMapModal);
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            var m = document.getElementById('routeMapModal');
+            if (m && m.classList.contains('open')) closeRouteMapModal();
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTripsTodayRouteMap);
+    } else {
+        initTripsTodayRouteMap();
+    }
+
+    window.closeRouteMapModal = closeRouteMapModal;
 })();
