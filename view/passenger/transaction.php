@@ -40,7 +40,8 @@ try {
     $cardData = $cardStmt->fetch(PDO::FETCH_ASSOC);
     $cardId = $cardData ? $cardData['card_id'] : null;
     
-    // Fetch transactions for this user/card
+    // Fetch wallet/payment transactions
+    $walletTransactions = [];
     if ($cardId) {
         $stmt = $pdo->prepare("SELECT 
             id,
@@ -52,10 +53,12 @@ try {
             created_at,
             payment_method
         FROM transactions 
-        WHERE user_id = ? OR card_id = ?
+        WHERE (user_id = ? OR card_id = ?)
+          AND transaction_type <> 'refund'
         ORDER BY created_at DESC 
         LIMIT 50");
         $stmt->execute([$_SESSION['user_id'], $cardId]);
+        $walletTransactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } else {
         $stmt = $pdo->prepare("SELECT 
             id,
@@ -68,14 +71,21 @@ try {
             payment_method
         FROM transactions 
         WHERE user_id = ?
+          AND transaction_type <> 'refund'
         ORDER BY created_at DESC 
         LIMIT 50");
         $stmt->execute([$_SESSION['user_id']]);
+        $walletTransactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Map transaction types to filter categories
-    foreach ($transactions as &$transaction) {
+
+    // Normalize wallet records for UI
+    foreach ($walletTransactions as &$transaction) {
+        $transaction['source'] = 'wallet';
+        $transaction['trip_id'] = null;
+        $transaction['previous_balance'] = null;
+        $transaction['new_balance'] = null;
+        $transaction['route_name'] = null;
+
         // Map database types to display types
         switch ($transaction['type']) {
             case 'purchase':
@@ -87,15 +97,64 @@ try {
                 $transaction['description'] = $transaction['description'] ?: 'Card Reload';
                 break;
             case 'refund':
-                $transaction['display_type'] = 'refund';
-                $transaction['description'] = $transaction['description'] ?: 'Refund';
+                $transaction['display_type'] = 'payment';
+                $transaction['description'] = $transaction['description'] ?: 'E-JEEP Card Payment';
                 break;
             default:
                 $transaction['display_type'] = 'payment';
         }
     }
     unset($transaction);
-    
+
+    // Fetch trip fare deductions (ride receipts) using card_id_number
+    $rideTransactions = [];
+    $cardNumber = $passengerInfo['card_number'] ?? null;
+    if (!empty($cardNumber)) {
+        $tripStmt = $pdo->prepare("SELECT
+                tt.id,
+                tt.trip_id,
+                tt.amount,
+                tt.type,
+                tt.status,
+                tt.description,
+                tt.previous_balance,
+                tt.new_balance,
+                tt.created_at,
+                CONCAT(COALESCE(r.from_location, ''), CASE WHEN r.from_location IS NOT NULL AND r.to_location IS NOT NULL THEN ' → ' ELSE '' END, COALESCE(r.to_location, '')) AS route_name
+            FROM trip_transactions tt
+            LEFT JOIN trip_fares tf ON tf.id = tt.trip_fare_id
+            LEFT JOIN routes r ON r.id = tf.route_id
+            WHERE tt.card_id = ?
+              AND tt.type <> 'refund'
+            ORDER BY tt.created_at DESC
+            LIMIT 50");
+        $tripStmt->execute([(string)$cardNumber]);
+        $rideTransactions = $tripStmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Normalize trip deductions for same card UI format
+    foreach ($rideTransactions as &$transaction) {
+        $transaction['source'] = 'ride';
+        $transaction['reference'] = 'TRIP-' . str_pad((string)$transaction['id'], 6, '0', STR_PAD_LEFT);
+        $transaction['payment_method'] = 'card_balance';
+        $transaction['display_type'] = 'payment';
+
+        if ($transaction['type'] === 'adjustment') {
+            $transaction['description'] = $transaction['description'] ?: 'Trip Fare Adjustment';
+        } else {
+            $transaction['type'] = 'purchase'; // keep existing amount sign logic compatible
+            $transaction['description'] = $transaction['description'] ?: 'Trip Fare Deduction';
+        }
+    }
+    unset($transaction);
+
+    // Merge and sort by latest activity
+    $transactions = array_merge($walletTransactions, $rideTransactions);
+    usort($transactions, static function ($a, $b): int {
+        return strcmp((string)($b['created_at'] ?? ''), (string)($a['created_at'] ?? ''));
+    });
+    $transactions = array_slice($transactions, 0, 100);
+
 } catch (PDOException $e) {
     $transactions = [];
     error_log("Error fetching transactions: " . $e->getMessage());
@@ -403,7 +462,6 @@ try {
                 <div class="filter-tab active" onclick="filterTransactions('all')">All</div>
                 <div class="filter-tab" onclick="filterTransactions('payment')">Payments</div>
                 <div class="filter-tab" onclick="filterTransactions('reload')">Reloads</div>
-                <div class="filter-tab" onclick="filterTransactions('refund')">Refunds</div>
             </div>
 
             <!-- Transactions List -->
@@ -432,6 +490,19 @@ try {
                                         <div class="transaction-date">
                                             <?php echo date('M d, Y h:i A', strtotime($transaction['created_at'])); ?>
                                         </div>
+                                        <?php if (!empty($transaction['trip_id'])): ?>
+                                            <div class="transaction-date">
+                                                Receipt: <?php echo htmlspecialchars((string)$transaction['trip_id']); ?>
+                                                <?php if (!empty($transaction['route_name'])): ?>
+                                                    · <?php echo htmlspecialchars((string)$transaction['route_name']); ?>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if (isset($transaction['previous_balance'], $transaction['new_balance']) && $transaction['previous_balance'] !== null && $transaction['new_balance'] !== null): ?>
+                                            <div class="transaction-date">
+                                                Balance: ₱<?php echo number_format((float)$transaction['previous_balance'], 2); ?> → ₱<?php echo number_format((float)$transaction['new_balance'], 2); ?>
+                                            </div>
+                                        <?php endif; ?>
                                         <?php if ($transaction['status']): ?>
                                             <span class="transaction-status <?php echo htmlspecialchars($transaction['status']); ?>">
                                                 <?php echo ucfirst($transaction['status']); ?>

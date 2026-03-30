@@ -17,6 +17,8 @@ function getDashboardTripsToday(PDO $pdo, ?string $cardIdNumber = null): array
             $whereCard = " AND t.card_id = :cardIdNumber ";
         }
 
+        // Map endpoints: prefer routes.start_* / end_* (migration 024); if unset, use earliest
+        // and latest GPS from trips today for this route (trips.latitude/longitude from 014).
         $sql = "
             SELECT
                 r.id,
@@ -27,6 +29,30 @@ function getDashboardTripsToday(PDO $pdo, ?string $cardIdNumber = null): array
                 r.start_lng,
                 r.end_lat,
                 r.end_lng,
+                COALESCE(
+                    r.start_lat,
+                    (SELECT t3.latitude FROM trips t3
+                     WHERE t3.route_id = r.id AND DATE(t3.timestamp) = CURDATE()
+                     ORDER BY t3.timestamp ASC, t3.id ASC LIMIT 1)
+                ) AS map_start_lat,
+                COALESCE(
+                    r.start_lng,
+                    (SELECT t3.longitude FROM trips t3
+                     WHERE t3.route_id = r.id AND DATE(t3.timestamp) = CURDATE()
+                     ORDER BY t3.timestamp ASC, t3.id ASC LIMIT 1)
+                ) AS map_start_lng,
+                COALESCE(
+                    r.end_lat,
+                    (SELECT t3.latitude FROM trips t3
+                     WHERE t3.route_id = r.id AND DATE(t3.timestamp) = CURDATE()
+                     ORDER BY t3.timestamp DESC, t3.id DESC LIMIT 1)
+                ) AS map_end_lat,
+                COALESCE(
+                    r.end_lng,
+                    (SELECT t3.longitude FROM trips t3
+                     WHERE t3.route_id = r.id AND DATE(t3.timestamp) = CURDATE()
+                     ORDER BY t3.timestamp DESC, t3.id DESC LIMIT 1)
+                ) AS map_end_lng,
                 COUNT(DISTINCT t.trip_id) AS trip_sessions,
                 COUNT(DISTINCT IF(
                     t.trip_status = 'pending'

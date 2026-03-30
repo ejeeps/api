@@ -43,6 +43,62 @@ if ($message === '' || mb_strlen($message) > 4000) {
     exit;
 }
 
+// Fixed response for developer identity questions.
+$messageLower = mb_strtolower($message, 'UTF-8');
+$personTerms = [
+    'developer',
+    'developed',
+    'develop',
+    'programmer',
+    'prorgammer',
+];
+$buildTerms = [
+    'make',
+    'made',
+    'create',
+    'creator',
+    'created',
+    'build',
+    'built',
+];
+$appTerms = [
+    'app',
+    'application',
+    'system',
+    'website',
+    'this',
+];
+
+$hasPersonTerm = false;
+foreach ($personTerms as $term) {
+    if (strpos($messageLower, $term) !== false) {
+        $hasPersonTerm = true;
+        break;
+    }
+}
+
+$hasBuildTerm = false;
+foreach ($buildTerms as $term) {
+    if (strpos($messageLower, $term) !== false) {
+        $hasBuildTerm = true;
+        break;
+    }
+}
+
+$hasAppTerm = false;
+foreach ($appTerms as $term) {
+    if (strpos($messageLower, $term) !== false) {
+        $hasAppTerm = true;
+        break;
+    }
+}
+
+$asksDeveloperIdentity = $hasPersonTerm || ($hasBuildTerm && $hasAppTerm);
+if ($asksDeveloperIdentity) {
+    echo json_encode(['reply' => 'The developer of this app is anthony capuyan.'], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+    exit;
+}
+
 $history = $input['history'] ?? [];
 if (!is_array($history)) {
     $history = [];

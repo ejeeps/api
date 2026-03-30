@@ -165,9 +165,6 @@
     }
 
     function openRouteMapModal(card) {
-        if (typeof L === 'undefined') {
-            return;
-        }
         var modal = document.getElementById('routeMapModal');
         var mapEl = document.getElementById('routeMapModalMap');
         var titleEl = document.getElementById('routeMapModalTitle');
@@ -195,11 +192,20 @@
         destroyRouteMap();
         mapEl.innerHTML = '';
 
+        if (typeof L === 'undefined') {
+            if (loadingEl) loadingEl.hidden = true;
+            if (errEl) {
+                errEl.textContent = 'Map could not load. Check your connection, allow this page to load scripts from unpkg.com, then refresh.';
+                errEl.hidden = false;
+            }
+            return;
+        }
+
         var coords = parseRouteGeoFromCard(card);
         if (!coords) {
             if (loadingEl) loadingEl.hidden = true;
             if (errEl) {
-                errEl.textContent = 'Map coordinates are not set for this route yet. Ask your operator to add start and end points for this route.';
+                errEl.textContent = 'No start/end points for this route yet. Your operator can set them on the route, or they appear from today’s trip GPS once taps are logged.';
                 errEl.hidden = false;
             }
             return;

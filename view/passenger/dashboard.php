@@ -16,14 +16,14 @@ require_once __DIR__ . '/../../config/connection.php';
 require_once __DIR__ . '/../../controller/passenger/get_passengers_info.php';
 require_once __DIR__ . '/../../controller/passenger/get_dashboard_trips_today.php';
 $passengerInfo = getPassengerInfo($pdo, $_SESSION['user_id']);
-// Use card_id (no spaces) so the "ongoing" badge reflects this passenger's open trips.
-$cardIdNumber = !empty($passengerInfo['card_number']) ? preg_replace('/\D+/', '', (string)$passengerInfo['card_number']) : null;
-$tripsTodayRoutes = getDashboardTripsToday($pdo, $cardIdNumber);
 if (!$passengerInfo) {
     $redirectPath = isset($dashboard_view) ? 'index.php' : '../../index.php';
     header("Location: " . $redirectPath . "?login=1&error=" . urlencode("Passenger information not found."));
     exit;
 }
+// Use card_id (no spaces) so the "ongoing" badge reflects this passenger's open trips.
+$cardIdNumber = !empty($passengerInfo['card_number']) ? preg_replace('/\D+/', '', (string)$passengerInfo['card_number']) : null;
+$tripsTodayRoutes = getDashboardTripsToday($pdo, $cardIdNumber);
 if (isset($dashboard_view)) {
     $basePath = '';
 } else {
@@ -499,7 +499,7 @@ $imageBasePath = $basePath;
                     Trips today
                 </h2>
                 <p class="trips-today-subtitle">
-                    <span class="trips-today-date"><?php echo htmlspecialchars(date('l, F j, Y')); ?></span><span class="trips-today-subtitle-extra"> · Routes with activity today</span>
+                    <span class="trips-today-date"><?php echo htmlspecialchars(date('l, F j, Y')); ?></span><span class="trips-today-subtitle-extra"> · Routes with activity today · Tap a route to open the map (OSRM)</span>
                 </p>
                 <?php if (empty($tripsTodayRoutes)): ?>
                     <div class="trips-today-empty" role="status">
@@ -519,10 +519,10 @@ $imageBasePath = $basePath;
                             $lastLabel = $lastTs ? date('g:i A', $lastTs) : '';
                             $ongoing = $pending > 0;
                             $routeGeo = [
-                                'startLat' => isset($row['start_lat']) && $row['start_lat'] !== null && $row['start_lat'] !== '' ? (float)$row['start_lat'] : null,
-                                'startLng' => isset($row['start_lng']) && $row['start_lng'] !== null && $row['start_lng'] !== '' ? (float)$row['start_lng'] : null,
-                                'endLat' => isset($row['end_lat']) && $row['end_lat'] !== null && $row['end_lat'] !== '' ? (float)$row['end_lat'] : null,
-                                'endLng' => isset($row['end_lng']) && $row['end_lng'] !== null && $row['end_lng'] !== '' ? (float)$row['end_lng'] : null,
+                                'startLat' => isset($row['map_start_lat']) && $row['map_start_lat'] !== null && $row['map_start_lat'] !== '' ? (float)$row['map_start_lat'] : null,
+                                'startLng' => isset($row['map_start_lng']) && $row['map_start_lng'] !== null && $row['map_start_lng'] !== '' ? (float)$row['map_start_lng'] : null,
+                                'endLat' => isset($row['map_end_lat']) && $row['map_end_lat'] !== null && $row['map_end_lat'] !== '' ? (float)$row['map_end_lat'] : null,
+                                'endLng' => isset($row['map_end_lng']) && $row['map_end_lng'] !== null && $row['map_end_lng'] !== '' ? (float)$row['map_end_lng'] : null,
                             ];
                             $routeGeoJson = htmlspecialchars(json_encode($routeGeo), ENT_QUOTES, 'UTF-8');
                             $routeMapLabel = 'View route on map: ' . $from . ' to ' . $to;
