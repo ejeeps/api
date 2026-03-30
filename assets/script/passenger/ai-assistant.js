@@ -52,6 +52,79 @@
         box.scrollTop = box.scrollHeight;
     }
 
+    /**
+     * Assistant reply with typewriter effect (errors show instantly).
+     */
+    function appendAssistantMessageTyped(text, isError, onComplete) {
+        var box = el('assistantMessages');
+        if (!box) {
+            if (onComplete) onComplete();
+            return;
+        }
+        removeEmptyState();
+
+        var row = document.createElement('div');
+        row.className = 'assistant-msg-row assistant-msg-row--bot';
+
+        var av = document.createElement('div');
+        av.className = 'assistant-msg-avatar';
+        av.setAttribute('aria-hidden', 'true');
+        av.innerHTML = '<i class="fas fa-robot"></i>';
+
+        var bubble = document.createElement('div');
+        bubble.className = 'assistant-msg-bubble assistant-msg-bubble--bot';
+        if (isError) {
+            bubble.classList.add('assistant-msg-bubble--error');
+        } else {
+            bubble.classList.add('assistant-msg-bubble--streaming');
+        }
+
+        row.appendChild(av);
+        row.appendChild(bubble);
+        box.appendChild(row);
+
+        if (isError || !text) {
+            bubble.textContent = text || '';
+            box.scrollTop = box.scrollHeight;
+            if (onComplete) onComplete();
+            return;
+        }
+
+        var cursor = document.createElement('span');
+        cursor.className = 'assistant-cursor';
+        cursor.setAttribute('aria-hidden', 'true');
+
+        var full = String(text);
+        var i = 0;
+        var len = full.length;
+        var chunk = len > 900 ? 4 : len > 400 ? 3 : len > 120 ? 2 : 1;
+        var delayMs = len > 900 ? 14 : len > 400 ? 16 : 18;
+
+        function tick() {
+            if (!bubble.parentNode) {
+                if (onComplete) onComplete();
+                return;
+            }
+            i = Math.min(len, i + chunk);
+            bubble.textContent = full.slice(0, i);
+            if (i < len) {
+                bubble.appendChild(cursor);
+            } else {
+                bubble.classList.remove('assistant-msg-bubble--streaming');
+                if (cursor.parentNode) {
+                    cursor.parentNode.removeChild(cursor);
+                }
+                if (onComplete) onComplete();
+            }
+            box.scrollTop = box.scrollHeight;
+            if (i < len) {
+                setTimeout(tick, delayMs);
+            }
+        }
+
+        tick();
+    }
+
     function showTyping() {
         var box = el('assistantMessages');
         if (!box) return;
@@ -82,7 +155,6 @@
         if (t && t.parentNode) {
             t.parentNode.removeChild(t);
         }
-        typingEl = null;
     }
 
     function setLoading(on) {
@@ -157,7 +229,7 @@
                 return;
             }
             var reply = data.reply || '';
-            appendMsg('assistant', reply);
+            appendAssistantMessageTyped(reply, false);
             history.push({ role: 'user', content: text });
             history.push({ role: 'assistant', content: reply });
             if (history.length > 20) {

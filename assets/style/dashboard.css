@@ -71,15 +71,15 @@
     min-height: 0;
 }
 
-/* ── E-JEEP Assistant chat (redesigned) ───────────────────────────── */
+/* ── E-JEEP Assistant chat (compact; overrides generic tracker modal) ─ */
 .tracker-modal.assistant-chat-modal .modal-content.assistant-chat-shell {
-    width: min(420px, 94vw);
-    height: min(85vh, 640px);
-    max-height: calc(100vh - 32px);
-    border-radius: 20px;
+    width: min(360px, 92vw);
+    height: min(68vh, 480px);
+    max-height: min(520px, calc(100vh - 100px));
+    border-radius: 18px;
     border: 1px solid rgba(0, 0, 0, 0.06);
     box-shadow:
-        0 24px 48px rgba(15, 23, 42, 0.18),
+        0 20px 40px rgba(15, 23, 42, 0.16),
         0 0 0 1px rgba(255, 255, 255, 0.06) inset;
     overflow: hidden;
 }
@@ -88,8 +88,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 14px 16px;
+    gap: 10px;
+    padding: 11px 12px;
     background: linear-gradient(135deg, #16a34a 0%, #15803d 55%, #166534 100%);
     color: #fff;
     flex-shrink: 0;
@@ -103,9 +103,9 @@
 }
 
 .assistant-chat-header__avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.2);
     display: flex;
     align-items: center;
@@ -121,7 +121,7 @@
 
 .assistant-chat-header__title {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 0.98rem;
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.2;
@@ -169,8 +169,8 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 16px 14px 12px;
-    min-height: 200px;
+    padding: 12px 12px 10px;
+    min-height: 140px;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -253,9 +253,9 @@
 
 .assistant-msg-bubble {
     max-width: calc(100% - 42px);
-    padding: 11px 14px;
-    border-radius: 16px;
-    font-size: 0.9rem;
+    padding: 9px 12px;
+    border-radius: 14px;
+    font-size: 0.875rem;
     line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-word;
@@ -319,9 +319,33 @@
     }
 }
 
+.assistant-msg-bubble--streaming {
+    min-height: 1.5em;
+}
+
+.assistant-msg-bubble .assistant-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    background: #16a34a;
+    animation: assistantCursorBlink 0.9s step-end infinite;
+}
+
+@keyframes assistantCursorBlink {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
 .assistant-composer {
     flex-shrink: 0;
-    padding: 12px 14px 16px;
+    padding: 10px 12px 12px;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(8px);
     border-top: 1px solid rgba(226, 232, 240, 0.9);
@@ -1877,8 +1901,9 @@ body .main-content {
     }
 
     .tracker-modal.assistant-chat-modal .modal-content.assistant-chat-shell {
-        width: 96vw;
-        height: min(90vh, 100%);
+        width: min(96vw, 400px);
+        height: min(65vh, 460px);
+        max-height: calc(100vh - 88px);
         border-radius: 16px;
     }
 
