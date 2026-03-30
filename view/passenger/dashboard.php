@@ -330,9 +330,9 @@ $imageBasePath = $basePath;
                 <div class="alert alert-warning">
                     <strong>Card Inactive:</strong> Your E-JEEP card is currently inactive. Please contact support to activate it.
                 </div>
-            <?php elseif ($passengerInfo['card_status'] === 'active'): ?>
-                <div class="alert alert-success">
-                    <strong>Card Active:</strong> Your E-JEEP card is active and ready to use!
+            <?php elseif ($passengerInfo['card_status'] === 'expired'): ?>
+                <div class="alert alert-error">
+                    <strong>Card Expired:</strong> Your E-JEEP card has expired. Please contact support to renew it.
                 </div>
             <?php endif; ?>
 
