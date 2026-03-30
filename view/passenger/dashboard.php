@@ -14,7 +14,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_level'] !== 'passenger') {
 }
 require_once __DIR__ . '/../../config/connection.php';
 require_once __DIR__ . '/../../controller/passenger/get_passengers_info.php';
+require_once __DIR__ . '/../../controller/passenger/get_dashboard_trips_today.php';
 $passengerInfo = getPassengerInfo($pdo, $_SESSION['user_id']);
+$tripsTodayRoutes = getDashboardTripsToday($pdo);
 if (!$passengerInfo) {
     $redirectPath = isset($dashboard_view) ? 'index.php' : '../../index.php';
     header("Location: " . $redirectPath . "?login=1&error=" . urlencode("Passenger information not found."));
@@ -357,6 +359,59 @@ $imageBasePath = $basePath;
                     <h3 class="card-title">Organization</h3>
                     <p class="card-value"><?php echo $passengerInfo['organization_name'] ? htmlspecialchars($passengerInfo['organization_name']) : 'None'; ?></p>
                 </div>
+            </div>
+
+            <!-- Trips today: routes with activity (network overview) -->
+            <div class="dashboard-section trips-today-section">
+                <h2 class="section-title trips-today-title">
+                    <i class="fas fa-bus" aria-hidden="true"></i>
+                    Trips today
+                </h2>
+                <p class="trips-today-subtitle"><?php echo htmlspecialchars(date('l, F j, Y')); ?> · routes with recorded activity</p>
+                <?php if (empty($tripsTodayRoutes)): ?>
+                    <div class="trips-today-empty" role="status">
+                        <i class="fas fa-road" aria-hidden="true"></i>
+                        <p>No trip activity has been recorded on the network yet today.</p>
+                        <p class="trips-today-empty-hint">When vehicles run and taps are logged, routes will appear here.</p>
+                    </div>
+                <?php else: ?>
+                    <ul class="trips-today-list">
+                        <?php foreach ($tripsTodayRoutes as $row):
+                            $from = isset($row['from_location']) ? (string)$row['from_location'] : '';
+                            $to = isset($row['to_location']) ? (string)$row['to_location'] : '';
+                            $extra = isset($row['location']) ? trim((string)$row['location']) : '';
+                            $sessions = (int)($row['trip_sessions'] ?? 0);
+                            $pending = (int)($row['pending_rows'] ?? 0);
+                            $lastTs = !empty($row['last_activity']) ? strtotime((string)$row['last_activity']) : false;
+                            $lastLabel = $lastTs ? date('g:i A', $lastTs) : '';
+                            $ongoing = $pending > 0;
+                            ?>
+                            <li class="trips-today-card">
+                                <div class="trips-today-card-main">
+                                    <div class="trips-today-route-line">
+                                        <span class="trips-today-from"><?php echo htmlspecialchars($from); ?></span>
+                                        <span class="trips-today-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>
+                                        <span class="trips-today-to"><?php echo htmlspecialchars($to); ?></span>
+                                    </div>
+                                    <?php if ($extra !== ''): ?>
+                                        <p class="trips-today-extra"><?php echo htmlspecialchars($extra); ?></p>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="trips-today-card-meta">
+                                    <?php if ($ongoing): ?>
+                                        <span class="trips-today-badge trips-today-badge--ongoing"><span class="trips-today-pulse" aria-hidden="true"></span> Ongoing</span>
+                                    <?php else: ?>
+                                        <span class="trips-today-badge trips-today-badge--quiet">No open trip</span>
+                                    <?php endif; ?>
+                                    <span class="trips-today-stat"><?php echo $sessions; ?> trip<?php echo $sessions === 1 ? '' : 's'; ?> today</span>
+                                    <?php if ($lastLabel !== ''): ?>
+                                        <span class="trips-today-time">Last activity <?php echo htmlspecialchars($lastLabel); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
             </div>
 
             <?php if (!empty($passengerInfo['card_number']) && ($passengerInfo['card_status'] ?? '') === 'active'): ?>
