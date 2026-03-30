@@ -6,14 +6,30 @@
     'use strict';
 
     let installPromptEvent = null;
+    let hasRefreshedForNewWorker = false;
 
     // Register Service Worker
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/api/service-worker.js')
+                navigator.serviceWorker.register('/api/service-worker.js', {
+                    // Ensure the browser does not serve stale SW script from HTTP cache.
+                    updateViaCache: 'none'
+                })
                     .then(function (registration) {
                         console.log('E-JEEP Service Worker registered:', registration.scope);
+                        listenForServiceWorkerUpdates(registration);
+
+                        // Check for updates immediately and periodically while app is open.
+                        registration.update().catch(function (error) {
+                            console.error('Initial Service Worker update check failed:', error);
+                        });
+
+                        setInterval(function () {
+                            registration.update().catch(function (error) {
+                                console.error('Periodic Service Worker update check failed:', error);
+                            });
+                        }, 5 * 60 * 1000);
                     })
                     .catch(function (error) {
                         console.error('E-JEEP Service Worker registration failed:', error);
@@ -22,6 +38,49 @@
         } else {
             console.log('Service Worker not supported in this browser');
         }
+    }
+
+    function requestWaitingServiceWorkerActivation(registration) {
+        if (registration.waiting) {
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+    }
+
+    function listenForServiceWorkerUpdates(registration) {
+        // If an updated worker is already waiting, activate it now.
+        requestWaitingServiceWorkerActivation(registration);
+
+        registration.addEventListener('updatefound', function () {
+            const newWorker = registration.installing;
+            if (!newWorker) {
+                return;
+            }
+
+            newWorker.addEventListener('statechange', function () {
+                // Trigger activation only when there is an existing controller
+                // (means this is an update, not first install).
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    requestWaitingServiceWorkerActivation(registration);
+                }
+            });
+        });
+
+        // Force a reload once the new worker controls this page.
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (hasRefreshedForNewWorker) {
+                return;
+            }
+            hasRefreshedForNewWorker = true;
+            window.location.reload();
+        });
+
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+                registration.update().catch(function (error) {
+                    console.error('Visibility Service Worker update check failed:', error);
+                });
+            }
+        });
     }
 
     // Handle beforeinstallprompt event

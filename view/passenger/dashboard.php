@@ -424,7 +424,7 @@ $imageBasePath = $basePath;
             <?php if (!empty($passengerInfo['card_number']) && ($passengerInfo['card_status'] ?? '') === 'active'): ?>
             <!-- E-JEEP Virtual Card -->
             <div class="passenger-dashboard-flow__card">
-            <div class=" ejeep-card-wrap">
+            <div class="dashboard-section ejeep-card-wrap">
                 <?php
                     $virtualCardRaw = preg_replace('/\D+/', '', (string)($passengerInfo['card_number'] ?? ''));
                     $virtualCardFormatted = trim(chunk_split($virtualCardRaw, 4, ' '));
