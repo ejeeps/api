@@ -6,13 +6,13 @@ CREATE TABLE IF NOT EXISTS cards (
     -- Card Identification
     card_id_number VARCHAR(50) NOT NULL UNIQUE COMMENT 'Unique card identification number',
     card_id_content VARCHAR(50) DEFAULT NULL COMMENT 'Content of the card id number',
-    card_type ENUM('driver','student', 'senior', 'regular', 'employee', 'special','admin') DEFAULT 'regular' COMMENT 'Type of card',
+    card_type ENUM('driver','student', 'senior', 'regular', 'employee', 'special', 'pwd', 'admin') DEFAULT 'regular' COMMENT 'Type of card',
     
     -- Card Status
     status ENUM('active', 'inactive', 'blocked', 'expired') DEFAULT 'active',
     
     -- Card Details
-    balance DECIMAL(10, 2) DEFAULT 0.00 COMMENT 'Current card balance - matches transactions.amount precision',
+    balance DECIMAL(10, 2) DEFAULT 0.00 COMMENT 'Current card balance',
     issued_date DATE DEFAULT NULL COMMENT 'Date when card was issued',
     expiry_date DATE DEFAULT NULL COMMENT 'Card expiration date',
     

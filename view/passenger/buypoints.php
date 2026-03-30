@@ -49,7 +49,6 @@ $reloadAmounts = [1, 20, 50, 100, 200, 500];
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/dashboard.css" rel="stylesheet" type="text/css">
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/driver.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
     <style>
         /* ── Profile Zoom Modal ── */
@@ -351,6 +350,55 @@ $reloadAmounts = [1, 20, 50, 100, 200, 500];
             margin-bottom: 3px;
         }
 
+        .payment-recommended {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #fff;
+            background: var(--primary-color);
+            padding: 2px 8px;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+
+        .payment-coming-soon {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #6c757d;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+
+        .payment-method--soon {
+            cursor: not-allowed;
+            pointer-events: none;
+            opacity: 0.72;
+            background: #f8f9fa;
+            border-style: dashed;
+        }
+
+        .payment-method--soon:hover {
+            border-color: #e9ecef;
+        }
+
+        .payment-method--soon .payment-icon {
+            opacity: 0.85;
+        }
+
+        .payment-method--soon .payment-radio {
+            border-color: #dee2e6;
+            background: #fff;
+        }
+
+        .payment-method--soon .payment-radio::after {
+            display: none;
+        }
+
         .payment-desc {
             font-size: 0.85rem;
             color: var(--text-light);
@@ -523,88 +571,82 @@ $reloadAmounts = [1, 20, 50, 100, 200, 500];
                 <div class="dashboard-section">
                     <h2 class="section-title">Payment Method</h2>
                     <div class="payment-methods">
-                        <div class="payment-method selected" onclick="selectPaymentMethod('gcash')">
-                            <div class="payment-icon" style="background-color: #0066cc; color: white;">
-                                <i class="fas fa-mobile-alt"></i>
-                            </div>
-                            <div class="payment-details">
-                                <div class="payment-name">GCash</div>
-                                <div class="payment-desc">Pay using GCash mobile wallet</div>
-                            </div>
-                            <div class="payment-radio"></div>
-                            <input type="radio" name="payment_method" value="gcash" checked style="display: none;">
-                        </div>
-
-                        <div class="payment-method" onclick="selectPaymentMethod('paymaya')">
-                            <div class="payment-icon" style="background-color: #00a859; color: white;">
-                                <i class="fas fa-wallet"></i>
-                            </div>
-                            <div class="payment-details">
-                                <div class="payment-name">PayMaya</div>
-                                <div class="payment-desc">Pay using PayMaya wallet</div>
-                            </div>
-                            <div class="payment-radio"></div>
-                            <input type="radio" name="payment_method" value="paymaya" style="display: none;">
-                        </div>
-
-                        <div class="payment-method" onclick="selectPaymentMethod('bank')">
-                            <div class="payment-icon" style="background-color: #1a2332; color: white;">
-                                <i class="fas fa-university"></i>
-                            </div>
-                            <div class="payment-details">
-                                <div class="payment-name">Bank Transfer</div>
-                                <div class="payment-desc">BDO, BPI, Metrobank, etc.</div>
-                            </div>
-                            <div class="payment-radio"></div>
-                            <input type="radio" name="payment_method" value="bank" style="display: none;">
-                        </div>
-
-                        <div class="payment-method" onclick="selectPaymentMethod('card')">
-                            <div class="payment-icon" style="background-color: #6c757d; color: white;">
-                                <i class="fas fa-credit-card"></i>
-                            </div>
-                            <div class="payment-details">
-                                <div class="payment-name">Credit/Debit Card</div>
-                                <div class="payment-desc">Visa, Mastercard, JCB</div>
-                            </div>
-                            <div class="payment-radio"></div>
-                            <input type="radio" name="payment_method" value="card" style="display: none;">
-                        </div>
-
-                        <div class="payment-method" onclick="selectPaymentMethod('grab_pay')">
-                            <div class="payment-icon" style="background-color: #00b14f; color: white;">
-                                <i class="fas fa-car"></i>
-                            </div>
-                            <div class="payment-details">
-                                <div class="payment-name">GrabPay</div>
-                                <div class="payment-desc">Pay using GrabPay wallet</div>
-                            </div>
-                            <div class="payment-radio"></div>
-                            <input type="radio" name="payment_method" value="grab_pay" style="display: none;">
-                        </div>
-
-                        <div class="payment-method" onclick="selectPaymentMethod('qrph')">
+                        <div class="payment-method selected" onclick="selectPaymentMethod('qrph')">
                             <div class="payment-icon" style="background-color: #1f4788; color: white;">
                                 <i class="fas fa-qrcode"></i>
                             </div>
                             <div class="payment-details">
-                                <div class="payment-name">QRPh</div>
-                                <div class="payment-desc">QR Philippines - Scan to pay</div>
+                                <div class="payment-name">QRPh <span class="payment-recommended">Recommended</span></div>
+                                <div class="payment-desc">QR Philippines — scan to pay with your bank or e-wallet app</div>
                             </div>
                             <div class="payment-radio"></div>
-                            <input type="radio" name="payment_method" value="qrph" style="display: none;">
+                            <input type="radio" name="payment_method" value="qrph" checked style="display: none;">
                         </div>
 
-                        <div class="payment-method" onclick="selectPaymentMethod('billease')">
+                        <div class="payment-method payment-method--soon" role="presentation" aria-disabled="true">
+                            <div class="payment-icon" style="background-color: #0066cc; color: white;">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-name">GCash <span class="payment-coming-soon">Coming soon</span></div>
+                                <div class="payment-desc">Pay using GCash mobile wallet</div>
+                            </div>
+                            <div class="payment-radio" aria-hidden="true"></div>
+                        </div>
+
+                        <div class="payment-method payment-method--soon" role="presentation" aria-disabled="true">
+                            <div class="payment-icon" style="background-color: #00a859; color: white;">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-name">PayMaya <span class="payment-coming-soon">Coming soon</span></div>
+                                <div class="payment-desc">Pay using PayMaya wallet</div>
+                            </div>
+                            <div class="payment-radio" aria-hidden="true"></div>
+                        </div>
+
+                        <div class="payment-method payment-method--soon" role="presentation" aria-disabled="true">
+                            <div class="payment-icon" style="background-color: #1a2332; color: white;">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-name">Bank Transfer <span class="payment-coming-soon">Coming soon</span></div>
+                                <div class="payment-desc">BDO, BPI, Metrobank, etc.</div>
+                            </div>
+                            <div class="payment-radio" aria-hidden="true"></div>
+                        </div>
+
+                        <div class="payment-method payment-method--soon" role="presentation" aria-disabled="true">
+                            <div class="payment-icon" style="background-color: #6c757d; color: white;">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-name">Credit/Debit Card <span class="payment-coming-soon">Coming soon</span></div>
+                                <div class="payment-desc">Visa, Mastercard, JCB</div>
+                            </div>
+                            <div class="payment-radio" aria-hidden="true"></div>
+                        </div>
+
+                        <div class="payment-method payment-method--soon" role="presentation" aria-disabled="true">
+                            <div class="payment-icon" style="background-color: #00b14f; color: white;">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-name">GrabPay <span class="payment-coming-soon">Coming soon</span></div>
+                                <div class="payment-desc">Pay using GrabPay wallet</div>
+                            </div>
+                            <div class="payment-radio" aria-hidden="true"></div>
+                        </div>
+
+                        <div class="payment-method payment-method--soon" role="presentation" aria-disabled="true">
                             <div class="payment-icon" style="background-color: #ff6b35; color: white;">
                                 <i class="fas fa-credit-card"></i>
                             </div>
                             <div class="payment-details">
-                                <div class="payment-name">Billease</div>
+                                <div class="payment-name">Billease <span class="payment-coming-soon">Coming soon</span></div>
                                 <div class="payment-desc">Buy now, pay later</div>
                             </div>
-                            <div class="payment-radio"></div>
-                            <input type="radio" name="payment_method" value="billease" style="display: none;">
+                            <div class="payment-radio" aria-hidden="true"></div>
                         </div>
                     </div>
                 </div>
@@ -696,8 +738,8 @@ $reloadAmounts = [1, 20, 50, 100, 200, 500];
         }
 
         function selectPaymentMethod(method) {
-            // Update visual selection
-            document.querySelectorAll('.payment-method').forEach(methodEl => {
+            // Update visual selection (ignore "Coming soon" rows)
+            document.querySelectorAll('.payment-method:not(.payment-method--soon)').forEach(methodEl => {
                 methodEl.classList.remove('selected');
             });
             event.currentTarget.classList.add('selected');
@@ -855,9 +897,5 @@ $reloadAmounts = [1, 20, 50, 100, 200, 500];
             }
         });
     </script>
-    
-    <!-- Leaflet JS and live tracker -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/live-tracker.js"></script>
 </body>
 </html>
