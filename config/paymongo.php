@@ -93,88 +93,11 @@ function generateTransactionReference($userId) {
 }
 
 /**
- * Read Paymongo-Signature header (case-insensitive; works when getallheaders omits it).
+ * Validate PayMongo webhook signature
  */
-function getPaymongoWebhookSignatureHeader() {
-    if (function_exists('getallheaders')) {
-        foreach (getallheaders() as $name => $value) {
-            if (strtolower($name) === 'paymongo-signature') {
-                return $value;
-            }
-        }
-    }
-    return $_SERVER['HTTP_PAYMONGO_SIGNATURE'] ?? null;
-}
-
-/**
- * Validate PayMongo webhook signature (matches official paymongo-php WebhookService::constructEvent).
- *
- * Header format is THREE comma-separated parts, e.g.:
- *   t=<unix_ts>,<test_key>=<sig>,<live_key>=<sig>
- * Expected: hash_hmac('sha256', $timestamp . '.' . $payload, $webhookSecretKey)
- *
- * The previous code compared the whole header to HMAC(body) and always failed verification.
- */
-function validateWebhookSignature($payload, $signatureHeader, $secret) {
-    $signatureHeader = trim((string) $signatureHeader);
-    if ($signatureHeader === '') {
-        return false;
-    }
-
-    $arrSignature = explode(',', $signatureHeader);
-
-    // Official PayMongo format (3+ segments)
-    if (count($arrSignature) >= 3) {
-        $timestamp = '';
-        if (isset($arrSignature[0]) && strpos($arrSignature[0], '=') !== false) {
-            $timestamp = explode('=', $arrSignature[0], 2)[1] ?? '';
-        }
-        $testModeSignature = '';
-        if (isset($arrSignature[1]) && strpos($arrSignature[1], '=') !== false) {
-            $testModeSignature = explode('=', $arrSignature[1], 2)[1] ?? '';
-        }
-        $liveModeSignature = '';
-        if (isset($arrSignature[2]) && strpos($arrSignature[2], '=') !== false) {
-            $liveModeSignature = explode('=', $arrSignature[2], 2)[1] ?? '';
-        }
-
-        $comparisonSignature = '';
-        if ($testModeSignature !== '') {
-            $comparisonSignature = $testModeSignature;
-        }
-        if ($liveModeSignature !== '') {
-            $comparisonSignature = $liveModeSignature;
-        }
-
-        if ($comparisonSignature !== '' && $timestamp !== '') {
-            $expected = hash_hmac('sha256', $timestamp . '.' . $payload, $secret);
-            return hash_equals($comparisonSignature, $expected);
-        }
-    }
-
-    // Fallback: t=...,v1=... (some proxies/docs) or raw HMAC(body)
-    if (strpos($signatureHeader, 't=') !== false) {
-        $parts = [];
-        foreach (explode(',', $signatureHeader) as $segment) {
-            $segment = trim($segment);
-            if ($segment === '' || strpos($segment, '=') === false) {
-                continue;
-            }
-            [$k, $v] = explode('=', $segment, 2);
-            $parts[trim($k)] = trim($v);
-        }
-        $timestamp = $parts['t'] ?? null;
-        $sig = $parts['v1'] ?? $parts['te'] ?? null;
-        if ($sig !== null && $timestamp !== null && $timestamp !== '') {
-            $expected = hash_hmac('sha256', $timestamp . '.' . $payload, $secret);
-            if (hash_equals($sig, $expected)) {
-                return true;
-            }
-        }
-    }
-
-    $computed = hash_hmac('sha256', $payload, $secret);
-    return hash_equals($signatureHeader, $computed);
+function validateWebhookSignature($payload, $signature, $secret) {
+    $computedSignature = hash_hmac('sha256', $payload, $secret);
+    return hash_equals($signature, $computedSignature);
 }
 
 /**
