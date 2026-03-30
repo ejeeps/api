@@ -212,6 +212,38 @@ class PayMongoService {
             // Start transaction
             $this->db->beginTransaction();
 
+            // Try to get card info from the existing transaction first (more reliable)
+            $cardInfo = null;
+            if ($existingTransactionId) {
+                $stmt = $this->db->prepare("
+                    SELECT t.card_id, c.balance
+                    FROM transactions t
+                    LEFT JOIN cards c ON t.card_id = c.id
+                    WHERE t.id = ? AND t.user_id = ?
+                    LIMIT 1
+                ");
+                $stmt->execute([$existingTransactionId, $userId]);
+                $cardInfo = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            }
+
+            // If we still don't have a card (or card has no balance), fall back to active passenger card lookup
+            if (!$cardInfo || !$cardInfo['card_id']) {
+                $stmt = $this->db->prepare("
+                    SELECT c.id as card_id, c.balance
+                    FROM passengers p
+                    JOIN card_assign_passengers cap ON p.id = cap.passenger_id
+                    JOIN cards c ON cap.card_id = c.id
+                    WHERE p.user_id = ? AND cap.assignment_status = 'active' AND c.status = 'active'
+                    LIMIT 1
+                ");
+                $stmt->execute([$userId]);
+                $cardInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
+
+            if (!$cardInfo || !$cardInfo['card_id']) {
+                throw new Exception('No active card found for user to credit payment');
+            }
+
             // Check if this payment was already processed (idempotency check)
             $stmt = $this->db->prepare("
                 SELECT id, status, card_id FROM transactions

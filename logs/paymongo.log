@@ -95,3 +95,5 @@
 [2026-03-30 04:33:32] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_8192f9652a8605006bc41f5b","payment_intent_id":"pi_Cjnirt3byUeWtEg55jYRktcw"}
 [2026-03-30 04:33:36] [TEST] Payment Callback Received | Data: {"user_id":4,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"TXN_4_1774838010_8412"}
 [2026-03-30 04:33:36] [TEST] Payment Cancelled | Data: {"user_id":4,"transaction_reference":"TXN_4_1774838010_8412","affected_rows":1}
+[2026-03-30 04:42:42] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_QLYWC6LJz2D34duZKqVzdwNN","amount":1,"metadata":{"user_id":"4","transaction_reference":"TXN_4_1774838560_6355","transaction_id":"26","customer_email":"ps1@gmail.com","customer_name":"ps 1","payment_method":"qrph"}}
+[2026-03-30 04:42:43] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_191acfd031b74bf4a0ff1b30","payment_intent_id":"pi_QLYWC6LJz2D34duZKqVzdwNN"}
