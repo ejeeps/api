@@ -345,10 +345,11 @@ class PayMongoService {
                 $stmt = $this->db->prepare("
                     UPDATE transactions
                     SET card_id = ?, status = 'completed', processed_at = NOW(), updated_at = NOW(),
-                        payment_method = ?, payment_method_details = ?
+                        payment_method = ?, payment_method_details = ?,
+                        payment_intent_id = ?
                     WHERE id = ? AND user_id = ?
                 ");
-                $stmt->execute([$cardInfo['card_id'], $paymentMethod, $paymentMethodDetails, $existingTransactionId, $userId]);
+                $stmt->execute([$cardInfo['card_id'], $paymentMethod, $paymentMethodDetails, $paymentIntentId, $existingTransactionId, $userId]);
                 $transactionRef = $existingTransactionId;
             } else {
                 // Create transaction record (fallback)
