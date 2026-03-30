@@ -157,7 +157,7 @@ $imageBasePath = $basePath;
         /* Modal card */
         .logout-modal-box {
             background: #ffffff;
-            border-radius: 20px;
+           
             padding: 40px 36px 32px;
             width: 92%;
             max-width: 420px;
@@ -232,7 +232,7 @@ $imageBasePath = $basePath;
         .logout-modal-actions button {
             flex: 1;
             padding: 13px 18px;
-            border-radius: 12px;
+         
             font-size: 0.93rem;
             font-weight: 600;
             cursor: pointer;
