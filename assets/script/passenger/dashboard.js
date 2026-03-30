@@ -50,24 +50,3 @@
     window.viewFullscreen = viewFullscreen;
     window.closeFullscreen = closeFullscreen;
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
