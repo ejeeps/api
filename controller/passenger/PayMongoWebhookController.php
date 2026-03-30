@@ -138,6 +138,7 @@ function handlePaymentSucceeded($eventData, $payMongoService) {
         $paymentIntentId = $eventData['id'] ?? '';
         $metadata = $eventData['attributes']['metadata'] ?? [];
         $userId = $metadata['user_id'] ?? null;
+        $transactionId = $metadata['transaction_id'] ?? null;
 
         if (!$paymentIntentId || !$userId) {
             throw new Exception('Missing payment intent ID or user ID');
@@ -145,11 +146,42 @@ function handlePaymentSucceeded($eventData, $payMongoService) {
 
         logPayMongoTransaction('Processing Payment Success', [
             'payment_intent_id' => $paymentIntentId,
-            'user_id' => $userId
+            'user_id' => $userId,
+            'transaction_id_meta' => $transactionId
         ]);
 
+        // If transaction_id is not in metadata, try to find the existing pending/processing transaction
+        if (!$transactionId) {
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $stmt = $pdo->prepare("
+                SELECT id 
+                FROM transactions
+                WHERE payment_intent_id = ? AND user_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+            ");
+            $stmt->execute([$paymentIntentId, $userId]);
+            $tx = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($tx) {
+                $transactionId = $tx['id'];
+                logPayMongoTransaction('Webhook Payment Success - Matched Existing Transaction', [
+                    'payment_intent_id' => $paymentIntentId,
+                    'user_id' => $userId,
+                    'transaction_id' => $transactionId
+                ]);
+            } else {
+                logPayMongoTransaction('Webhook Payment Success - No Matching Transaction Found', [
+                    'payment_intent_id' => $paymentIntentId,
+                    'user_id' => $userId
+                ]);
+            }
+        }
+
         // Process the successful payment
-        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
+        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId, $transactionId);
 
         if ($result['success']) {
             logPayMongoTransaction('Payment Processed Successfully via Webhook', [
