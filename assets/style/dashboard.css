@@ -64,6 +64,359 @@
     padding: 1px;
 }
 
+.tracker-modal .modal-body.assistant-modal-body {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* ── E-JEEP Assistant chat (redesigned) ───────────────────────────── */
+.tracker-modal.assistant-chat-modal .modal-content.assistant-chat-shell {
+    width: min(420px, 94vw);
+    height: min(85vh, 640px);
+    max-height: calc(100vh - 32px);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 24px 48px rgba(15, 23, 42, 0.18),
+        0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+    overflow: hidden;
+}
+
+.assistant-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 55%, #166534 100%);
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.assistant-chat-header__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.assistant-chat-header__avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.assistant-chat-header__text {
+    min-width: 0;
+}
+
+.assistant-chat-header__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.assistant-chat-header__subtitle {
+    margin: 4px 0 0;
+    font-size: 0.75rem;
+    opacity: 0.92;
+    font-weight: 500;
+}
+
+.assistant-chat-header__close {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: background 0.15s ease;
+    flex-shrink: 0;
+}
+
+.assistant-chat-header__close:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.assistant-chat-main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #f0fdf4;
+    background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34, 197, 94, 0.12), transparent),
+        linear-gradient(180deg, #ecfdf5 0%, #f8fafc 100%);
+}
+
+.assistant-messages {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px 14px 12px;
+    min-height: 200px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.assistant-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.assistant-messages::-webkit-scrollbar-thumb {
+    background: rgba(22, 163, 74, 0.35);
+    border-radius: 10px;
+}
+
+.assistant-empty-state {
+    text-align: center;
+    padding: 28px 16px 8px;
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.assistant-empty-state__icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 14px;
+    border-radius: 16px;
+    background: linear-gradient(145deg, #dcfce7, #bbf7d0);
+    color: #166534;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.15);
+}
+
+.assistant-empty-state__title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #14532d;
+}
+
+.assistant-empty-state__hint {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: #64748b;
+}
+
+.assistant-msg-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    align-items: flex-end;
+}
+
+.assistant-msg-row--user {
+    flex-direction: row-reverse;
+}
+
+.assistant-msg-row--user .assistant-msg-bubble {
+    border-bottom-right-radius: 6px;
+}
+
+.assistant-msg-row--bot .assistant-msg-bubble {
+    border-bottom-left-radius: 6px;
+}
+
+.assistant-msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #22c55e, #16a34a);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.35);
+}
+
+.assistant-msg-bubble {
+    max-width: calc(100% - 42px);
+    padding: 11px 14px;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.assistant-msg-bubble--user {
+    background: linear-gradient(145deg, #16a34a, #15803d);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+}
+
+.assistant-msg-bubble--bot {
+    background: #fff;
+    color: #1e293b;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+}
+
+.assistant-msg-bubble--error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.assistant-msg-row--typing .assistant-msg-bubble--bot {
+    padding: 14px 18px;
+}
+
+.assistant-typing-dots {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.assistant-typing-dots span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #94a3b8;
+    animation: assistantDot 1.2s ease-in-out infinite;
+}
+
+.assistant-typing-dots span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.assistant-typing-dots span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes assistantDot {
+    0%,
+    80%,
+    100% {
+        opacity: 0.35;
+        transform: scale(0.85);
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.assistant-composer {
+    flex-shrink: 0;
+    padding: 12px 14px 16px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.assistant-composer__inner {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 6px 6px 6px 14px;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.assistant-composer__inner:focus-within {
+    border-color: #86efac;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.assistant-composer__input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    resize: none;
+    min-height: 22px;
+    max-height: 120px;
+    padding: 8px 0;
+    font-family: inherit;
+}
+
+.assistant-composer__input:focus {
+    outline: none;
+}
+
+.assistant-composer__input::placeholder {
+    color: #94a3b8;
+}
+
+.assistant-composer__send {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #22c55e, #16a34a);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+    transition: transform 0.08s ease, filter 0.15s ease;
+}
+
+.assistant-composer__send:hover:not(:disabled) {
+    filter: brightness(1.05);
+}
+
+.assistant-composer__send:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.assistant-composer__send:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.floating-assistant-btn {
+    background: linear-gradient(145deg, #22c55e, #16a34a);
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.45);
+}
+
+.floating-assistant-btn:hover {
+    background: linear-gradient(145deg, #16a34a, #15803d);
+}
+
 .tracker-modal .modal-body #busTrackerMap {
     height: 100%;
     min-height: 0;
@@ -1521,6 +1874,26 @@ body .main-content {
         width: 96vw;
         height: 85vh;
         border-radius: 8px;
+    }
+
+    .tracker-modal.assistant-chat-modal .modal-content.assistant-chat-shell {
+        width: 96vw;
+        height: min(90vh, 100%);
+        border-radius: 16px;
+    }
+
+    .assistant-chat-header {
+        padding: 12px 14px;
+    }
+
+    .assistant-chat-header__avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+
+    .assistant-chat-header__title {
+        font-size: 0.98rem;
     }
 
     .tracker-modal .modal-header {
