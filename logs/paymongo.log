@@ -66,3 +66,28 @@
 [2026-02-19 07:01:41] [TEST] PayMongo API Error | Data: {"http_code":404,"url":"https:\/\/api.paymongo.com\/v1\/payment_intents\/","method":"GET","errors":[{"code":"process_not_implemented","detail":"Index action not implemented","source":null}]}
 [2026-02-19 07:01:41] [TEST] Success Callback Error | Data: {"user_id":4,"error":"Failed to retrieve payment details."}
 [2026-02-19 07:01:41] [TEST] Callback Processing Error | Data: {"user_id":4,"status":"success","error":"Failed to retrieve payment details."}
+[2026-03-17 02:58:50] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_uxupFCjJV6spwMe4cms2SFv3","amount":100,"metadata":{"user_id":"4","transaction_reference":"TXN_4_1773712727_7043","transaction_id":"20","customer_email":"ps1@gmail.com","customer_name":"ps 1","payment_method":"gcash"}}
+[2026-03-17 02:58:52] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_654b416f51fb096a23428c56","payment_intent_id":"pi_uxupFCjJV6spwMe4cms2SFv3"}
+[2026-03-17 03:08:30] [TEST] Payment Callback Received | Data: {"user_id":4,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"TXN_4_1773712727_7043"}
+[2026-03-17 03:08:30] [TEST] Payment Cancelled | Data: {"user_id":4,"transaction_reference":"TXN_4_1773712727_7043","affected_rows":1}
+[2026-03-17 03:09:25] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_nQLQ88wMCdspRky5fE49gPrM","amount":200,"metadata":{"user_id":"4","transaction_reference":"TXN_4_1773713362_3546","transaction_id":"21","customer_email":"ps1@gmail.com","customer_name":"ps 1","payment_method":"gcash"}}
+[2026-03-17 03:09:26] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_841cceba8d76a391b91e2623","payment_intent_id":"pi_nQLQ88wMCdspRky5fE49gPrM"}
+[2026-03-17 03:15:33] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_di74VeiuPdsupgzsF7ReqZkc","amount":50,"metadata":{"user_id":"4","transaction_reference":"TXN_4_1773713732_4552","transaction_id":"22","customer_email":"ps1@gmail.com","customer_name":"ps 1","payment_method":"qrph"}}
+[2026-03-17 03:15:34] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_eb21253446530f091f5f3a15","payment_intent_id":"pi_di74VeiuPdsupgzsF7ReqZkc"}
+[2026-03-17 03:16:00] [TEST] Payment Callback Received | Data: {"user_id":4,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"TXN_4_1773713732_4552"}
+[2026-03-17 03:16:00] [TEST] Payment Cancelled | Data: {"user_id":4,"transaction_reference":"TXN_4_1773713732_4552","affected_rows":1}
+[2026-03-17 03:26:47] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_e9pLCHoA5w1WpXM1BpZkohL5","amount":50,"metadata":{"user_id":"4","transaction_reference":"TXN_4_1773714405_8337","transaction_id":"23","customer_email":"ps1@gmail.com","customer_name":"ps 1","payment_method":"gcash"}}
+[2026-03-17 03:26:48] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_7f45b1955807d17bb8a0f15e","payment_intent_id":"pi_e9pLCHoA5w1WpXM1BpZkohL5"}
+[2026-03-17 03:27:16] [TEST] Payment Callback Received | Data: {"user_id":4,"status":"success","get_params":{"status":"success"},"session_transaction":"TXN_4_1773714405_8337"}
+[2026-03-17 03:27:18] [TEST] Success Callback Processing | Data: {"user_id":4,"payment_intent_id":"pi_e9pLCHoA5w1WpXM1BpZkohL5","payment_status":"awaiting_payment_method","amount":50}
+[2026-03-17 03:27:18] [TEST] Success Callback Error | Data: {"user_id":4,"error":"Payment was not successful. Status: awaiting_payment_method"}
+[2026-03-17 03:27:18] [TEST] Callback Processing Error | Data: {"user_id":4,"status":"success","error":"Payment was not successful. Status: awaiting_payment_method"}
+[2026-03-17 03:31:57] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_1VHep9Yr5SwWwdeeFk4JDG7t","amount":50,"metadata":{"user_id":"4","transaction_reference":"TXN_4_1773714716_7107","transaction_id":"24","customer_email":"ps1@gmail.com","customer_name":"ps 1","payment_method":"qrph"}}
+[2026-03-17 03:31:58] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_cb717e3b265651ecfff10ed5","payment_intent_id":"pi_1VHep9Yr5SwWwdeeFk4JDG7t"}
+[2026-03-17 03:32:23] [TEST] Payment Callback Received | Data: {"user_id":4,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"TXN_4_1773714716_7107"}
+[2026-03-17 03:32:23] [TEST] Payment Cancelled | Data: {"user_id":4,"transaction_reference":"TXN_4_1773714716_7107","affected_rows":1}
+[2026-03-27 03:38:52] [TEST] Payment Callback Received | Data: {"user_id":1,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"none"}
+[2026-03-27 03:39:31] [TEST] Payment Callback Received | Data: {"user_id":1,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"none"}
+[2026-03-27 03:46:16] [TEST] Payment Callback Received | Data: {"user_id":1,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"none"}
+[2026-03-27 04:46:58] [TEST] PayMongo API Error | Data: {"http_code":404,"url":"https:\/\/api.paymongo.com\/v1\/payment_intents\/pi_FBGpEeiLsJkoUCqyyh65qzTh","method":"GET","errors":[{"code":"resource_not_found","detail":"No such payment intent with id pi_FBGpEeiLsJkoUCqyyh65qzTh.","source":null}]}
+[2026-03-27 04:49:10] [LIVE] Payment Processed Successfully | Data: {"user_id":4,"amount":50,"new_balance":36.5,"transaction_ref":23,"card_id":4}

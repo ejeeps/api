@@ -27,14 +27,75 @@ if (isset($dashboard_view)) {
 }
 $imageBasePath = $basePath;
 
-// Get transactions (placeholder - you can create a proper transactions table later)
+// Get transactions from database
+$transactions = [];
 try {
-    // For now, we'll show an empty list. You can add a transactions table later
-    $transactions = [];
-    // Example query structure (uncomment when transactions table exists):
-    // $stmt = $pdo->prepare("SELECT * FROM transactions WHERE passenger_id = ? ORDER BY created_at DESC LIMIT 50");
-    // $stmt->execute([$_SESSION['user_id']]);
-    // $transactions = $stmt->fetchAll();
+    // Get passenger's card_id first (use passenger_table_id from getPassengerInfo)
+    $passengerId = $passengerInfo['passenger_table_id'] ?? $passengerInfo['id'];
+    $cardStmt = $pdo->prepare("SELECT c.id as card_id FROM cards c 
+                               INNER JOIN card_assign_passengers cap ON c.id = cap.card_id 
+                               WHERE cap.passenger_id = ? AND cap.assignment_status = 'active' 
+                               LIMIT 1");
+    $cardStmt->execute([$passengerId]);
+    $cardData = $cardStmt->fetch(PDO::FETCH_ASSOC);
+    $cardId = $cardData ? $cardData['card_id'] : null;
+    
+    // Fetch transactions for this user/card
+    if ($cardId) {
+        $stmt = $pdo->prepare("SELECT 
+            id,
+            transaction_reference as reference,
+            amount,
+            transaction_type as type,
+            status,
+            description,
+            created_at,
+            payment_method
+        FROM transactions 
+        WHERE user_id = ? OR card_id = ?
+        ORDER BY created_at DESC 
+        LIMIT 50");
+        $stmt->execute([$_SESSION['user_id'], $cardId]);
+    } else {
+        $stmt = $pdo->prepare("SELECT 
+            id,
+            transaction_reference as reference,
+            amount,
+            transaction_type as type,
+            status,
+            description,
+            created_at,
+            payment_method
+        FROM transactions 
+        WHERE user_id = ?
+        ORDER BY created_at DESC 
+        LIMIT 50");
+        $stmt->execute([$_SESSION['user_id']]);
+    }
+    $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Map transaction types to filter categories
+    foreach ($transactions as &$transaction) {
+        // Map database types to display types
+        switch ($transaction['type']) {
+            case 'purchase':
+                $transaction['display_type'] = 'payment';
+                $transaction['description'] = $transaction['description'] ?: 'E-JEEP Card Payment';
+                break;
+            case 'top_up':
+                $transaction['display_type'] = 'reload';
+                $transaction['description'] = $transaction['description'] ?: 'Card Reload';
+                break;
+            case 'refund':
+                $transaction['display_type'] = 'refund';
+                $transaction['description'] = $transaction['description'] ?: 'Refund';
+                break;
+            default:
+                $transaction['display_type'] = 'payment';
+        }
+    }
+    unset($transaction);
+    
 } catch (PDOException $e) {
     $transactions = [];
     error_log("Error fetching transactions: " . $e->getMessage());
@@ -47,6 +108,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
     <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="E-JEEP Passenger">
@@ -352,42 +414,41 @@ try {
             <!-- Transactions List -->
             <div id="transactionsList">
                 <?php if (empty($transactions)): ?>
-                    <div class="empty-state">
+                    <div class="empty-state" id="noTransactions">
                         <div class="empty-state-icon"><i class="fas fa-receipt"></i></div>
                         <div class="empty-state-text">No transactions yet</div>
-                        <div class="empty-state-subtext">Your transaction history will appear here once you start using your E-JEEP card</div>
+                        <div class="empty-state-subtext">Your payment history will appear here once you make transactions with your E-JEEP card. <a href="<?php echo $basePath; ?>index.php?page=buypoints" style="color: var(--primary-color);">Buy points now</a></div>
                     </div>
                 <?php else: ?>
                     <?php foreach ($transactions as $transaction): ?>
-                        <div class="transaction-card" data-type="<?php echo htmlspecialchars($transaction['type'] ?? 'payment'); ?>">
+                        <div class="transaction-card" data-type="<?php echo htmlspecialchars($transaction['display_type']); ?>">
                             <div class="transaction-header">
                                 <div class="transaction-type">
-                                    <div class="transaction-icon <?php echo htmlspecialchars($transaction['type'] ?? 'payment'); ?>">
+                                    <div class="transaction-icon <?php echo htmlspecialchars($transaction['display_type']); ?>">
                                         <?php 
                                         $icon = 'fa-credit-card';
-                                        if (isset($transaction['type'])) {
-                                            if ($transaction['type'] === 'reload') $icon = 'fa-coins';
-                                            elseif ($transaction['type'] === 'refund') $icon = 'fa-undo';
-                                        }
+                                        if ($transaction['display_type'] === 'reload') $icon = 'fa-coins';
+                                        elseif ($transaction['display_type'] === 'refund') $icon = 'fa-undo';
                                         ?>
                                         <i class="fas <?php echo $icon; ?>"></i>
                                     </div>
                                     <div class="transaction-details">
-                                        <div class="transaction-title"><?php echo htmlspecialchars($transaction['description'] ?? 'Transaction'); ?></div>
+                                        <div class="transaction-title"><?php echo htmlspecialchars($transaction['description']); ?></div>
                                         <div class="transaction-date">
-                                            <?php echo isset($transaction['created_at']) ? date('M d, Y h:i A', strtotime($transaction['created_at'])) : 'N/A'; ?>
+                                            <?php echo date('M d, Y h:i A', strtotime($transaction['created_at'])); ?>
                                         </div>
-                                        <?php if (isset($transaction['status'])): ?>
+                                        <?php if ($transaction['status']): ?>
                                             <span class="transaction-status <?php echo htmlspecialchars($transaction['status']); ?>">
                                                 <?php echo ucfirst($transaction['status']); ?>
                                             </span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
-                                <div class="transaction-amount <?php echo (isset($transaction['amount']) && $transaction['amount'] > 0) ? 'positive' : 'negative'; ?>">
+                                <div class="transaction-amount <?php echo ($transaction['type'] === 'purchase') ? 'negative' : 'positive'; ?>">
                                     <?php 
                                     $amount = $transaction['amount'] ?? 0;
-                                    $prefix = $amount > 0 ? '+' : '';
+                                    // Purchases are negative (money out), top_ups/refunds are positive (money in)
+                                    $prefix = ($transaction['type'] === 'purchase') ? '-' : '+';
                                     echo $prefix . '₱' . number_format(abs($amount), 2); 
                                     ?>
                                 </div>
@@ -398,7 +459,7 @@ try {
             </div>
         </div>
     </div>
-
+<?php include 'view/components/live_bus_tracker.php'; ?>
     <!-- Bottom Navigation Bar -->
     <?php
     $activePage = 'transaction';
@@ -469,6 +530,8 @@ try {
 
             // Filter transactions
             const transactions = document.querySelectorAll('.transaction-card');
+            const noTransactionsMsg = document.getElementById('noTransactions');
+            
             transactions.forEach(card => {
                 if (type === 'all' || card.dataset.type === type) {
                     card.style.display = 'block';
@@ -477,22 +540,34 @@ try {
                 }
             });
 
-            // Show empty state if no transactions match
+            // Show/hide empty state based on filter
             const visibleTransactions = Array.from(transactions).filter(card => card.style.display !== 'none');
-            let emptyState = document.querySelector('.empty-state');
+            let filterEmptyState = document.getElementById('filterEmptyState');
+            
             if (visibleTransactions.length === 0 && transactions.length > 0) {
-                if (!emptyState) {
-                    emptyState = document.createElement('div');
-                    emptyState.className = 'empty-state';
-                    emptyState.innerHTML = `
-                        <div class="empty-state-icon"><i class="fas fa-filter"></i></div>
-                        <div class="empty-state-text">No ${type} transactions found</div>
-                        <div class="empty-state-subtext">Try selecting a different filter</div>
-                    `;
-                    document.getElementById('transactionsList').appendChild(emptyState);
+                // Hide the original "no transactions" message
+                if (noTransactionsMsg) noTransactionsMsg.style.display = 'none';
+                
+                // Show filter-specific empty state
+                if (!filterEmptyState) {
+                    filterEmptyState = document.createElement('div');
+                    filterEmptyState.id = 'filterEmptyState';
+                    filterEmptyState.className = 'empty-state';
+                    document.getElementById('transactionsList').appendChild(filterEmptyState);
                 }
-            } else if (emptyState && visibleTransactions.length > 0) {
-                emptyState.remove();
+                
+                const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+                filterEmptyState.innerHTML = `
+                    <div class="empty-state-icon"><i class="fas fa-filter"></i></div>
+                    <div class="empty-state-text">No ${typeLabel} transactions found</div>
+                    <div class="empty-state-subtext">You don't have any ${type} transactions yet. Try selecting "All" to see your complete history.</div>
+                `;
+                filterEmptyState.style.display = 'block';
+                
+            } else {
+                // Hide filter empty state and show original if needed
+                if (filterEmptyState) filterEmptyState.style.display = 'none';
+                if (noTransactionsMsg && transactions.length === 0) noTransactionsMsg.style.display = 'block';
             }
         }
     </script>

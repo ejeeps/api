@@ -66,52 +66,114 @@ try {
  */
 function handleSuccessCallback($userId, $payMongoService) {
     try {
+        // Initialize database connection
+        $database = new Database();
+        $pdo = $database->getConnection();
+        $transaction = null;
+
         // Get checkout session ID from URL parameters
         $checkoutSessionId = $_GET['checkout_session_id'] ?? null;
-        
+
+        // Also check for payment_intent_id directly from URL (some payment methods return this)
+        $paymentIntentId = $_GET['payment_intent_id'] ?? null;
+
         if (!$checkoutSessionId) {
             // If no checkout session ID, check for pending transaction in session
             $transactionRef = $_SESSION['pending_transaction'] ?? null;
-            
+
             if ($transactionRef) {
                 // Find the transaction by reference
-                $database = new Database();
-                $pdo = $database->getConnection();
-                
                 $stmt = $pdo->prepare("
-                    SELECT payment_intent_id, checkout_session_id, status, amount 
-                    FROM transactions 
+                    SELECT id, payment_intent_id, checkout_session_id, status, amount, transaction_reference
+                    FROM transactions
                     WHERE transaction_reference = ? AND user_id = ?
-                    ORDER BY created_at DESC 
+                    ORDER BY created_at DESC
                     LIMIT 1
                 ");
                 $stmt->execute([$transactionRef, $userId]);
                 $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
-                
+
                 if ($transaction) {
                     $checkoutSessionId = $transaction['checkout_session_id'];
+                    // If we don't have payment_intent_id from URL, get it from transaction
+                    if (!$paymentIntentId) {
+                        $paymentIntentId = $transaction['payment_intent_id'];
+                    }
+                }
+            }
+        } else {
+            // We have checkout_session_id, find the transaction
+            $stmt = $pdo->prepare("
+                SELECT id, payment_intent_id, checkout_session_id, status, amount, transaction_reference
+                FROM transactions
+                WHERE checkout_session_id = ? AND user_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+            ");
+            $stmt->execute([$checkoutSessionId, $userId]);
+            $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        // If we still don't have checkout_session_id but have payment_intent_id, try to find by payment_intent_id
+        if (!$checkoutSessionId && $paymentIntentId && !$transaction) {
+            $stmt = $pdo->prepare("
+                SELECT id, payment_intent_id, checkout_session_id, status, amount, transaction_reference
+                FROM transactions
+                WHERE payment_intent_id = ? AND user_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+            ");
+            $stmt->execute([$paymentIntentId, $userId]);
+            $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if (!$checkoutSessionId && !$paymentIntentId) {
+            throw new Exception('No checkout session or payment found. Please try again.');
+        }
+
+        // If we have checkout_session_id, get details from PayMongo
+        if ($checkoutSessionId) {
+            $checkoutSession = $payMongoService->getCheckoutSession($checkoutSessionId);
+
+            if ($checkoutSession) {
+                // Try to get payment_intent_id from checkout session if not already have it
+                $sessionPaymentIntentId = $checkoutSession['attributes']['payment_intent']['data']['id'] ??
+                                          $checkoutSession['attributes']['payment_intent_id'] ??
+                                          null;
+
+                if ($sessionPaymentIntentId && !$paymentIntentId) {
+                    $paymentIntentId = $sessionPaymentIntentId;
                 }
             }
         }
 
-        if (!$checkoutSessionId) {
-            throw new Exception('No checkout session found. Please try again.');
+        // If still no payment_intent_id, get it from our database transaction record
+        if (!$paymentIntentId && $transaction) {
+            $paymentIntentId = $transaction['payment_intent_id'];
         }
 
-        // Get checkout session details
-        $checkoutSession = $payMongoService->getCheckoutSession($checkoutSessionId);
-        
-        if (!$checkoutSession) {
-            throw new Exception('Failed to retrieve checkout session details.');
+        if (!$paymentIntentId) {
+            throw new Exception('Payment intent ID not found. Please contact support.');
         }
 
-        $paymentIntentId = $checkoutSession['attributes']['payment_intent_id'];
-        
-        // Get payment intent details
+        // Get payment intent details from PayMongo
         $paymentIntent = $payMongoService->getPaymentIntent($paymentIntentId);
-        
+
         if (!$paymentIntent) {
-            throw new Exception('Failed to retrieve payment details.');
+            // If we can't get from PayMongo but have transaction record, check if already processed
+            if ($transaction && $transaction['status'] === 'completed') {
+                logPayMongoTransaction('Payment Already Processed', [
+                    'user_id' => $userId,
+                    'transaction_id' => $transaction['id'],
+                    'payment_intent_id' => $paymentIntentId
+                ]);
+
+                unset($_SESSION['pending_transaction']);
+                $successMessage = urlencode("Payment already processed! ₱" . number_format($transaction['amount'], 2) . " has been added to your account.");
+                header("Location: ../../index.php?page=buypoints&success=" . $successMessage);
+                exit;
+            }
+            throw new Exception('Failed to retrieve payment details from payment provider.');
         }
 
         $paymentStatus = $paymentIntent['attributes']['status'];
@@ -121,17 +183,19 @@ function handleSuccessCallback($userId, $payMongoService) {
             'user_id' => $userId,
             'payment_intent_id' => $paymentIntentId,
             'payment_status' => $paymentStatus,
-            'amount' => $amount
+            'amount' => $amount,
+            'transaction_id' => $transaction['id'] ?? null
         ]);
 
         if ($paymentStatus === 'succeeded') {
             // Payment was successful, process it
-            $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
-            
+            $existingTransactionId = $transaction['id'] ?? null;
+            $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId, $existingTransactionId);
+
             if ($result['success']) {
                 // Clear pending transaction from session
                 unset($_SESSION['pending_transaction']);
-                
+
                 // Redirect with success message
                 $successMessage = urlencode("Payment successful! ₱" . number_format($amount, 2) . " has been added to your account. New balance: ₱" . number_format($result['new_balance'], 2));
                 header("Location: ../../index.php?page=buypoints&success=" . $successMessage);
@@ -139,15 +203,41 @@ function handleSuccessCallback($userId, $payMongoService) {
             } else {
                 throw new Exception($result['error'] ?? 'Failed to process payment');
             }
-            
-        } elseif ($paymentStatus === 'processing') {
-            // Payment is still processing, show pending message
-            $pendingMessage = urlencode("Your payment is being processed. You will receive confirmation shortly.");
+
+        } elseif ($paymentStatus === 'processing' || $paymentStatus === 'awaiting_payment_method') {
+            // Payment is still processing or awaiting confirmation
+            // Update transaction status to processing if not already
+            if ($transaction && $transaction['status'] === 'pending') {
+                $stmt = $pdo->prepare("
+                    UPDATE transactions
+                    SET status = 'processing', updated_at = NOW()
+                    WHERE id = ?
+                ");
+                $stmt->execute([$transaction['id']]);
+            }
+
+            $pendingMessage = urlencode("Your payment is being processed. The balance will be updated once payment is confirmed. Please check back in a few minutes.");
             header("Location: ../../index.php?page=buypoints&pending=" . $pendingMessage);
             exit;
-            
+
+        } elseif ($paymentStatus === 'awaiting_next_action') {
+            // Payment requires additional action (like 3D Secure)
+            $pendingMessage = urlencode("Payment requires additional verification. Please complete the authentication process.");
+            header("Location: ../../index.php?page=buypoints&info=" . $pendingMessage);
+            exit;
+
         } else {
             // Payment failed or other status
+            // Update transaction status to failed
+            if ($transaction) {
+                $stmt = $pdo->prepare("
+                    UPDATE transactions
+                    SET status = 'failed', updated_at = NOW()
+                    WHERE id = ?
+                ");
+                $stmt->execute([$transaction['id']]);
+            }
+
             throw new Exception('Payment was not successful. Status: ' . $paymentStatus);
         }
 

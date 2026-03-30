@@ -34,6 +34,7 @@ $imageBasePath = $basePath;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
     <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="E-JEEP Passenger">
@@ -45,6 +46,7 @@ $imageBasePath = $basePath;
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/dashboard.css" rel="stylesheet" type="text/css">
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/driver.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
     <style>
         /* ── Profile Zoom Modal ── */
@@ -241,6 +243,57 @@ $imageBasePath = $basePath;
                     </div>
                 </div>
 
+                <!-- ID Card Section -->
+                <div class="dashboard-section">
+                    <h2 class="section-title">ID Card</h2>
+                    <div class="images-section">
+                        <div class="license-flip-card" onclick="flipIdCard()">
+                            <div class="flip-card-inner" id="flipCardInner">
+                                <!-- Front Side -->
+                                <div class="flip-card-front">
+                                    <div class="image-card">
+                                        <h3 class="image-card-title">ID Card - Front</h3>
+                                        <div class="image-container">
+                                            <?php if (!empty($passengerInfo['id_image_front']) && file_exists($imageBasePath . $passengerInfo['id_image_front'])): ?>
+                                                <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['id_image_front']); ?>" alt="ID Card Front" class="license-image" id="idImageFront">
+                                               
+                                            <?php else: ?>
+                                                <div class="image-placeholder">
+                                                    <span class="placeholder-icon"><i class="fas fa-file-alt"></i></span>
+                                                    <p class="placeholder-text">No Front ID Image</p>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if (!empty($passengerInfo['id_number'])): ?>
+                                            <p class="license-info">ID #: <?php echo htmlspecialchars($passengerInfo['id_number']); ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                        <p class="flip-hint">&#128070; Click to flip to back</p>
+                                </div>
+                                <!-- Back Side -->
+                                <div class="flip-card-back">
+                                    <div class="image-card">
+                                        <h3 class="image-card-title">ID Card - Back</h3>
+                                        <div class="image-container">
+                                            <?php if (!empty($passengerInfo['id_image_back']) && file_exists($imageBasePath . $passengerInfo['id_image_back'])): ?>
+                                                <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['id_image_back']); ?>" alt="ID Card Back" class="license-image" id="idImageBack">
+                                                
+                                            <?php else: ?>
+                                                <div class="image-placeholder">
+                                                    <span class="placeholder-icon"><i class="fas fa-file-alt"></i></span>
+                                                    <p class="placeholder-text">No Back ID Image</p>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <p class="flip-hint">&#128070; Click to flip to front</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Profile Image Section -->
                 <div class="dashboard-section">
                     <h2 class="section-title">Profile Photo</h2>
@@ -269,7 +322,7 @@ $imageBasePath = $basePath;
             </form>
         </div>
     </div>
-
+<?php include 'view/components/live_bus_tracker.php'; ?>
     <!-- Bottom Navigation Bar -->
     <?php
     $activePage = 'settings';
@@ -332,5 +385,15 @@ $imageBasePath = $basePath;
         // ─────────────────────────────────────────────────────────────────────
     </script>
     
+    <!-- Fullscreen Image Modal -->
+    <div id="imageModal" class="image-modal" onclick="closeFullscreen()">
+        <span class="modal-close">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <!-- Leaflet JS and live tracker -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/live-tracker.js"></script>
+    <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/dashboard.js"></script>
 </body>
 </html>

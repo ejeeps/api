@@ -8,9 +8,6 @@ $basePath = $basePath ?? '../../';
 $dashboard_view = $dashboard_view ?? false;
 ?>
 
-<!-- ═══════════════════════════════════════
-     BOTTOM NAVIGATION BAR
-═════════════════════════════════════════ -->
 <nav class="bottom-navbar">
     <div class="bottom-nav-container">
 
@@ -66,7 +63,7 @@ $dashboard_view = $dashboard_view ?? false;
         </button>
 
         <div class="logout-modal-icon">
-            <img src="<?php echo htmlspecialchars($basePath); ?>assets/icons/logout.svg" alt="Logout">
+            <i class="fas fa-sign-out-alt" style="font-size: 2.5rem; color: #e53e3e;"></i>
         </div>
 
         <h3 id="logoutModalTitle">Logout Confirmation</h3>
@@ -152,9 +149,15 @@ $dashboard_view = $dashboard_view ?? false;
     border-radius:8px;
     cursor:pointer;
 }
-.logout-modal-icon img{
-    width: 100px;
-    height: 100px;
+.logout-modal-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #fff3f3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
 }
 
 .logout-modal-actions {

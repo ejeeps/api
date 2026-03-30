@@ -1,0 +1,36 @@
+# Configuration files with sensitive data
+config/connection.php
+config/paymongo.php
+
+# Logs
+logs/
+*.log
+
+# Uploads (user-generated content)
+uploads/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*.exe
+# Dependencies (if using Composer)
+vendor/
+composer.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Cache and temporary files
+cache/
+tmp/
+temp/
+*.cache

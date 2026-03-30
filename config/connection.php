@@ -1,10 +1,17 @@
 <?php
-// Detect environment
-$isLocal = in_array($_SERVER['SERVER_NAME'], [
+// Detect environment (SERVER_NAME alone misses many local setups; align with HTTP_HOST)
+$host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? ''));
+$host = explode(':', $host)[0];
+$isLocal = in_array($host, [
     'localhost',
+    '127.0.0.1',
+    '::1',
     '192.168.102.212',
-    '127.0.0.1'
-]);
+], true)
+    || (strlen($host) >= 6 && substr($host, -6) === '.local')
+    || (strlen($host) >= 5 && substr($host, -5) === '.test')
+    || preg_match('/^192\.168\.\d{1,3}\.\d{1,3}$/', $host)
+    || preg_match('/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $host);
 
 if ($isLocal) {
     // LOCAL (XAMPP)

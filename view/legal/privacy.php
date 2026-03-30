@@ -187,7 +187,22 @@
                     </div>
                 </div>
 
-                
+                <div class="legal-section">
+                    <h2 class="legal-section-title">12. Development Team</h2>
+                    <div class="legal-section-content">
+                        <p><strong>Software Engineer:</strong> Anthony Alterado Capuyan</p>
+                    </div>
+                </div>
+
+                <div class="legal-section">
+                    <h2 class="legal-section-title">13. Acknowledgements</h2>
+                    <div class="legal-section-content">
+                        <p>We would like to acknowledge the following individuals and organizations for their contributions to the development of E-JEEP:</p>
+                        <ul>
+                            <li>Anthony Alterado Capuyan - Software Engineer</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

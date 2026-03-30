@@ -1,12 +1,47 @@
 // Enhanced animations and interactions for index page
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Check for reduced motion preference
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    
+
     // Check if device is mobile/tablet
     const isMobile = window.innerWidth <= 768;
     const isTablet = window.innerWidth <= 992 && window.innerWidth > 768;
+
+    // PWA Install Button functionality
+    const installSection = document.getElementById('install-section');
+    const installBtn = document.getElementById('install-btn');
+
+    if (installSection && installBtn && window.EjeepPWA) {
+        // Show install section if app is installable and not already installed
+        function updateInstallVisibility() {
+            if (window.EjeepPWA.isInstallable() && !window.EjeepPWA.isAppInstalled()) {
+                installSection.style.display = 'block';
+            } else {
+                installSection.style.display = 'none';
+            }
+        }
+
+        // Initial check
+        updateInstallVisibility();
+
+        // Listen for PWA installable event
+        window.addEventListener('ejeep-pwa-installable', updateInstallVisibility);
+
+        // Handle install button click
+        installBtn.addEventListener('click', function () {
+            window.EjeepPWA.promptInstall().then(function (accepted) {
+                if (accepted) {
+                    installSection.style.display = 'none';
+                }
+            });
+        });
+
+        // Hide when app is installed
+        window.addEventListener('ejeep-pwa-installed', function () {
+            installSection.style.display = 'none';
+        });
+    }
 
     // Mobile Menu Toggle
     const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
@@ -14,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const body = document.body;
 
     if (mobileMenuToggle && navLinks) {
-        mobileMenuToggle.addEventListener('click', function() {
+        mobileMenuToggle.addEventListener('click', function () {
             this.classList.toggle('active');
             navLinks.classList.toggle('active');
             body.classList.toggle('menu-open');
@@ -23,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Close menu when clicking on a link
         const navLinkItems = navLinks.querySelectorAll('.nav-link');
         navLinkItems.forEach(link => {
-            link.addEventListener('click', function() {
+            link.addEventListener('click', function () {
                 mobileMenuToggle.classList.remove('active');
                 navLinks.classList.remove('active');
                 body.classList.remove('menu-open');
@@ -31,10 +66,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Close menu when clicking outside
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const isClickInsideMenu = navLinks.contains(event.target);
             const isClickOnToggle = mobileMenuToggle.contains(event.target);
-            
+
             if (!isClickInsideMenu && !isClickOnToggle && navLinks.classList.contains('active')) {
                 mobileMenuToggle.classList.remove('active');
                 navLinks.classList.remove('active');
@@ -43,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Close menu on window resize to desktop
-        window.addEventListener('resize', function() {
+        window.addEventListener('resize', function () {
             if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
                 mobileMenuToggle.classList.remove('active');
                 navLinks.classList.remove('active');
@@ -68,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
             maxScroll = taglistScroller.scrollWidth - taglistScroller.clientWidth;
         }
         updateMaxScroll();
-        
+
         // Recalculate on resize
         window.addEventListener('resize', updateMaxScroll, { passive: true });
 
@@ -95,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isPaused && !isUserScrolling && maxScroll > 0) {
                 const currentScroll = taglistScroller.scrollLeft;
                 let newScroll = currentScroll + (scrollSpeed * scrollDirection);
-                
+
                 if (newScroll >= maxScroll) {
                     newScroll = maxScroll;
                     scrollDirection = -1;
@@ -103,11 +138,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     newScroll = 0;
                     scrollDirection = 1;
                 }
-                
+
                 // Direct assignment is faster than scrollTo
                 taglistScroller.scrollLeft = newScroll;
             }
-            
+
             animationFrameId = requestAnimationFrame(autoScroll);
         }
 
@@ -123,14 +158,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Animate registration cards on scroll
     const observerOptions = {
         threshold: 0.2,
         rootMargin: '0px 0px -100px 0px'
     };
 
-    const observer = new IntersectionObserver(function(entries) {
+    const observer = new IntersectionObserver(function (entries) {
         entries.forEach((entry, index) => {
             if (entry.isIntersecting) {
                 setTimeout(() => {
@@ -143,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Observe registration cards for scroll animations (optional enhancement)
     const cards = document.querySelectorAll('.registration-card');
-    
+
     // Cards already animate via CSS on load, so we can skip IntersectionObserver
     // or use it for additional scroll-based effects if needed
     // cards.forEach(card => {
@@ -154,8 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!prefersReducedMotion && !isMobile) {
         cards.forEach(card => {
             const benefitsItems = card.querySelectorAll('.benefits-list li');
-            
-            card.addEventListener('mouseenter', function() {
+
+            card.addEventListener('mouseenter', function () {
                 benefitsItems.forEach((item, index) => {
                     setTimeout(() => {
                         item.classList.add('animate');
@@ -177,20 +212,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!prefersReducedMotion && !isMobile) {
         const buttons = document.querySelectorAll('.btn-primary');
         buttons.forEach(button => {
-            button.addEventListener('click', function(e) {
+            button.addEventListener('click', function (e) {
                 const ripple = document.createElement('span');
                 const rect = this.getBoundingClientRect();
                 const size = Math.max(rect.width, rect.height);
                 const x = e.clientX - rect.left - size / 2;
                 const y = e.clientY - rect.top - size / 2;
-                
+
                 ripple.style.width = ripple.style.height = size + 'px';
                 ripple.style.left = x + 'px';
                 ripple.style.top = y + 'px';
                 ripple.classList.add('ripple');
-                
+
                 this.appendChild(ripple);
-                
+
                 setTimeout(() => {
                     ripple.remove();
                 }, 600);
@@ -200,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
+        anchor.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
             if (href !== '#' && href.length > 1) {
                 e.preventDefault();
@@ -218,16 +253,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Parallax effect on scroll (subtle, desktop only, skip if reduced motion)
     if (!prefersReducedMotion && !isMobile) {
         let lastScrollTop = 0;
-        window.addEventListener('scroll', function() {
+        window.addEventListener('scroll', function () {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             const header = document.querySelector('.page-header');
-            
+
             if (header) {
                 const scrolled = scrollTop * 0.2;
                 header.style.transform = `translateY(${scrolled}px)`;
                 header.style.opacity = Math.max(0.3, 1 - (scrollTop / 500));
             }
-            
+
             lastScrollTop = scrollTop;
         }, { passive: true });
     }
@@ -275,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function animateCounter(element, target, duration = 2000) {
         let start = 0;
         const increment = target / (duration / 16);
-        
+
         const timer = setInterval(() => {
             start += increment;
             if (start >= target) {

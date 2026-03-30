@@ -34,12 +34,13 @@ $imageBasePath = $basePath;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
     <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="E-JEEP Passenger">
     <meta name="description" content="E-JEEP Passenger Dashboard">
-    <link rel="manifest" href="../../manifest.json">
-    <link rel="apple-touch-icon" href="../../assets/icons/icon-192.png">
+    <link rel="manifest" href="<?php echo htmlspecialchars($basePath); ?>manifest.json">
+    <link rel="apple-touch-icon" href="<?php echo htmlspecialchars($basePath); ?>assets/icons/icon-192x192.png">
     <title>Passenger Dashboard - E-JEEP</title>
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/index.css" rel="stylesheet" type="text/css">
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/dashboard.css" rel="stylesheet" type="text/css">
@@ -329,9 +330,9 @@ $imageBasePath = $basePath;
                 <div class="alert alert-warning">
                     <strong>Card Inactive:</strong> Your E-JEEP card is currently inactive. Please contact support to activate it.
                 </div>
-            <?php elseif ($passengerInfo['card_status'] === 'active'): ?>
-                <div class="alert alert-success">
-                    <strong>Card Active:</strong> Your E-JEEP card is active and ready to use!
+            <?php elseif ($passengerInfo['card_status'] === 'expired'): ?>
+                <div class="alert alert-error">
+                    <strong>Card Expired:</strong> Your E-JEEP card has expired. Please contact support to renew it.
                 </div>
             <?php endif; ?>
 
@@ -356,9 +357,9 @@ $imageBasePath = $basePath;
                 </div>
 
                 <div class="dashboard-card">
-                    <div class="card-icon"><i class="fas fa-user"></i></div>
-                    <h3 class="card-title">Account Status</h3>
-                    <p class="card-value"><?php echo ucfirst(str_replace('_', ' ', $passengerInfo['status'] ?? 'N/A')); ?></p>
+                    <div class="card-icon"><i class="fas fa-building"></i></div>
+                    <h3 class="card-title">Organization</h3>
+                    <p class="card-value"><?php echo $passengerInfo['organization_name'] ? htmlspecialchars($passengerInfo['organization_name']) : 'None'; ?></p>
                 </div>
             </div>
 
@@ -380,70 +381,20 @@ $imageBasePath = $basePath;
                             echo htmlspecialchars($formatted);
                         ?>
                     </div>
-                    <div class="holder">CARDHOLDER: <?php echo htmlspecialchars(strtoupper(($passengerInfo['first_name'] ?? '') . ' ' . ($passengerInfo['last_name'] ?? ''))); ?></div>
+                    <div class="holder"><?php echo htmlspecialchars(strtoupper(($passengerInfo['first_name'] ?? '') . ' ' . ($passengerInfo['last_name'] ?? ''))); ?></div>
                     <div class="meta">
-                        <span>TYPE: <?php echo htmlspecialchars(strtoupper($passengerInfo['card_type'] ?? 'STANDARD')); ?></span>
+                        <span><?php echo htmlspecialchars(strtoupper($passengerInfo['card_type'] ?? 'STANDARD')); ?></span>
                         <span>BAL: &#8369;<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></span>
+                        <?php if ($passengerInfo['organization_name']): ?>
+                            <span>ORG: <?php echo htmlspecialchars(strtoupper($passengerInfo['organization_name'])); ?></span>
+                        <?php endif; ?>
                     </div>
                     <div class="badge">ACTIVE</div>
                 </div>
             </div>
             <?php endif; ?>
 
-            <!-- ID Card Image with Flip -->
-            <div class="images-section">
-                <div class="license-flip-card" onclick="flipIdCard()">
-                    <div class="flip-card-inner" id="flipCardInner">
-                        <!-- Front Side -->
-                        <div class="flip-card-front">
-                            <div class="image-card">
-                                <h3 class="image-card-title">ID Card - Front</h3>
-                                <div class="image-container">
-                                    <?php if (!empty($passengerInfo['id_image_front']) && file_exists($imageBasePath . $passengerInfo['id_image_front'])): ?>
-                                        <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['id_image_front']); ?>" alt="ID Card Front" class="license-image" id="idImageFront">
-                                        <div class="image-overlay">
-                                            <button class="view-fullscreen-btn" onclick="event.stopPropagation(); viewFullscreen('idImageFront')">&#128269; View Fullscreen</button>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="image-placeholder">
-                                            <span class="placeholder-icon"><i class="fas fa-file-alt"></i></span>
-                                            <p class="placeholder-text">No Front ID Image</p>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                <?php if (!empty($passengerInfo['id_number'])): ?>
-                                    <p class="license-info">ID #: <?php echo htmlspecialchars($passengerInfo['id_number']); ?></p>
-                                <?php endif; ?>
-                                <p class="flip-hint">&#128070; Click to flip to back</p>
-                            </div>
-                        </div>
-
-                        <!-- Back Side -->
-                        <div class="flip-card-back">
-                            <div class="image-card">
-                                <h3 class="image-card-title">ID Card - Back</h3>
-                                <div class="image-container">
-                                    <?php if (!empty($passengerInfo['id_image_back']) && file_exists($imageBasePath . $passengerInfo['id_image_back'])): ?>
-                                        <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['id_image_back']); ?>" alt="ID Card Back" class="license-image" id="idImageBack">
-                                        <div class="image-overlay">
-                                            <button class="view-fullscreen-btn" onclick="event.stopPropagation(); viewFullscreen('idImageBack')">&#128269; View Fullscreen</button>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="image-placeholder">
-                                            <span class="placeholder-icon"><i class="fas fa-file-alt"></i></span>
-                                            <p class="placeholder-text">No Back ID Image</p>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                <p class="flip-hint">&#128070; Click to flip to front</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             
-        </div>
     </div>
 
     <!-- Bottom Navigation Bar -->
@@ -466,23 +417,7 @@ $imageBasePath = $basePath;
         </div>
     </div>
 
-    <!-- Live Bus Tracker Modal -->
-    <div id="trackerModal" class="tracker-modal" aria-hidden="true" role="dialog" aria-modal="true">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Live Bus Tracker</div>
-                <button type="button" class="modal-close" aria-label="Close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="busTrackerMap"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Floating Live Tracking Button -->
-    <button id="floatingTrackBtn" class="floating-track-btn" aria-label="Live Bus Tracker">
-        <i class="fas fa-location-arrow"></i>
-    </button>
+       <?php include 'view/components/live_bus_tracker.php'; ?>
 
     <!-- Leaflet JS and live tracker -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"

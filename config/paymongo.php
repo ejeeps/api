@@ -6,11 +6,13 @@
  */
 
 // PayMongo Environment Detection
-$isLocal = in_array($_SERVER['SERVER_NAME'], [
+$serverName = $_SERVER['SERVER_NAME'] ?? '';
+$isLocal = in_array($serverName, [
     'localhost',
     '192.168.0.103',
     '127.0.0.1'
 ]);
+$isDevServer = strpos($serverName, 'ejeepdev.site') !== false;
 
 // PayMongo API Configuration
 if ($isLocal) {
@@ -28,10 +30,18 @@ if ($isLocal) {
 define('PAYMONGO_BASE_URL', 'https://api.paymongo.com/v1');
 
 // PayMongo Webhook Configuration
-define('PAYMONGO_WEBHOOK_SECRET', ''); // You'll need to set this after creating webhooks
+define('PAYMONGO_WEBHOOK_SECRET', 'whsk_eSGcUuqGyLj1MGMVA6xF5NDL'); // Your webhook secret from PayMongo dashboard
 
-// Application Configuration
-define('APP_BASE_URL', 'http://localhost/api'); // Change this to your actual domain
+// Application Configuration - Auto-detect based on server
+if ($isLocal) {
+    define('APP_BASE_URL', 'http://localhost/api');
+} elseif ($isDevServer) {
+    define('APP_BASE_URL', 'https://api.ejeepdev.site');
+} else {
+    // Production fallback - use current server name
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    define('APP_BASE_URL', $protocol . '://' . $serverName);
+}
 define('PAYMONGO_SUCCESS_URL', APP_BASE_URL . '/controller/passenger/PayMongoCallbackController.php?status=success');
 define('PAYMONGO_CANCEL_URL', APP_BASE_URL . '/controller/passenger/PayMongoCallbackController.php?status=cancel');
 define('PAYMONGO_WEBHOOK_URL', APP_BASE_URL . '/controller/passenger/PayMongoWebhookController.php');
@@ -49,8 +59,9 @@ define('PAYMONGO_PAYMENT_METHODS', [
 // Alternative mobile-friendly payment methods (fewer options to force visibility)
 define('PAYMONGO_MOBILE_METHODS', [
     'card',
-    'gcash', 
-    'paymaya'
+    'gcash',
+    'paymaya',
+    'qrph'          // QR Philippines
 ]);
 
 /**

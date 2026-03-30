@@ -4,19 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
     <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="E-JEEP">
     <meta name="description" content="E-JEEP - Login to your account">
-    <?php
-    // Get base path for manifest and icons
-    $manifestPath = $basePath . 'manifest.json';
-    $iconPath = $basePath . 'assets/icons/icon-192.png';
-    ?>
-    <link rel="manifest" href="<?php echo htmlspecialchars($manifestPath); ?>">
-    <link rel="apple-touch-icon" href="<?php echo htmlspecialchars($iconPath); ?>">
-    <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
-    <title>Login - E-JEEP</title>
     <?php
     // Get base path - works when included from index.php
     $basePath = '';
@@ -31,7 +23,15 @@
             $basePath = '/' . $scriptDir . '/';
         }
     }
+    
+    // Get base path for manifest and icons
+    $manifestPath = $basePath . 'manifest.json';
+    $iconPath = $basePath . 'assets/icons/icon-192x192.png';
     ?>
+    <link rel="manifest" href="<?php echo htmlspecialchars($manifestPath); ?>">
+    <link rel="apple-touch-icon" href="<?php echo htmlspecialchars($iconPath); ?>">
+    <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
+    <title>Login - E-JEEP</title>
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/index.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/login.css">
     <style>
@@ -142,7 +142,7 @@
                     </div>
                 <?php endif; ?>
 
-                <form action="controller/auth/LoginController.php" method="POST" class="login-form" id="loginForm">
+                <form action="<?php echo htmlspecialchars($basePath); ?>controller/auth/LoginController.php" method="POST" class="login-form" id="loginForm">
                     <div class="form-group">
                         <label for="email" class="form-label">Email Address</label>
                         <input type="email" id="email" name="email" class="form-input" required autofocus>

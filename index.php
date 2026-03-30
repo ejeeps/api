@@ -1,8 +1,5 @@
 <?php
-// Start session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/config/session.php';
 
 // Check if user is already logged in
 if (isset($_SESSION['user_id'])) {
@@ -84,6 +81,7 @@ if ($register === 'passenger') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
     <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="E-JEEP">
@@ -169,8 +167,92 @@ if ($register === 'passenger') {
                     </div>
                 </div>
             </div>
+            <!-- Download as app section - Play Store Style -->
+            <div class="app-store-section" id="install-section" style="display: none;">
+                <div class="app-store-card">
+                    <!-- App Header with Icon and Basic Info -->
+                    <div class="app-header">
+                        <div class="app-icon-wrapper">
+                            <div class="app-icon">
+                                <i class="fas fa-bus"></i>
+                            </div>
+                            <div class="app-badge">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="app-info">
+                            <h2 class="app-name">E-JEEP</h2>
+                            <p class="app-developer">By E-JEEP Team</p>
+                            <div class="app-badges">
+                                <span class="badge-verified"><i class="fas fa-shield-alt"></i> Verified</span>
+                                <span class="badge-official"><i class="fas fa-star"></i> Official</span>
+                            </div>
+                        </div>
+                    </div>
 
-            <!-- Description Section -->
+                  
+
+                    <!-- Install Button -->
+                    <div class="install-action">
+                        <button id="install-btn" class="btn btn-install-store">
+                            <i class="fas fa-download"></i>
+                            <span class="install-text">Install</span>
+                        </button>
+                        <p class="install-note">Free • No ads • No in-app purchases</p>
+                    </div>
+
+                  
+
+                    <!-- What's New Section -->
+                    <div class="whats-new">
+                        <div class="whats-new-header">
+                            <h3 class="section-title">What's New</h3>
+                            <span class="version-tag">Version 2.1.0</span>
+                        </div>
+                        <div class="update-content">
+                            <p class="update-date">Updated Feb 23, 2026</p>
+                            <ul class="update-list">
+                                <li><i class="fas fa-bolt"></i> Faster card tap processing</li>
+                                <li><i class="fas fa-map-marker-alt"></i> Real-time route tracking</li>
+                                <li><i class="fas fa-bell"></i> Push notifications for transactions</li>
+                                <li><i class="fas fa-shield-alt"></i> Enhanced security features</li>
+                                <li><i class="fas fa-bug"></i> Bug fixes and improvements</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- App Description -->
+                    <div class="app-description">
+                        <h3 class="section-title">About this app</h3>
+                        <p class="description-text">
+                            E-JEEP is the official app for modern jeepney transportation with cashless payments. 
+                            Get your E-JEEP card, tap to pay when boarding, track your balance, and view your 
+                            transaction history - all in one convenient app.
+                        </p>
+                        <div class="description-tags">
+                            <span class="desc-tag">Transportation</span>
+                            <span class="desc-tag">Payments</span>
+                            <span class="desc-tag">Lifestyle</span>
+                        </div>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div class="app-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Safe & Secure</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>All Devices</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-globe"></i>
+                            <span>Philippines</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="description-section">
                 <p class="page-description">
                     Welcome to E-JEEP Registration Portal. Whether you're a driver operating on routes 
@@ -260,6 +342,10 @@ if ($register === 'passenger') {
                     <h3>E-JEEP</h3>
                     <p>Modern Transportation, Cashless Payments</p>
                     <p>&copy; 2026 E-JEEP. All rights reserved.</p>
+                    <p class="footer-links">
+                        <a href="view/legal/privacy.php">Privacy Policy</a> | 
+                        <a href="view/legal/terms.php">Terms of Service</a>
+                    </p>
                 </div>
             </div>
         </div>

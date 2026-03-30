@@ -28,7 +28,7 @@ if (isset($dashboard_view)) {
 $imageBasePath = $basePath;
 
 // Predefined reload amounts
-$reloadAmounts = [50, 100, 200, 500, 1000, 2000];
+$reloadAmounts = [1, 20, 50, 100, 200, 500];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -37,6 +37,7 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="E-JEEP Passenger">
@@ -48,7 +49,8 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/dashboard.css" rel="stylesheet" type="text/css">
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/driver.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-        <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
     <style>
         /* ── Profile Zoom Modal ── */
         .profile-zoom-modal {
@@ -445,6 +447,13 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
                 <div class="alert alert-warning">
                     <strong>Processing:</strong> <?php echo htmlspecialchars($_GET['pending']); ?>
                 </div>
+                <!-- Check Payment Status Button -->
+                <div style="margin-top: 10px; text-align: center;">
+                    <button id="checkStatusBtn" onclick="checkPaymentStatus(true)" class="btn btn-primary" style="background: #1665f8; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                        <i class="fas fa-sync-alt"></i> Check Payment Status
+                    </button>
+                </div>
+                <div id="checkStatusResult" style="margin-top: 10px;"></div>
             <?php endif; ?>
 
             <?php if (isset($_GET['info'])): ?>
@@ -473,7 +482,7 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
                     <?php endif; ?>
                 </div>
                 <div class="info-box-text">
-                    Select an amount below and choose your preferred payment method. You will be redirected to a secure PayMongo checkout page to complete your payment. Your balance will be updated after successful payment. Minimum reload amount is ₱50.00.
+                    Select an amount below and choose your preferred payment method. You will be redirected to a secure PayMongo checkout page to complete your payment. Your balance will be updated after successful payment. Minimum reload amount is ₱1.00.
                     <?php if (defined('PAYMONGO_MODE') && PAYMONGO_MODE === 'test'): ?>
                         <br><br><strong>🧪 Test Mode:</strong> You can use test payment methods. No real money will be charged.
                     <?php endif; ?>
@@ -504,9 +513,9 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
                         <label for="custom_amount" class="form-label">Or Enter Custom Amount</label>
                         <div class="custom-amount-input">
                             <span class="currency-symbol">₱</span>
-                            <input type="number" id="custom_amount" name="amount" class="form-input" placeholder="0.00" min="50" step="0.01" required>
+                            <input type="number" id="custom_amount" name="amount" class="form-input" placeholder="0.00" min="1" step="0.01" required>
                         </div>
-                        <small class="form-hint">Minimum amount: ₱50.00</small>
+                        <small class="form-hint">Minimum amount: ₱1.00</small>
                     </div>
                 </div>
 
@@ -610,7 +619,7 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
             </form>
         </div>
     </div>
-
+<?php include 'view/components/live_bus_tracker.php'; ?>
     <!-- Bottom Navigation Bar -->
     <?php
     $activePage = 'buypoints';
@@ -705,9 +714,9 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
             const amount = document.getElementById('custom_amount').value;
             const submitBtn = document.getElementById('submitBtn');
             
-            if (!amount || parseFloat(amount) < 50) {
+            if (!amount || parseFloat(amount) < 1) {
                 e.preventDefault();
-                alert('Please enter a minimum amount of ₱50.00');
+                alert('Please enter a minimum amount of ₱1.00');
                 return false;
             }
             
@@ -739,6 +748,116 @@ $reloadAmounts = [50, 100, 200, 500, 1000, 2000];
                 selectedAmount = amount;
             }
         });
+
+        // Check Payment Status Functionality
+        let checkStatusInterval = null;
+        let isCheckingStatus = false;
+
+        function checkPaymentStatus(showLoading = false) {
+            if (isCheckingStatus) return;
+            
+            isCheckingStatus = true;
+            const btn = document.getElementById('checkStatusBtn');
+            const resultDiv = document.getElementById('checkStatusResult');
+            
+            if (showLoading && btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+            }
+            
+            fetch('<?php echo htmlspecialchars($basePath); ?>controller/passenger/CheckPaymentStatusController.php')
+                .then(response => response.json())
+                .then(data => {
+                    isCheckingStatus = false;
+                    
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check Payment Status';
+                    }
+                    
+                    if (data.success) {
+                        if (data.status === 'completed') {
+                            // Payment completed - show success and reload
+                            resultDiv.innerHTML = `
+                                <div class="alert alert-success">
+                                    <strong>✓ ${data.message}</strong><br>
+                                    Amount: ₱${parseFloat(data.amount).toFixed(2)}<br>
+                                    New Balance: ₱${parseFloat(data.new_balance).toFixed(2)}
+                                </div>
+                            `;
+                            // Reload page after 3 seconds to show updated balance
+                            setTimeout(() => window.location.reload(), 3000);
+                        } else if (data.has_pending) {
+                            // Still pending
+                            resultDiv.innerHTML = `
+                                <div class="alert alert-warning">
+                                    <strong>⏳ ${data.message}</strong><br>
+                                    Reference: ${data.transaction_reference}<br>
+                                    Amount: ₱${parseFloat(data.amount).toFixed(2)}
+                                </div>
+                            `;
+                        } else {
+                            // No pending transactions
+                            resultDiv.innerHTML = `
+                                <div class="alert" style="background-color: #e7f3ff; border: 1px solid #b3d7ff; color: #0056b3;">
+                                    <strong>ℹ️ ${data.message}</strong>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-error">
+                                <strong>Error:</strong> ${data.error || 'Failed to check status'}
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    isCheckingStatus = false;
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check Payment Status';
+                    }
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-error">
+                            <strong>Error:</strong> Failed to check payment status. Please try again.
+                        </div>
+                    `;
+                });
+        }
+
+        // Auto-check status if there's a pending message on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const pendingAlert = document.querySelector('.alert.alert-warning');
+            if (pendingAlert) {
+                // Auto-check every 10 seconds for up to 2 minutes
+                let checkCount = 0;
+                const maxChecks = 12;
+                
+                checkStatusInterval = setInterval(() => {
+                    checkCount++;
+                    checkPaymentStatus(false);
+                    
+                    if (checkCount >= maxChecks) {
+                        clearInterval(checkStatusInterval);
+                    }
+                }, 10000);
+                
+                // Initial check
+                checkPaymentStatus(false);
+            }
+        });
+
+        // Clean up interval when leaving page
+        window.addEventListener('beforeunload', function() {
+            if (checkStatusInterval) {
+                clearInterval(checkStatusInterval);
+            }
+        });
     </script>
+    
+    <!-- Leaflet JS and live tracker -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/live-tracker.js"></script>
 </body>
 </html>

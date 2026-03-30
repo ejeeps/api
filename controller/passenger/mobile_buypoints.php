@@ -34,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $paymentMethod = $_POST['payment_method'];
 
         // Validate amount
-        if ($amount < 50 || $amount > 10000) {
-            throw new Exception("Amount must be between ₱50.00 and ₱10,000.00");
+        if ($amount < 1 || $amount > 10000) {
+            throw new Exception("Amount must be between ₱1.00 and ₱10,000.00");
         }
 
         // Initialize PayMongo service
@@ -59,15 +59,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("User information not found.");
         }
 
+        // Get user's active card
+        $stmt = $pdo->prepare("
+            SELECT c.id as card_id 
+            FROM cards c 
+            JOIN card_assign_passengers cap ON c.id = cap.card_id 
+            WHERE cap.passenger_id = ? AND cap.assignment_status = 'active' AND c.status = 'active'
+            LIMIT 1
+        ");
+        $stmt->execute([$userInfo['passenger_id']]);
+        $cardInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+        $cardId = $cardInfo['card_id'] ?? null;
+
         // Create pending transaction record
         $stmt = $pdo->prepare("
             INSERT INTO transactions (
-                user_id, transaction_reference, amount, transaction_type, 
+                user_id, card_id, transaction_reference, amount, transaction_type, 
                 status, payment_method, description, created_at, updated_at
-            ) VALUES (?, ?, ?, 'top_up', 'pending', 'paymongo', ?, NOW(), NOW())
+            ) VALUES (?, ?, ?, ?, 'top_up', 'pending', 'paymongo', ?, NOW(), NOW())
         ");
         $stmt->execute([
-            $userId, 
+            $userId,
+            $cardId,
             $transactionRef, 
             $amount, 
             "Mobile Points top-up via PayMongo - {$paymentMethod}"
@@ -106,13 +119,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $stmt->execute([$paymentIntent['id'], $transactionId]);
 
-        // Create mobile-optimized checkout session
+        // Create mobile-optimized checkout session with selected payment method
+        // This ensures only the selected method shows on PayMongo's checkout page
         $checkoutSession = $payMongoService->createCheckoutSession(
-            $paymentIntent['id'], 
-            null, 
-            null, 
-            $amount, 
-            true // Force mobile optimization
+            $paymentIntent['id'],
+            null,
+            null,
+            $amount,
+            true,  // Force mobile optimization
+            $paymentMethod  // Pass selected payment method to restrict options
         );
 
         if (!$checkoutSession) {
@@ -256,15 +271,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label class="form-label">Select Amount</label>
                     <div class="amount-options">
+                        <div class="amount-option" onclick="selectAmount(1)">₱1</div>
+                        <div class="amount-option" onclick="selectAmount(20)">₱20</div>
                         <div class="amount-option" onclick="selectAmount(50)">₱50</div>
                         <div class="amount-option" onclick="selectAmount(100)">₱100</div>
                         <div class="amount-option" onclick="selectAmount(200)">₱200</div>
                         <div class="amount-option" onclick="selectAmount(500)">₱500</div>
-                        <div class="amount-option" onclick="selectAmount(1000)">₱1000</div>
-                        <div class="amount-option" onclick="selectAmount(2000)">₱2000</div>
                     </div>
                     <input type="number" name="amount" id="amount" class="form-input" 
-                           placeholder="Enter custom amount" min="50" max="10000" step="0.01" required>
+                           placeholder="Enter custom amount" min="1" max="10000" step="0.01" required
                 </div>
 
                 <div class="form-group">

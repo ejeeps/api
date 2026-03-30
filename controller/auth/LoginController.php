@@ -1,8 +1,5 @@
 <?php
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../../config/session.php';
 
 // Database connection using PDO
 try {
@@ -14,13 +11,13 @@ try {
     // Catch PDOException first (more specific)
     error_log("PDO connection error in LoginController: " . $e->getMessage());
     // Redirect to login page with error
-    header("Location: ../../index.php?login=1&error=" . urlencode("Database connection failed. Please try again later."));
+    header('Location: ' . app_index_url(['login' => '1', 'error' => 'Database connection failed. Please try again later.']));
     exit();
 } catch (Exception $e) {
     // Catch any other exceptions
     error_log("Database connection error in LoginController: " . $e->getMessage());
     // Redirect to login page with error
-    header("Location: ../../index.php?login=1&error=" . urlencode("Database connection failed. Please try again later."));
+    header('Location: ' . app_index_url(['login' => '1', 'error' => 'Database connection failed. Please try again later.']));
     exit();
 }
 
@@ -68,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Set session variables
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_email'] = $user['email'];
-        $_SESSION['user_level'] = $user['user_level'];
+        $_SESSION['user_level'] = strtolower(trim((string) $user['user_level']));
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
         $_SESSION['user_status'] = $user['status'];
         $_SESSION['is_verified'] = $user['is_verified'];
@@ -76,11 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Set remember me cookie if checked
         if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
             $cookieValue = base64_encode($user['id'] . ':' . hash('sha256', $user['email'] . $user['password']));
-            setcookie('remember_me', $cookieValue, time() + (30 * 24 * 60 * 60), '/'); // 30 days
+            setcookie('remember_me', $cookieValue, time() + (30 * 24 * 60 * 60), app_session_cookie_path()); // 30 days
         }
 
         // Redirect based on user level
-        if ($user['user_level'] === 'driver') {
+        $level = strtolower(trim((string) $user['user_level']));
+        if ($level === 'driver') {
             // Check if driver profile exists
             $driverCheck = $pdo->prepare("SELECT * FROM drivers WHERE user_id = ?");
             $driverCheck->execute([$user['id']]);
@@ -89,12 +87,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($driver) {
                 $_SESSION['driver_id'] = $driver['id'];
                 $_SESSION['driver_status'] = $driver['driver_status'];
-                header("Location: ../../index.php");
+                header('Location: ' . app_index_url());
             } else {
                 // Driver profile not complete, redirect to registration
-                header("Location: ../../index.php?register=driver&error=" . urlencode("Please complete your driver profile."));
+                header('Location: ' . app_index_url(['register' => 'driver', 'error' => 'Please complete your driver profile.']));
             }
-        } else if ($user['user_level'] === 'passenger') {
+        } else if ($level === 'passenger') {
             // Check if passenger profile exists
             $passengerCheck = $pdo->prepare("SELECT * FROM passengers WHERE user_id = ?");
             $passengerCheck->execute([$user['id']]);
@@ -102,25 +100,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($passenger) {
                 $_SESSION['passenger_id'] = $passenger['id'];
-                header("Location: ../../index.php");
+                header('Location: ' . app_index_url());
             } else {
                 // Passenger profile not complete, redirect to registration
-                header("Location: ../../index.php?register=passenger&error=" . urlencode("Please complete your passenger profile."));
+                header('Location: ' . app_index_url(['register' => 'passenger', 'error' => 'Please complete your passenger profile.']));
             }
+        } else if ($level === 'admin') {
+            header('Location: ' . app_index_url());
         } else {
-            header("Location: ../../index.php?error=" . urlencode("Invalid user level."));
+            header('Location: ' . app_index_url(['error' => 'Invalid user level.']));
         }
         exit();
 
     } catch (Exception $e) {
         // Redirect back with error message
-        $errorMessage = urlencode($e->getMessage());
-        header("Location: ../../index.php?login=1&error=" . $errorMessage);
+        header('Location: ' . app_index_url(['login' => '1', 'error' => $e->getMessage()]));
         exit();
     }
 } else {
     // If not POST request, redirect to login page
-    header("Location: ../../index.php?login=1");
+    header('Location: ' . app_index_url(['login' => '1']));
     exit();
 }
 ?>
