@@ -5,8 +5,8 @@
  * This controller handles PayMongo webhook events to process payments
  * and update user balances when payments are successful.
  * 
- * IMPORTANT: Per PayMongo best practices, we respond IMMEDIATELY with HTTP 200
- * and process the webhook in the background.
+ * We process the webhook first, then return HTTP 200. Many PHP hosts terminate the worker
+ * after fastcgi_finish_request(), so "respond first, process later" never updated the database.
  */
 
 require_once __DIR__ . '/../../config/connection.php';
@@ -22,30 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Get raw POST data BEFORE sending response
+// Raw body (must be unchanged for signature verification)
 $rawPayload = file_get_contents('php://input');
 
-// RESPOND IMMEDIATELY with HTTP 200 (per PayMongo best practices)
-// This prevents timeouts and retries
-http_response_code(200);
-echo json_encode(['status' => 'received', 'message' => 'Webhook received']);
-
-// Flush output to send response immediately
-if (function_exists('fastcgi_finish_request')) {
-    fastcgi_finish_request();
-} else {
-    // For non-FastCGI environments
-    if (ob_get_level() > 0) {
-        ob_end_flush();
-    }
-    flush();
-}
-
-// Continue processing in background after response is sent
 ignore_user_abort(true);
-set_time_limit(60); // Allow up to 60 seconds for processing
+set_time_limit(60);
 
-// Now process the webhook
+// Process the webhook BEFORE sending HTTP 200. Many hosts stop the PHP worker right after
+// fastcgi_finish_request(), so "respond first, process in background" never updated the DB.
 try {
     // Log webhook received
     logPayMongoTransaction('Webhook Received', [
@@ -55,6 +39,8 @@ try {
     
     if (empty($rawPayload)) {
         logPayMongoTransaction('Webhook Error', ['error' => 'Empty payload received']);
+        http_response_code(200);
+        echo json_encode(['status' => 'received', 'message' => 'Empty body']);
         exit;
     }
 
@@ -63,18 +49,23 @@ try {
     
     if (json_last_error() !== JSON_ERROR_NONE) {
         logPayMongoTransaction('Webhook Error', ['error' => 'Invalid JSON: ' . json_last_error_msg()]);
+        http_response_code(200);
+        echo json_encode(['status' => 'received', 'message' => 'Invalid JSON']);
         exit;
     }
 
     // Validate webhook signature (optional but recommended)
     $payMongoService = new PayMongoService();
-    $headers = getallheaders();
-    
-    if (!empty(PAYMONGO_WEBHOOK_SECRET) && isset($headers['Paymongo-Signature'])) {
-        if (!$payMongoService->validateWebhook($rawPayload, $headers['Paymongo-Signature'])) {
+    $signatureHeader = getPaymongoWebhookSignatureHeader();
+
+    if (!empty(PAYMONGO_WEBHOOK_SECRET) && $signatureHeader !== null && $signatureHeader !== '') {
+        if (!$payMongoService->validateWebhook($rawPayload, $signatureHeader)) {
             logPayMongoTransaction('Webhook Signature Validation Failed', [
-                'signature' => substr($headers['Paymongo-Signature'] ?? '', 0, 50) . '...'
+                'signature_prefix' => substr($signatureHeader, 0, 80)
             ]);
+            // Return 200 so PayMongo does not retry forever; check logs and fix secret / algorithm.
+            http_response_code(200);
+            echo json_encode(['status' => 'received', 'message' => 'Signature invalid — not processed']);
             exit;
         }
     }
@@ -85,6 +76,9 @@ try {
     // - $eventType: webhook event name if available, otherwise resource type
     // - $eventData: resource body containing `attributes`
     $eventType = $payload['data']['attributes']['type'] ?? $payload['type'] ?? '';
+    if ($eventType === '' && isset($payload['data']['type']) && $payload['data']['type'] === 'event') {
+        $eventType = $payload['data']['attributes']['type'] ?? '';
+    }
     $eventData = $payload['data']['attributes']['data']
         ?? $payload['data']['attributes']
         ?? $payload;
@@ -134,9 +128,17 @@ try {
             break;
 
         default:
-            logPayMongoTransaction('Unhandled Webhook Event', [
-                'event_type' => $eventType
-            ]);
+            // Last resort: infer paid events when event name string does not match our cases
+            if (($eventData['type'] ?? '') === 'payment' && ($eventData['attributes']['status'] ?? '') === 'paid') {
+                handlePaymentPaid($eventData, $payMongoService);
+            } elseif (($eventData['type'] ?? '') === 'checkout_session' && !empty($eventData['attributes']['paid_at'] ?? null)) {
+                handleCheckoutPaymentPaid($eventData, $payMongoService);
+            } else {
+                logPayMongoTransaction('Unhandled Webhook Event', [
+                    'event_type' => $eventType,
+                    'resource_type' => $eventData['type'] ?? null
+                ]);
+            }
             break;
     }
 
@@ -150,6 +152,10 @@ try {
         'trace' => $e->getTraceAsString()
     ]);
 }
+
+http_response_code(200);
+header('Content-Type: application/json');
+echo json_encode(['status' => 'received', 'message' => 'Webhook processed']);
 
 /**
  * Find the pending/processing transactions row for webhook completion.
