@@ -424,31 +424,136 @@ $imageBasePath = $basePath;
             <?php if (!empty($passengerInfo['card_number']) && ($passengerInfo['card_status'] ?? '') === 'active'): ?>
             <!-- E-JEEP Virtual Card -->
             <div class="passenger-dashboard-flow__card">
-            <div class="dashboard-section ejeep-card-wrap">
-               
-                <div class="ejeep-card" aria-label="Your virtual E-JEEP card">
-                    <div class="glow"></div>
-                    <div class="row">
-                        <div class="logo"><span class="dot"></span><span>E&#8209;JEEP</span></div>
-                        <div class="card-brand">VIRTUAL</div>
+            <div class=" ejeep-card-wrap">
+                <?php
+                    $virtualCardRaw = preg_replace('/\D+/', '', (string)($passengerInfo['card_number'] ?? ''));
+                    $virtualCardFormatted = trim(chunk_split($virtualCardRaw, 4, ' '));
+                    $virtualCardMasked = str_repeat('*', max(0, strlen($virtualCardRaw) - 4)) . substr($virtualCardRaw, -4);
+                    $virtualCardMaskedFormatted = trim(chunk_split($virtualCardMasked, 4, ' '));
+
+                    $virtualBalanceFormatted = number_format((float)($passengerInfo['card_balance'] ?? 0.00), 2);
+                    $virtualCardType = strtoupper((string)($passengerInfo['card_type'] ?? 'STANDARD'));
+                    $virtualHolder = strtoupper(trim((string)($passengerInfo['first_name'] ?? '') . ' ' . (string)($passengerInfo['last_name'] ?? '')));
+                    $virtualOrg = $passengerInfo['organization_name'] ? trim((string)$passengerInfo['organization_name']) : null;
+                    $virtualCvvMasked = str_repeat('*', 3);
+                    if (strlen($virtualCardRaw) >= 3) {
+                        $virtualCvvMasked = substr($virtualCardRaw, -3);
+                    }
+                ?>
+
+                <div
+                    class="ejeep-flip-card"
+                    data-balance-visible="true"
+                    data-card-number-raw="<?php echo htmlspecialchars($virtualCardRaw); ?>"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Your virtual E-JEEP card. Click to flip."
+                    onclick="flipVirtualEjeepCard(event)"
+                    onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); flipVirtualEjeepCard(event); }"
+                >
+                    <div class="ejeep-flip-card-inner">
+                        <!-- Front Side -->
+                        <div class="ejeep-card ejeep-card-front" aria-hidden="false">
+                            <div class="glow"></div>
+                            <div class="row">
+                                <div class="logo"><span class="dot"></span><span>E&#8209;JEEP</span></div>
+                                <div class="card-brand">VIRTUAL</div>
+                            </div>
+                            <div class="chip" title="Secure chip"></div>
+
+                            <div class="number-row">
+                                <div class="number">
+                                    <?php echo htmlspecialchars($virtualCardFormatted); ?>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="ejeep-card-icon-btn copy-card-number-btn"
+                                    aria-label="Copy card number"
+                                    title="Copy card number"
+                                    onclick="event.stopPropagation(); copyVirtualCardNumber(event);"
+                                >
+                                    <i class="fas fa-copy" aria-hidden="true"></i>
+                                </button>
+                            </div>
+
+                            <div class="holder"><?php echo htmlspecialchars($virtualHolder); ?></div>
+
+                            <div class="meta">
+                                <span><?php echo htmlspecialchars($virtualCardType); ?></span>
+                                <span class="meta-balance">
+                                    <span class="meta-balance-text">
+                                        BAL: &#8369;
+                                        <span class="virtual-balance-visible"><?php echo htmlspecialchars($virtualBalanceFormatted); ?></span>
+                                        <span class="virtual-balance-hidden">****.**</span>
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="ejeep-card-icon-btn balance-toggle-btn"
+                                        aria-label="Hide balance"
+                                        title="Hide balance"
+                                        onclick="event.stopPropagation(); toggleVirtualBalanceVisibility(event);"
+                                    >
+                                        <i class="fas fa-eye virtual-eye-open" aria-hidden="true"></i>
+                                        <i class="fas fa-eye-slash virtual-eye-off" aria-hidden="true"></i>
+                                    </button>
+                                </span>
+                                <?php if ($virtualOrg): ?>
+                                    <small class="meta-org">Organization: <?php echo htmlspecialchars($virtualOrg); ?></small>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="badge">ACTIVE</div>
+                        </div>
+
+                        <!-- Back Side -->
+                        <div class="ejeep-card ejeep-card-back" aria-hidden="true">
+                            <div class="glow"></div>
+                            <div class="row">
+                                <div class="logo"><span class="dot"></span><span>E&#8209;JEEP</span></div>
+                                <div class="card-brand">BACK</div>
+                            </div>
+                            <div class="card-back-strip" aria-hidden="true"></div>
+
+                            <div class="card-back-signature-row">
+                                <div class="card-back-signature">
+                                    <?php echo htmlspecialchars($virtualHolder); ?>
+                                </div>
+                                <div class="card-back-cvv">
+                                    CVV <?php echo htmlspecialchars($virtualCvvMasked); ?>
+                                </div>
+                            </div>
+
+                            <div class="number back-number">
+                                <?php echo htmlspecialchars($virtualCardMaskedFormatted); ?>
+                            </div>
+
+                            <div class="meta">
+                                <span><?php echo htmlspecialchars($virtualCardType); ?></span>
+                                <span class="meta-balance">
+                                    <span class="meta-balance-text">
+                                        BAL: &#8369;
+                                        <span class="virtual-balance-visible"><?php echo htmlspecialchars($virtualBalanceFormatted); ?></span>
+                                        <span class="virtual-balance-hidden">****.**</span>
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="ejeep-card-icon-btn balance-toggle-btn"
+                                        aria-label="Hide balance"
+                                        title="Hide balance"
+                                        onclick="event.stopPropagation(); toggleVirtualBalanceVisibility(event);"
+                                    >
+                                        <i class="fas fa-eye virtual-eye-open" aria-hidden="true"></i>
+                                        <i class="fas fa-eye-slash virtual-eye-off" aria-hidden="true"></i>
+                                    </button>
+                                </span>
+                                <?php if ($virtualOrg): ?>
+                                    <small class="meta-org">Organization: <?php echo htmlspecialchars($virtualOrg); ?></small>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="badge">ACTIVE</div>
+                        </div>
                     </div>
-                    <div class="chip" title="Secure chip"></div>
-                    <div class="number">
-                        <?php
-                            $raw = preg_replace('/\D+/', '', (string)$passengerInfo['card_number']);
-                            $formatted = trim(chunk_split($raw, 4, ' '));
-                            echo htmlspecialchars($formatted);
-                        ?>
-                    </div>
-                    <div class="holder"><?php echo htmlspecialchars(strtoupper(($passengerInfo['first_name'] ?? '') . ' ' . ($passengerInfo['last_name'] ?? ''))); ?></div>
-                    <div class="meta">
-                        <span><?php echo htmlspecialchars(strtoupper($passengerInfo['card_type'] ?? 'STANDARD')); ?></span>
-                        <span>BAL: &#8369;<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></span>
-                        <?php if ($passengerInfo['organization_name']): ?>
-                            <span>ORG: <?php echo htmlspecialchars(strtoupper($passengerInfo['organization_name'])); ?></span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="badge">ACTIVE</div>
                 </div>
             </div>
             </div>
