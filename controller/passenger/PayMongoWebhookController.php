@@ -5,90 +5,81 @@
  * This controller handles PayMongo webhook events to process payments
  * and update user balances when payments are successful.
  * 
- * IMPORTANT: Per PayMongo best practices, we respond IMMEDIATELY with HTTP 200
- * and process the webhook in the background.
+ * Process the webhook first, then return HTTP 200. Many PHP hosts stop the worker after
+ * fastcgi_finish_request(), so "respond first, process later" often never updates the DB.
  */
 
+require_once __DIR__ . '/../../config/paymongo.php';
 require_once __DIR__ . '/../../config/connection.php';
 require_once __DIR__ . '/../../services/PayMongoService.php';
 
-// Set headers for webhook response
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
-// Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
+    http_response_code(200);
+    echo json_encode([
+        'ok' => true,
+        'endpoint' => 'PayMongoWebhookController',
+        'hint' => 'This URL only accepts POST from PayMongo webhooks.',
+    ]);
     exit;
 }
 
-// Get raw POST data BEFORE sending response
 $rawPayload = file_get_contents('php://input');
 
-// RESPOND IMMEDIATELY with HTTP 200 (per PayMongo best practices)
-// This prevents timeouts and retries
-http_response_code(200);
-echo json_encode(['status' => 'received', 'message' => 'Webhook received']);
-
-// Flush output to send response immediately
-if (function_exists('fastcgi_finish_request')) {
-    fastcgi_finish_request();
-} else {
-    // For non-FastCGI environments
-    if (ob_get_level() > 0) {
-        ob_end_flush();
-    }
-    flush();
-}
-
-// Continue processing in background after response is sent
 ignore_user_abort(true);
-set_time_limit(60); // Allow up to 60 seconds for processing
+set_time_limit(60);
 
-// Now process the webhook
 try {
-    // Log webhook received
     logPayMongoTransaction('Webhook Received', [
         'method' => $_SERVER['REQUEST_METHOD'],
         'raw_input_length' => strlen($rawPayload)
     ]);
-    
+
     if (empty($rawPayload)) {
         logPayMongoTransaction('Webhook Error', ['error' => 'Empty payload received']);
+        http_response_code(200);
+        echo json_encode(['status' => 'received', 'message' => 'Empty body']);
         exit;
     }
 
-    // Parse JSON payload
     $payload = json_decode($rawPayload, true);
-    
+
     if (json_last_error() !== JSON_ERROR_NONE) {
         logPayMongoTransaction('Webhook Error', ['error' => 'Invalid JSON: ' . json_last_error_msg()]);
+        http_response_code(200);
+        echo json_encode(['status' => 'received', 'message' => 'Invalid JSON']);
         exit;
     }
 
-    // Validate webhook signature (optional but recommended)
     $payMongoService = new PayMongoService();
-    $headers = getallheaders();
-    
-    if (!empty(PAYMONGO_WEBHOOK_SECRET) && isset($headers['Paymongo-Signature'])) {
-        if (!$payMongoService->validateWebhook($rawPayload, $headers['Paymongo-Signature'])) {
+    $signatureHeader = getPaymongoWebhookSignatureHeader();
+
+    if (!empty(PAYMONGO_WEBHOOK_SECRET) && $signatureHeader !== null && $signatureHeader !== '') {
+        if (!$payMongoService->validateWebhook($rawPayload, $signatureHeader)) {
             logPayMongoTransaction('Webhook Signature Validation Failed', [
-                'signature' => substr($headers['Paymongo-Signature'] ?? '', 0, 50) . '...'
+                'signature_prefix' => substr($signatureHeader, 0, 80)
             ]);
+            http_response_code(200);
+            echo json_encode(['status' => 'received', 'message' => 'Signature invalid - not processed']);
             exit;
         }
     }
 
-    // Extract event data
-    $eventType = $payload['data']['attributes']['type'] ?? '';
-    $eventData = $payload['data']['attributes']['data'] ?? [];
+    $eventType = $payload['data']['attributes']['type'] ?? $payload['type'] ?? '';
+    if ($eventType === '' && isset($payload['data']['type']) && $payload['data']['type'] === 'event') {
+        $eventType = $payload['data']['attributes']['type'] ?? '';
+    }
+    $eventData = $payload['data']['attributes']['data']
+        ?? $payload['data']['attributes']
+        ?? $payload;
 
     logPayMongoTransaction('Processing Webhook Event', [
         'event_type' => $eventType,
-        'event_id' => $payload['data']['id'] ?? 'unknown'
+        'event_id' => $payload['data']['id'] ?? $payload['id'] ?? 'unknown',
+        'event_data_type' => $eventData['type'] ?? null
     ]);
 
-    // Handle different event types
     switch ($eventType) {
         case 'payment_intent.succeeded':
             handlePaymentSucceeded($eventData, $payMongoService);
@@ -107,15 +98,34 @@ try {
             handlePaymentPaid($eventData, $payMongoService);
             break;
 
+        case 'payment':
+            if (($eventData['attributes']['status'] ?? null) === 'paid') {
+                handlePaymentPaid($eventData, $payMongoService);
+            }
+            break;
+
+        case 'checkout_session':
+            if (!empty($eventData['attributes']['paid_at'] ?? null)) {
+                handleCheckoutPaymentPaid($eventData, $payMongoService);
+            }
+            break;
+
         case 'qrph.expired':
         case 'payment_method.expired':
             handlePaymentExpired($eventData, $payMongoService);
             break;
 
         default:
-            logPayMongoTransaction('Unhandled Webhook Event', [
-                'event_type' => $eventType
-            ]);
+            if (($eventData['type'] ?? '') === 'payment' && ($eventData['attributes']['status'] ?? '') === 'paid') {
+                handlePaymentPaid($eventData, $payMongoService);
+            } elseif (($eventData['type'] ?? '') === 'checkout_session' && !empty($eventData['attributes']['paid_at'] ?? null)) {
+                handleCheckoutPaymentPaid($eventData, $payMongoService);
+            } else {
+                logPayMongoTransaction('Unhandled Webhook Event', [
+                    'event_type' => $eventType,
+                    'resource_type' => $eventData['type'] ?? null
+                ]);
+            }
             break;
     }
 
@@ -123,11 +133,64 @@ try {
         'event_type' => $eventType
     ]);
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     logPayMongoTransaction('Webhook Processing Error', [
         'error' => $e->getMessage(),
         'trace' => $e->getTraceAsString()
     ]);
+    http_response_code(200);
+    echo json_encode([
+        'status' => 'received',
+        'message' => 'Webhook error logged (check logs/paymongo.log)',
+    ]);
+    exit;
+}
+
+http_response_code(200);
+echo json_encode(['status' => 'received', 'message' => 'Webhook processed']);
+
+/**
+ * Find pending/processing transaction for webhook completion (intent id may differ from DB).
+ *
+ * @return array{id: int, user_id: int, card_id: int|null}|null
+ */
+function resolvePendingTransactionForWebhook(PDO $pdo, ?string $paymentIntentId, ?string $checkoutSessionId, ?int $userId, ?float $amountPesos) {
+    $parts = [];
+    $params = [];
+    if ($paymentIntentId !== null && $paymentIntentId !== '') {
+        $parts[] = 'payment_intent_id = ?';
+        $params[] = $paymentIntentId;
+    }
+    if ($checkoutSessionId !== null && $checkoutSessionId !== '') {
+        $parts[] = 'checkout_session_id = ?';
+        $params[] = $checkoutSessionId;
+    }
+    if (!empty($parts)) {
+        $sql = 'SELECT id, user_id, card_id FROM transactions WHERE status IN (\'pending\', \'processing\') AND (' . implode(' OR ', $parts) . ') ORDER BY created_at DESC LIMIT 1';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            return $row;
+        }
+    }
+    if ($userId !== null && $amountPesos !== null && $amountPesos > 0) {
+        $stmt = $pdo->prepare('SELECT id, user_id, card_id FROM transactions WHERE status IN (\'pending\', \'processing\') AND user_id = ? AND amount = ? ORDER BY created_at DESC LIMIT 1');
+        $stmt->execute([$userId, $amountPesos]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            return $row;
+        }
+    }
+    if ($amountPesos !== null && $amountPesos > 0) {
+        $stmt = $pdo->prepare('SELECT id, user_id, card_id FROM transactions WHERE status IN (\'pending\', \'processing\') AND amount = ?');
+        $stmt->execute([$amountPesos]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (count($rows) === 1) {
+            return $rows[0];
+        }
+    }
+    return null;
 }
 
 /**
@@ -138,6 +201,7 @@ function handlePaymentSucceeded($eventData, $payMongoService) {
         $paymentIntentId = $eventData['id'] ?? '';
         $metadata = $eventData['attributes']['metadata'] ?? [];
         $userId = $metadata['user_id'] ?? null;
+        $transactionId = $metadata['transaction_id'] ?? null;
 
         if (!$paymentIntentId || !$userId) {
             throw new Exception('Missing payment intent ID or user ID');
@@ -145,11 +209,35 @@ function handlePaymentSucceeded($eventData, $payMongoService) {
 
         logPayMongoTransaction('Processing Payment Success', [
             'payment_intent_id' => $paymentIntentId,
-            'user_id' => $userId
+            'user_id' => $userId,
+            'transaction_id_meta' => $transactionId
         ]);
 
+        if (!$transactionId) {
+            $database = new Database();
+            $pdo = $database->getConnection();
+            $amountPesos = null;
+            if (isset($eventData['attributes']['amount'])) {
+                $amountPesos = convertToPesos($eventData['attributes']['amount']);
+            }
+            $resolved = resolvePendingTransactionForWebhook($pdo, $paymentIntentId, null, (int) $userId, $amountPesos);
+            if ($resolved) {
+                $transactionId = $resolved['id'];
+                logPayMongoTransaction('Webhook Payment Success - Matched Existing Transaction', [
+                    'payment_intent_id' => $paymentIntentId,
+                    'user_id' => $userId,
+                    'transaction_id' => $transactionId
+                ]);
+            } else {
+                logPayMongoTransaction('Webhook Payment Success - No Matching Transaction Found', [
+                    'payment_intent_id' => $paymentIntentId,
+                    'user_id' => $userId
+                ]);
+            }
+        }
+
         // Process the successful payment
-        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId);
+        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId, $transactionId);
 
         if ($result['success']) {
             logPayMongoTransaction('Payment Processed Successfully via Webhook', [
@@ -222,11 +310,17 @@ function handlePaymentFailed($eventData, $payMongoService) {
  */
 function handleCheckoutPaymentPaid($eventData, $payMongoService) {
     try {
-        // Extract payment intent from checkout session - try multiple paths
-        $paymentIntentId = $eventData['attributes']['payment_intent']['id'] ??
-                          $eventData['attributes']['payment_intent_id'] ??
-                          $eventData['payment_intent_id'] ??
-                          '';
+        $attrs = $eventData['attributes'] ?? [];
+        $piNested = $attrs['payment_intent'] ?? null;
+        $paymentIntentId = '';
+        if (is_array($piNested)) {
+            $paymentIntentId = $piNested['id'] ?? $piNested['data']['id'] ?? '';
+        }
+        if ($paymentIntentId === '') {
+            $paymentIntentId = $attrs['payment_intent_id'] ?? $eventData['payment_intent_id'] ?? '';
+        }
+
+        $checkoutSessionId = (($eventData['type'] ?? '') === 'checkout_session') ? ($eventData['id'] ?? null) : null;
 
         if (!$paymentIntentId) {
             logPayMongoTransaction('Checkout.Payment.Paid - No payment_intent_id found', [
@@ -237,10 +331,10 @@ function handleCheckoutPaymentPaid($eventData, $payMongoService) {
         }
 
         logPayMongoTransaction('Checkout.Payment.Paid - Found payment_intent_id', [
-            'payment_intent_id' => $paymentIntentId
+            'payment_intent_id' => $paymentIntentId,
+            'checkout_session_id' => $checkoutSessionId
         ]);
 
-        // Get payment intent details to extract metadata
         $paymentIntent = $payMongoService->getPaymentIntent($paymentIntentId);
 
         if (!$paymentIntent) {
@@ -250,38 +344,38 @@ function handleCheckoutPaymentPaid($eventData, $payMongoService) {
             return;
         }
 
-        // Check for user_id in metadata first
         $metadata = $paymentIntent['attributes']['metadata'] ?? [];
-        $userId = $metadata['user_id'] ?? null;
-        $transactionId = $metadata['transaction_id'] ?? null;
+        $userId = isset($metadata['user_id']) ? (int) $metadata['user_id'] : null;
+        $transactionId = isset($metadata['transaction_id']) ? (int) $metadata['transaction_id'] : null;
 
-        // If no user_id in metadata, look up from database by payment_intent_id
-        if (!$userId) {
-            logPayMongoTransaction('Checkout.Payment.Paid - No user_id in metadata, looking up from database', [
-                'payment_intent_id' => $paymentIntentId
+        $database = new Database();
+        $pdo = $database->getConnection();
+        $amountPesos = convertToPesos($paymentIntent['attributes']['amount'] ?? 0);
+
+        if (!$userId || !$transactionId) {
+            logPayMongoTransaction('Checkout.Payment.Paid - Resolving transaction row', [
+                'payment_intent_id' => $paymentIntentId,
+                'checkout_session_id' => $checkoutSessionId,
+                'has_user_in_meta' => (bool) $userId,
+                'has_txn_in_meta' => (bool) $transactionId
             ]);
-            
-            $database = new Database();
-            $pdo = $database->getConnection();
-            
-            $stmt = $pdo->prepare('SELECT id, user_id, card_id FROM transactions WHERE payment_intent_id = ? LIMIT 1');
-            $stmt->execute([$paymentIntentId]);
-            $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($transaction) {
-                $userId = $transaction['user_id'];
-                $transactionId = $transaction['id'];
-                logPayMongoTransaction('Checkout.Payment.Paid - Found transaction in database', [
-                    'payment_intent_id' => $paymentIntentId,
-                    'user_id' => $userId,
-                    'transaction_id' => $transactionId
+            $resolved = resolvePendingTransactionForWebhook($pdo, $paymentIntentId, $checkoutSessionId, $userId, $amountPesos);
+            if ($resolved) {
+                $userId = (int) $resolved['user_id'];
+                $transactionId = (int) $resolved['id'];
+                logPayMongoTransaction('Checkout.Payment.Paid - Resolved transaction', [
+                    'transaction_id' => $transactionId,
+                    'user_id' => $userId
                 ]);
-            } else {
-                logPayMongoTransaction('Checkout.Payment.Paid - Transaction not found in database', [
-                    'payment_intent_id' => $paymentIntentId
-                ]);
-                return; // Can't process without knowing the user
             }
+        }
+
+        if (!$userId || !$transactionId) {
+            logPayMongoTransaction('Checkout.Payment.Paid - Transaction not found in database', [
+                'payment_intent_id' => $paymentIntentId,
+                'checkout_session_id' => $checkoutSessionId
+            ]);
+            return;
         }
 
         logPayMongoTransaction('Processing Checkout Payment Paid', [
@@ -290,7 +384,6 @@ function handleCheckoutPaymentPaid($eventData, $payMongoService) {
             'transaction_id' => $transactionId
         ]);
 
-        // Process the successful payment
         $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId, $transactionId);
 
         if (!$result['success']) {
@@ -323,25 +416,26 @@ function handleCheckoutPaymentPaid($eventData, $payMongoService) {
  */
 function handlePaymentPaid($eventData, $payMongoService) {
     try {
-        // Try different possible locations for payment_intent_id
-        $paymentIntentId = $eventData['attributes']['payment_intent_id'] ??
+        $attrs = $eventData['attributes'] ?? [];
+        $paymentIntentId = $attrs['payment_intent_id'] ??
                           $eventData['payment_intent_id'] ??
-                          $eventData['attributes']['source']['payment_intent_id'] ??
+                          $attrs['source']['payment_intent_id'] ??
                           '';
+
+        $amountPesosFromEvent = isset($attrs['amount']) ? convertToPesos($attrs['amount']) : null;
 
         if (!$paymentIntentId) {
             logPayMongoTransaction('Payment.Paid - No payment_intent_id found', [
                 'event_data_keys' => array_keys($eventData),
                 'attributes_keys' => isset($eventData['attributes']) ? array_keys($eventData['attributes']) : 'no attributes'
             ]);
-            return; // Don't throw exception, just log and return
+            return;
         }
 
         logPayMongoTransaction('Payment.Paid - Found payment_intent_id', [
             'payment_intent_id' => $paymentIntentId
         ]);
 
-        // Get payment intent details to extract metadata
         $paymentIntent = $payMongoService->getPaymentIntent($paymentIntentId);
 
         if (!$paymentIntent) {
@@ -351,38 +445,36 @@ function handlePaymentPaid($eventData, $payMongoService) {
             return;
         }
 
-        // Check for user_id in metadata first
         $metadata = $paymentIntent['attributes']['metadata'] ?? [];
-        $userId = $metadata['user_id'] ?? null;
-        $transactionId = $metadata['transaction_id'] ?? null;
+        $userId = isset($metadata['user_id']) ? (int) $metadata['user_id'] : null;
+        $transactionId = isset($metadata['transaction_id']) ? (int) $metadata['transaction_id'] : null;
 
-        // If no user_id in metadata, look up from database by payment_intent_id
-        if (!$userId) {
-            logPayMongoTransaction('Payment.Paid - No user_id in metadata, looking up from database', [
+        $database = new Database();
+        $pdo = $database->getConnection();
+        $amountPesos = $amountPesosFromEvent ?? convertToPesos($paymentIntent['attributes']['amount'] ?? 0);
+
+        if (!$userId || !$transactionId) {
+            logPayMongoTransaction('Payment.Paid - Resolving transaction row', [
+                'payment_intent_id' => $paymentIntentId,
+                'has_user_in_meta' => (bool) $userId,
+                'has_txn_in_meta' => (bool) $transactionId
+            ]);
+            $resolved = resolvePendingTransactionForWebhook($pdo, $paymentIntentId, null, $userId, $amountPesos);
+            if ($resolved) {
+                $userId = (int) $resolved['user_id'];
+                $transactionId = (int) $resolved['id'];
+                logPayMongoTransaction('Payment.Paid - Resolved transaction', [
+                    'transaction_id' => $transactionId,
+                    'user_id' => $userId
+                ]);
+            }
+        }
+
+        if (!$userId || !$transactionId) {
+            logPayMongoTransaction('Payment.Paid - Transaction not found in database', [
                 'payment_intent_id' => $paymentIntentId
             ]);
-            
-            $database = new Database();
-            $pdo = $database->getConnection();
-            
-            $stmt = $pdo->prepare('SELECT id, user_id, card_id FROM transactions WHERE payment_intent_id = ? LIMIT 1');
-            $stmt->execute([$paymentIntentId]);
-            $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($transaction) {
-                $userId = $transaction['user_id'];
-                $transactionId = $transaction['id'];
-                logPayMongoTransaction('Payment.Paid - Found transaction in database', [
-                    'payment_intent_id' => $paymentIntentId,
-                    'user_id' => $userId,
-                    'transaction_id' => $transactionId
-                ]);
-            } else {
-                logPayMongoTransaction('Payment.Paid - Transaction not found in database', [
-                    'payment_intent_id' => $paymentIntentId
-                ]);
-                return; // Can't process without knowing the user
-            }
+            return;
         }
 
         logPayMongoTransaction('Processing Payment.Paid Event', [
@@ -391,7 +483,6 @@ function handlePaymentPaid($eventData, $payMongoService) {
             'transaction_id' => $transactionId
         ]);
 
-        // Process the successful payment
         $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId, $transactionId);
 
         if (!$result['success']) {

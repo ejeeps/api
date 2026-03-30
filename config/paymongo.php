@@ -93,11 +93,78 @@ function generateTransactionReference($userId) {
 }
 
 /**
- * Validate PayMongo webhook signature
+ * Read Paymongo-Signature header (case-insensitive; supports HTTP_PAYMONGO_SIGNATURE).
  */
-function validateWebhookSignature($payload, $signature, $secret) {
-    $computedSignature = hash_hmac('sha256', $payload, $secret);
-    return hash_equals($signature, $computedSignature);
+function getPaymongoWebhookSignatureHeader() {
+    if (function_exists('getallheaders')) {
+        foreach (getallheaders() as $name => $value) {
+            if (strtolower($name) === 'paymongo-signature') {
+                return $value;
+            }
+        }
+    }
+    return $_SERVER['HTTP_PAYMONGO_SIGNATURE'] ?? null;
+}
+
+/**
+ * Validate PayMongo webhook signature (matches paymongo-php WebhookService::constructEvent).
+ * Header: t=<ts>,<test_sig_key>=<sig>,<live_sig_key>=<sig> — compare to hash_hmac('sha256', $t.'.'.$payload, $secret).
+ */
+function validateWebhookSignature($payload, $signatureHeader, $secret) {
+    $signatureHeader = trim((string) $signatureHeader);
+    if ($signatureHeader === '') {
+        return false;
+    }
+
+    $arrSignature = explode(',', $signatureHeader);
+    if (count($arrSignature) >= 3) {
+        $timestamp = '';
+        if (isset($arrSignature[0]) && strpos($arrSignature[0], '=') !== false) {
+            $timestamp = explode('=', $arrSignature[0], 2)[1] ?? '';
+        }
+        $testModeSignature = '';
+        if (isset($arrSignature[1]) && strpos($arrSignature[1], '=') !== false) {
+            $testModeSignature = explode('=', $arrSignature[1], 2)[1] ?? '';
+        }
+        $liveModeSignature = '';
+        if (isset($arrSignature[2]) && strpos($arrSignature[2], '=') !== false) {
+            $liveModeSignature = explode('=', $arrSignature[2], 2)[1] ?? '';
+        }
+        $comparisonSignature = '';
+        if ($testModeSignature !== '') {
+            $comparisonSignature = $testModeSignature;
+        }
+        if ($liveModeSignature !== '') {
+            $comparisonSignature = $liveModeSignature;
+        }
+        if ($comparisonSignature !== '' && $timestamp !== '') {
+            $expected = hash_hmac('sha256', $timestamp . '.' . $payload, $secret);
+            return hash_equals($comparisonSignature, $expected);
+        }
+    }
+
+    if (strpos($signatureHeader, 't=') !== false) {
+        $parts = [];
+        foreach (explode(',', $signatureHeader) as $segment) {
+            $segment = trim($segment);
+            if ($segment === '' || strpos($segment, '=') === false) {
+                continue;
+            }
+            [$k, $v] = explode('=', $segment, 2);
+            $parts[trim($k)] = trim($v);
+        }
+        $timestamp = $parts['t'] ?? null;
+        $sig = $parts['v1'] ?? $parts['te'] ?? null;
+        if ($sig !== null && $timestamp !== null && $timestamp !== '') {
+            $expected = hash_hmac('sha256', $timestamp . '.' . $payload, $secret);
+            if (hash_equals($sig, $expected)) {
+                return true;
+            }
+        }
+    }
+
+    $computed = hash_hmac('sha256', $payload, $secret);
+    return hash_equals($signatureHeader, $computed);
 }
 
 /**

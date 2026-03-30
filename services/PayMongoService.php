@@ -212,6 +212,64 @@ class PayMongoService {
             // Start transaction
             $this->db->beginTransaction();
 
+            if ($existingTransactionId) {
+                $stmt = $this->db->prepare("
+                    SELECT id, status, card_id
+                    FROM transactions
+                    WHERE id = ? AND user_id = ?
+                    LIMIT 1
+                ");
+                $stmt->execute([$existingTransactionId, $userId]);
+                $txRow = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($txRow && $txRow['status'] === 'completed') {
+                    $stmt = $this->db->prepare("SELECT balance FROM cards WHERE id = ?");
+                    $stmt->execute([$txRow['card_id']]);
+                    $cardBalance = $stmt->fetchColumn() ?: 0;
+
+                    $this->db->commit();
+
+                    return [
+                        'success' => true,
+                        'amount' => $amount,
+                        'new_balance' => $cardBalance,
+                        'transaction_reference' => $txRow['id'],
+                        'already_processed' => true
+                    ];
+                }
+            }
+
+            // Prefer card from the pending transaction row; else active passenger card
+            $cardInfo = null;
+            if ($existingTransactionId) {
+                $stmt = $this->db->prepare("
+                    SELECT t.card_id, c.balance
+                    FROM transactions t
+                    LEFT JOIN cards c ON t.card_id = c.id
+                    WHERE t.id = ? AND t.user_id = ?
+                    LIMIT 1
+                ");
+                $stmt->execute([$existingTransactionId, $userId]);
+                $cardInfo = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            }
+
+            if (!$cardInfo || !$cardInfo['card_id']) {
+                $stmt = $this->db->prepare("
+                    SELECT c.id as card_id, c.balance
+                    FROM passengers p
+                    JOIN card_assign_passengers cap ON p.id = cap.passenger_id
+                    JOIN cards c ON cap.card_id = c.id
+                    WHERE p.user_id = ? AND cap.assignment_status = 'active' AND c.status = 'active'
+                    LIMIT 1
+                ");
+                $stmt->execute([$userId]);
+                $cardInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
+
+            if (!$cardInfo || !$cardInfo['card_id']) {
+                throw new Exception('No active card found for user to credit payment');
+            }
+
             // Check if this payment was already processed (idempotency check)
             $stmt = $this->db->prepare("
                 SELECT id, status, card_id FROM transactions
@@ -244,22 +302,6 @@ class PayMongoService {
                 ];
             }
 
-            // Get passenger's card information
-            $stmt = $this->db->prepare("
-                SELECT c.id as card_id, c.balance
-                FROM passengers p
-                JOIN card_assign_passengers cap ON p.id = cap.passenger_id
-                JOIN cards c ON cap.card_id = c.id
-                WHERE p.user_id = ? AND cap.assignment_status = 'active' AND c.status = 'active'
-                LIMIT 1
-            ");
-            $stmt->execute([$userId]);
-            $cardInfo = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if (!$cardInfo) {
-                throw new Exception('No active card found for user');
-            }
-
             // Update card balance
             $newBalance = $cardInfo['balance'] + $amount;
             $stmt = $this->db->prepare("UPDATE cards SET balance = ? WHERE id = ?");
@@ -282,10 +324,11 @@ class PayMongoService {
                 $stmt = $this->db->prepare("
                     UPDATE transactions
                     SET card_id = ?, status = 'completed', processed_at = NOW(), updated_at = NOW(),
-                        payment_method = ?, payment_method_details = ?
+                        payment_method = ?, payment_method_details = ?,
+                        payment_intent_id = ?
                     WHERE id = ? AND user_id = ?
                 ");
-                $stmt->execute([$cardInfo['card_id'], $paymentMethod, $paymentMethodDetails, $existingTransactionId, $userId]);
+                $stmt->execute([$cardInfo['card_id'], $paymentMethod, $paymentMethodDetails, $paymentIntentId, $existingTransactionId, $userId]);
                 $transactionRef = $existingTransactionId;
             } else {
                 // Create transaction record (fallback)

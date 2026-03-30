@@ -1,6 +1,7 @@
 # Configuration files with sensitive data
 config/connection.php
 config/paymongo.php
+config/groq.local.php
 
 # Logs
 logs/

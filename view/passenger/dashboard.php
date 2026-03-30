@@ -47,10 +47,6 @@ $imageBasePath = $basePath;
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-
     <style>
         /* ── Profile Zoom Modal ── */
         .profile-zoom-modal {
@@ -419,10 +415,6 @@ $imageBasePath = $basePath;
 
        <?php include 'view/components/live_bus_tracker.php'; ?>
 
-    <!-- Leaflet JS and live tracker -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/live-tracker.js"></script>
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/dashboard.js"></script>
 
     <script>
@@ -483,33 +475,6 @@ $imageBasePath = $basePath;
         });
       });
       // ─────────────────────────────────────────────────────────────────────
-
-      // ── Live Bus Tracker modal ────────────────────────────────────────────
-      (function () {
-        document.addEventListener('DOMContentLoaded', function () {
-          var btn      = document.getElementById('floatingTrackBtn');
-          var modal    = document.getElementById('trackerModal');
-          var closeBtn = modal ? modal.querySelector('.modal-close') : null;
-          if (!btn || !modal) return;
-
-          function openTracker() {
-            modal.classList.add('open');
-            modal.setAttribute('aria-hidden', 'false');
-            setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 120);
-          }
-          function closeTracker() {
-            modal.classList.remove('open');
-            modal.setAttribute('aria-hidden', 'true');
-          }
-
-          btn.addEventListener('click', openTracker);
-          if (closeBtn) closeBtn.addEventListener('click', closeTracker);
-          modal.addEventListener('click', function (ev) { if (ev.target === modal) closeTracker(); });
-          document.addEventListener('keydown', function (ev) {
-            if (ev.key === 'Escape' && modal.classList.contains('open')) closeTracker();
-          });
-        });
-      })();
 
       // ── Logout Confirmation Modal ─────────────────────────────────────────
       (function () {
