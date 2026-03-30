@@ -1,7 +1,6 @@
-const CACHE_NAME = 'ejeep-pwa-v1';
+const CACHE_NAME = 'ejeep-pwa-v2';
+// Only pre-cache static assets — never cache PHP/HTML entry points (session-dependent).
 const STATIC_ASSETS = [
-    '/api/',
-    '/api/index.php',
     '/api/assets/style/index.css',
     '/api/assets/style/login.css',
     '/api/assets/style/dashboard.css',
@@ -39,45 +38,53 @@ self.addEventListener('activate', function (event) {
     self.clients.claim();
 });
 
-// Fetch event - serve from cache or network
+function shouldCacheAsset(url) {
+    return url.pathname.indexOf('/api/assets/') !== -1;
+}
+
+// Fetch event
 self.addEventListener('fetch', function (event) {
-    // Skip non-GET requests
     if (event.request.method !== 'GET') {
         return;
     }
 
-    // Skip cross-origin requests
     if (!event.request.url.startsWith(self.location.origin)) {
         return;
     }
 
+    var url = new URL(event.request.url);
+
+    // Document navigations must always hit the network. Cache-first here returned a stale
+    // logged-out home page after login; the session cookie only applied on the next request.
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(function () {
+                return caches.match('/api/index.php');
+            })
+        );
+        return;
+    }
+
+    // Static assets: cache first, then network
     event.respondWith(
         caches.match(event.request).then(function (response) {
-            // Return cached response if found
             if (response) {
                 return response;
             }
 
-            // Otherwise fetch from network
             return fetch(event.request).then(function (networkResponse) {
-                // Don't cache non-successful responses
                 if (!networkResponse || networkResponse.status !== 200) {
                     return networkResponse;
                 }
 
-                // Clone the response before caching
-                var responseToCache = networkResponse.clone();
-
-                caches.open(CACHE_NAME).then(function (cache) {
-                    cache.put(event.request, responseToCache);
-                });
+                if (shouldCacheAsset(url)) {
+                    var responseToCache = networkResponse.clone();
+                    caches.open(CACHE_NAME).then(function (cache) {
+                        cache.put(event.request, responseToCache);
+                    });
+                }
 
                 return networkResponse;
-            }).catch(function () {
-                // Network failed - return offline fallback for navigation requests
-                if (event.request.mode === 'navigate') {
-                    return caches.match('/api/index.php');
-                }
             });
         })
     );
