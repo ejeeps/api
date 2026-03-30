@@ -80,12 +80,19 @@ try {
     }
 
     // Extract event data
-    $eventType = $payload['data']['attributes']['type'] ?? '';
-    $eventData = $payload['data']['attributes']['data'] ?? [];
+    // PayMongo may send webhook payloads in slightly different shapes depending on the event.
+    // Normalize to:
+    // - $eventType: webhook event name if available, otherwise resource type
+    // - $eventData: resource body containing `attributes`
+    $eventType = $payload['data']['attributes']['type'] ?? $payload['type'] ?? '';
+    $eventData = $payload['data']['attributes']['data']
+        ?? $payload['data']['attributes']
+        ?? $payload;
 
     logPayMongoTransaction('Processing Webhook Event', [
         'event_type' => $eventType,
-        'event_id' => $payload['data']['id'] ?? 'unknown'
+        'event_id' => $payload['data']['id'] ?? $payload['id'] ?? 'unknown',
+        'event_data_type' => $eventData['type'] ?? null
     ]);
 
     // Handle different event types
@@ -105,6 +112,20 @@ try {
 
         case 'payment.paid':
             handlePaymentPaid($eventData, $payMongoService);
+            break;
+
+        // Fallbacks when webhook event type is only the resource type
+        // (some webhook payloads provide `type: payment` and rely on attributes.status to identify `paid`)
+        case 'payment':
+            if (($eventData['attributes']['status'] ?? null) === 'paid') {
+                handlePaymentPaid($eventData, $payMongoService);
+            }
+            break;
+
+        case 'checkout_session':
+            if (!empty($eventData['attributes']['paid_at'] ?? null)) {
+                handleCheckoutPaymentPaid($eventData, $payMongoService);
+            }
             break;
 
         case 'qrph.expired':
@@ -309,10 +330,36 @@ function handleCheckoutPaymentPaid($eventData, $payMongoService) {
                     'transaction_id' => $transactionId
                 ]);
             } else {
-                logPayMongoTransaction('Checkout.Payment.Paid - Transaction not found in database', [
-                    'payment_intent_id' => $paymentIntentId
-                ]);
-                return; // Can't process without knowing the user
+                // Fallback: sometimes matching by payment_intent_id fails or metadata is missing
+                // Use checkout_session_id (resource id) if present.
+                $checkoutSessionId = $eventData['id'] ?? null;
+                if ($checkoutSessionId) {
+                    logPayMongoTransaction('Checkout.Payment.Paid - Trying lookup by checkout_session_id', [
+                        'checkout_session_id' => $checkoutSessionId
+                    ]);
+
+                    $stmt = $pdo->prepare('SELECT id, user_id, card_id FROM transactions WHERE checkout_session_id = ? LIMIT 1');
+                    $stmt->execute([$checkoutSessionId]);
+                    $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    if ($transaction) {
+                        $userId = $transaction['user_id'];
+                        $transactionId = $transaction['id'];
+                        logPayMongoTransaction('Checkout.Payment.Paid - Found transaction via checkout_session_id', [
+                            'checkout_session_id' => $checkoutSessionId,
+                            'user_id' => $userId,
+                            'transaction_id' => $transactionId
+                        ]);
+                    }
+                }
+
+                if (!$userId || !$transactionId) {
+                    logPayMongoTransaction('Checkout.Payment.Paid - Transaction not found in database', [
+                        'payment_intent_id' => $paymentIntentId,
+                        'checkout_session_id' => $eventData['id'] ?? null
+                    ]);
+                    return; // Can't process without knowing the user
+                }
             }
         }
 
