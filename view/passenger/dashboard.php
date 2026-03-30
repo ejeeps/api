@@ -394,60 +394,7 @@ $imageBasePath = $basePath;
             </div>
             <?php endif; ?>
 
-            <!-- ID Card Image with Flip -->
-            <div class="images-section">
-                <div class="license-flip-card" onclick="flipIdCard()">
-                    <div class="flip-card-inner" id="flipCardInner">
-                        <!-- Front Side -->
-                        <div class="flip-card-front">
-                            <div class="image-card">
-                                <h3 class="image-card-title">ID Card - Front</h3>
-                                <div class="image-container">
-                                    <?php if (!empty($passengerInfo['id_image_front']) && file_exists($imageBasePath . $passengerInfo['id_image_front'])): ?>
-                                        <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['id_image_front']); ?>" alt="ID Card Front" class="license-image" id="idImageFront">
-                                        <div class="image-overlay">
-                                            <button class="view-fullscreen-btn" onclick="event.stopPropagation(); viewFullscreen('idImageFront')">&#128269; View Fullscreen</button>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="image-placeholder">
-                                            <span class="placeholder-icon"><i class="fas fa-file-alt"></i></span>
-                                            <p class="placeholder-text">No Front ID Image</p>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                <?php if (!empty($passengerInfo['id_number'])): ?>
-                                    <p class="license-info">ID #: <?php echo htmlspecialchars($passengerInfo['id_number']); ?></p>
-                                <?php endif; ?>
-                                <p class="flip-hint">&#128070; Click to flip to back</p>
-                            </div>
-                        </div>
-
-                        <!-- Back Side -->
-                        <div class="flip-card-back">
-                            <div class="image-card">
-                                <h3 class="image-card-title">ID Card - Back</h3>
-                                <div class="image-container">
-                                    <?php if (!empty($passengerInfo['id_image_back']) && file_exists($imageBasePath . $passengerInfo['id_image_back'])): ?>
-                                        <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['id_image_back']); ?>" alt="ID Card Back" class="license-image" id="idImageBack">
-                                        <div class="image-overlay">
-                                            <button class="view-fullscreen-btn" onclick="event.stopPropagation(); viewFullscreen('idImageBack')">&#128269; View Fullscreen</button>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="image-placeholder">
-                                            <span class="placeholder-icon"><i class="fas fa-file-alt"></i></span>
-                                            <p class="placeholder-text">No Back ID Image</p>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                <p class="flip-hint">&#128070; Click to flip to front</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             
-        </div>
     </div>
 
     <!-- Bottom Navigation Bar -->
