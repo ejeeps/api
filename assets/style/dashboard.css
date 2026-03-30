@@ -27,6 +27,7 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    margin: 0;
     width: min(960px, 92vw);
     height: min(78vh, 680px);
     background: #ffffff;
@@ -35,6 +36,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    object-fit: unset;
 }
 
 .tracker-modal .modal-header {
@@ -876,6 +878,74 @@
     color: var(--text-light);
 }
 
+/* Passenger dashboard — main stack; narrow screens reorder for a cleaner thumb reach */
+.passenger-dashboard-flow {
+    display: block;
+}
+
+@media (max-width: 640px) {
+    .passenger-dashboard-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .passenger-dashboard-flow__stats {
+        order: 1;
+    }
+
+    .passenger-dashboard-flow__card {
+        order: 2;
+    }
+
+    .passenger-dashboard-flow__trips {
+        order: 3;
+    }
+
+    .passenger-dashboard-flow .dashboard-grid {
+        margin-bottom: 0;
+        gap: 10px;
+    }
+
+    .passenger-dashboard-flow .trips-today-section .section-title {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+
+    .passenger-dashboard-flow .trips-today-subtitle {
+        margin: -6px 0 12px;
+        font-size: 0.82rem;
+        line-height: 1.35;
+    }
+
+    .trips-today-subtitle-extra {
+        display: none;
+    }
+
+    .passenger-dashboard-flow .trips-today-section.dashboard-section {
+        padding: 14px;
+        margin-bottom: 0;
+    }
+
+    .passenger-dashboard-flow .ejeep-card-wrap.dashboard-section {
+        margin-bottom: 0;
+    }
+
+    .trips-today-card {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+
+    .trips-today-card-meta {
+        gap: 8px 10px;
+    }
+
+    .trips-today-route-line {
+        font-size: 0.98rem;
+    }
+}
+
 .dashboard-card {
     background: var(--bg-white);
     padding: 30px;
@@ -1136,7 +1206,7 @@
     word-break: break-word;
 }
 
-/* Image Modal */
+/* Fullscreen image viewer only — do not use bare .modal-content (assistant chat reuses that class name) */
 .image-modal {
     display: none;
     position: fixed;
@@ -1149,7 +1219,7 @@
     cursor: pointer;
 }
 
-.modal-content {
+.image-modal .modal-content {
     margin: auto;
     display: block;
     width: 90%;
@@ -1159,7 +1229,7 @@
     margin-top: 5vh;
 }
 
-.modal-close {
+.image-modal .modal-close {
     position: absolute;
     top: 10px;
     right: 20px;
@@ -1941,6 +2011,18 @@ body .main-content {
         font-size: 1.15rem;
         margin-bottom: 16px;
         padding-bottom: 10px;
+    }
+
+    .passenger-dashboard-flow {
+        gap: 10px;
+    }
+
+    .trips-today-date {
+        font-size: 0.78rem;
+    }
+
+    .trips-today-title.section-title {
+        font-size: 1.05rem;
     }
 
     .info-item {

@@ -334,7 +334,9 @@ $imageBasePath = $basePath;
                 </div>
             <?php endif; ?>
 
+            <div class="passenger-dashboard-flow">
             <!-- Dashboard Cards -->
+            <div class="passenger-dashboard-flow__stats">
             <div class="dashboard-grid">
                 <div class="dashboard-card">
                     <div class="card-icon"><i class="fas fa-id-card"></i></div>
@@ -360,14 +362,18 @@ $imageBasePath = $basePath;
                     <p class="card-value"><?php echo $passengerInfo['organization_name'] ? htmlspecialchars($passengerInfo['organization_name']) : 'None'; ?></p>
                 </div>
             </div>
+            </div>
 
             <!-- Trips today: routes with activity (network overview) -->
+            <div class="passenger-dashboard-flow__trips">
             <div class="dashboard-section trips-today-section">
                 <h2 class="section-title trips-today-title">
                     <i class="fas fa-bus" aria-hidden="true"></i>
                     Trips today
                 </h2>
-                <p class="trips-today-subtitle"><?php echo htmlspecialchars(date('l, F j, Y')); ?> · routes with recorded activity</p>
+                <p class="trips-today-subtitle">
+                    <span class="trips-today-date"><?php echo htmlspecialchars(date('l, F j, Y')); ?></span><span class="trips-today-subtitle-extra"> · Routes with activity today</span>
+                </p>
                 <?php if (empty($tripsTodayRoutes)): ?>
                     <div class="trips-today-empty" role="status">
                         <i class="fas fa-road" aria-hidden="true"></i>
@@ -413,9 +419,11 @@ $imageBasePath = $basePath;
                     </ul>
                 <?php endif; ?>
             </div>
+            </div>
 
             <?php if (!empty($passengerInfo['card_number']) && ($passengerInfo['card_status'] ?? '') === 'active'): ?>
             <!-- E-JEEP Virtual Card -->
+            <div class="passenger-dashboard-flow__card">
             <div class="dashboard-section ejeep-card-wrap">
                
                 <div class="ejeep-card" aria-label="Your virtual E-JEEP card">
@@ -443,7 +451,10 @@ $imageBasePath = $basePath;
                     <div class="badge">ACTIVE</div>
                 </div>
             </div>
+            </div>
             <?php endif; ?>
+
+            </div><!-- .passenger-dashboard-flow -->
 
             
     </div>

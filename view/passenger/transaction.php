@@ -396,12 +396,7 @@ try {
     <!-- Main Content -->
     <div class="main-content">
         <div class="container">
-            <!-- Balance Card -->
-            <div class="dashboard-card" style="margin-bottom: 25px;">
-                <div class="card-icon"><i class="fas fa-wallet"></i></div>
-                <h3 class="card-title">Current Balance</h3>
-                <p class="card-value" style="font-size: 2rem; margin-top: 10px;">₱<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></p>
-            </div>
+           
 
             <!-- Filter Tabs -->
             <div class="filter-tabs">

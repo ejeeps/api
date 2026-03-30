@@ -65,27 +65,27 @@ self.addEventListener('fetch', function (event) {
         return;
     }
 
-    // Static assets: cache first, then network
-    event.respondWith(
-        caches.match(event.request).then(function (response) {
-            if (response) {
-                return response;
-            }
-
-            return fetch(event.request).then(function (networkResponse) {
-                if (!networkResponse || networkResponse.status !== 200) {
+    // Static assets: network-first, fallback to cache.
+    // This prevents broken UI when we've updated CSS/JS but the SW still serves an older cached copy.
+    if (shouldCacheAsset(url)) {
+        event.respondWith(
+            fetch(event.request)
+                .then(function (networkResponse) {
+                    if (networkResponse && networkResponse.status === 200) {
+                        var responseToCache = networkResponse.clone();
+                        caches.open(CACHE_NAME).then(function (cache) {
+                            cache.put(event.request, responseToCache);
+                        });
+                    }
                     return networkResponse;
-                }
+                })
+                .catch(function () {
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
 
-                if (shouldCacheAsset(url)) {
-                    var responseToCache = networkResponse.clone();
-                    caches.open(CACHE_NAME).then(function (cache) {
-                        cache.put(event.request, responseToCache);
-                    });
-                }
-
-                return networkResponse;
-            });
-        })
-    );
+    // Default: just hit the network (no caching for non-asset GETs).
+    event.respondWith(fetch(event.request));
 });
