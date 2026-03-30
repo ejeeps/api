@@ -7,6 +7,10 @@
 function getDashboardTripsToday(PDO $pdo): array
 {
     try {
+        // If a trip remains `pending` too long (e.g., backend/processing stuck),
+        // we stop considering it "ongoing" for the passenger dashboard.
+        $pendingTimeoutMinutes = 10;
+
         $sql = "
             SELECT
                 r.id,
@@ -14,7 +18,16 @@ function getDashboardTripsToday(PDO $pdo): array
                 r.to_location,
                 r.location,
                 COUNT(DISTINCT t.trip_id) AS trip_sessions,
-                SUM(CASE WHEN t.trip_status = 'pending' THEN 1 ELSE 0 END) AS pending_rows,
+                SUM(
+                    CASE
+                        WHEN t.trip_status = 'pending'
+                         AND t.card_id IS NOT NULL
+                         AND t.tap_level = 'IN'
+                         AND TIMESTAMPDIFF(MINUTE, t.timestamp, NOW()) <= :timeoutMinutes
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS pending_rows,
                 MAX(t.timestamp) AS last_activity
             FROM trips t
             INNER JOIN routes r ON r.id = t.route_id
@@ -22,7 +35,8 @@ function getDashboardTripsToday(PDO $pdo): array
             GROUP BY r.id, r.from_location, r.to_location, r.location
             ORDER BY pending_rows DESC, last_activity DESC
         ";
-        $stmt = $pdo->query($sql);
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':timeoutMinutes' => $pendingTimeoutMinutes]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Throwable $e) {
         error_log('getDashboardTripsToday: ' . $e->getMessage());
