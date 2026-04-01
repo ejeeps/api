@@ -95,7 +95,8 @@ foreach ($appTerms as $term) {
 
 $asksDeveloperIdentity = $hasPersonTerm || ($hasBuildTerm && $hasAppTerm);
 if ($asksDeveloperIdentity) {
-    echo json_encode(['reply' => 'The developer of this app is anthony capuyan.'], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+    echo json_encode(['reply' => 'The developer of this app 
+    is Anthony , Hugh, Dennis.'], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     exit;
 }
 
