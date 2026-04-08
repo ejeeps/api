@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ejeep-pwa-v3';
+const CACHE_NAME = 'ejeep-pwa-v5';
 // Only pre-cache static assets — never cache PHP/HTML entry points (session-dependent).
 const STATIC_ASSETS = [
     '/api/assets/style/index.css',
@@ -7,7 +7,7 @@ const STATIC_ASSETS = [
     '/api/assets/script/index/index.js',
     '/api/assets/script/driver/dashboard.js',
     '/api/assets/script/passenger/dashboard.js',
-    '/api/assets/script/passenger/ai-assistant.js'
+    '/api/assets/script/passenger/ai-assistant.js?v=20260408b'
 ];
 
 // Install event - cache static assets

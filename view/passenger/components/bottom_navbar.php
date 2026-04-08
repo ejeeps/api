@@ -47,7 +47,6 @@ $dashboard_view = $dashboard_view ?? false;
     </div>
 </nav>
 
-
 <div class="logout-modal-overlay"
      id="logoutModalOverlay"
      role="dialog"
@@ -101,6 +100,7 @@ $dashboard_view = $dashboard_view ?? false;
     align-items: center;
     justify-content: center;
 }
+
 .logout-modal-overlay.active {
     display: flex;
 }
@@ -229,3 +229,4 @@ $dashboard_view = $dashboard_view ?? false;
 
 })();
 </script>
+

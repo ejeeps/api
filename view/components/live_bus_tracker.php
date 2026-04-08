@@ -27,25 +27,46 @@ if (!isset($basePath)) {
         </header>
 
         <div class="assistant-chat-main">
-            <div class="assistant-messages" id="assistantMessages" aria-live="polite">
-                <div class="assistant-empty-state" id="assistantEmptyState">
-                    <div class="assistant-empty-state__icon">
-                        <i class="fas fa-route"></i>
+            <div class="assistant-mode-selector" id="assistantModeSelector">
+                <button type="button" class="assistant-mode-card" id="assistantModeAiBtn">
+                    <span class="assistant-mode-card__icon"><i class="fas fa-robot"></i></span>
+                    <span class="assistant-mode-card__title">AI Assistant</span>
+                    <span class="assistant-mode-card__hint">Trips, routes, and balance help</span>
+                </button>
+                <button type="button" class="assistant-mode-card" id="assistantModeCsBtn">
+                    <span class="assistant-mode-card__icon"><i class="fas fa-headset"></i></span>
+                    <span class="assistant-mode-card__title">Customer Service</span>
+                    <span class="assistant-mode-card__hint">Chat with admin support</span>
+                </button>
+            </div>
+
+            <div class="assistant-chat-view" id="assistantAiView" hidden>
+                <div class="assistant-view-actions">
+                    <button type="button" class="assistant-back-btn" id="assistantBackFromAi">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                </div>
+                <div class="assistant-messages" id="assistantMessages" aria-live="polite">
+                    <div class="assistant-empty-state" id="assistantEmptyState">
+                        <div class="assistant-empty-state__icon">
+                            <i class="fas fa-route"></i>
+                        </div>
+                        <p class="assistant-empty-state__title">How can I help?</p>
+                        <p class="assistant-empty-state__hint">Ask about your routes, recent trips, or card balance. Answers use your E-JEEP data only.</p>
                     </div>
-                    <p class="assistant-empty-state__title">How can I help?</p>
-                    <p class="assistant-empty-state__hint">Ask about your routes, recent trips, or card balance. Answers use your E-JEEP data only.</p>
+                </div>
+
+                <div class="assistant-composer">
+                    <label class="assistant-composer__label visually-hidden" for="assistantInput">Message</label>
+                    <div class="assistant-composer__inner">
+                        <textarea id="assistantInput" class="assistant-composer__input" rows="1" placeholder="Message…" maxlength="4000" autocomplete="off"></textarea>
+                        <button type="button" class="assistant-composer__send" id="assistantSendBtn" aria-label="Send message">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="assistant-composer">
-                <label class="assistant-composer__label visually-hidden" for="assistantInput">Message</label>
-                <div class="assistant-composer__inner">
-                    <textarea id="assistantInput" class="assistant-composer__input" rows="1" placeholder="Message…" maxlength="4000" autocomplete="off"></textarea>
-                    <button type="button" class="assistant-composer__send" id="assistantSendBtn" aria-label="Send message">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -57,4 +78,4 @@ if (!isset($basePath)) {
 <script>
 window.EJEEP_API_BASE = <?php echo json_encode($basePath, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 </script>
-<script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/ai-assistant.js" defer></script>
+<script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/ai-assistant.js?v=20260408b" defer></script>

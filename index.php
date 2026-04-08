@@ -33,6 +33,9 @@ if (isset($_SESSION['user_id'])) {
             } elseif ($page === 'buypoints') {
                 include 'view/passenger/buypoints.php';
                 exit;
+            } elseif ($page === 'customer_service') {
+                include 'view/passenger/customer_service.php';
+                exit;
             }
         }
         // Include passenger dashboard view instead of redirecting

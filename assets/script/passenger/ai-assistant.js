@@ -184,6 +184,7 @@
         if (!modal) return;
         modal.classList.add('open');
         modal.setAttribute('aria-hidden', 'false');
+        switchView('selector');
         var input = el('assistantInput');
         if (input) {
             setTimeout(function () {
@@ -198,6 +199,22 @@
         if (!modal) return;
         modal.classList.remove('open');
         modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function switchView(mode) {
+        var selector = el('assistantModeSelector');
+        var aiView = el('assistantAiView');
+        if (!selector || !aiView) return;
+
+        selector.hidden = mode !== 'selector';
+        aiView.hidden = mode !== 'ai';
+
+        if (mode === 'ai') {
+            var input = el('assistantInput');
+            if (input) {
+                setTimeout(function () { input.focus(); }, 50);
+            }
+        }
     }
 
     async function sendMessage() {
@@ -249,6 +266,9 @@
         var closeBtn = el('assistantModalClose');
         var sendBtn = el('assistantSendBtn');
         var input = el('assistantInput');
+        var modeAiBtn = el('assistantModeAiBtn');
+        var modeCsBtn = el('assistantModeCsBtn');
+        var backAi = el('assistantBackFromAi');
 
         if (btn && modal) {
             btn.addEventListener('click', openModal);
@@ -262,6 +282,13 @@
         }
 
         if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+        if (modeAiBtn) modeAiBtn.addEventListener('click', function () { switchView('ai'); });
+        if (modeCsBtn) {
+            modeCsBtn.addEventListener('click', function () {
+                window.location.href = base + 'index.php?page=customer_service';
+            });
+        }
+        if (backAi) backAi.addEventListener('click', function () { switchView('selector'); });
         if (input) {
             input.addEventListener('input', autoResizeTextarea);
             input.addEventListener('keydown', function (ev) {
