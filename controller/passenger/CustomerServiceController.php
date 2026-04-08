@@ -69,6 +69,18 @@ if (!function_exists('ejeepCustomerServiceUploadDir')) {
     }
 }
 
+if (!function_exists('ejeepCustomerServiceMirrorUploadToDev')) {
+    function ejeepCustomerServiceMirrorUploadToDev(string $sourceFile, string $storedName): void
+    {
+        $apiRoot = dirname(__DIR__, 2);
+        $devDir = dirname($apiRoot) . '/dev/uploads/customer_service/';
+        if (!is_dir($devDir) && !mkdir($devDir, 0777, true) && !is_dir($devDir)) {
+            return;
+        }
+        @copy($sourceFile, $devDir . $storedName);
+    }
+}
+
 if (!function_exists('ejeepCustomerServiceSaveAttachment')) {
     function ejeepCustomerServiceSaveAttachment(PDO $pdo, int $messageId, array $file): void
     {
@@ -121,6 +133,7 @@ if (!function_exists('ejeepCustomerServiceSaveAttachment')) {
         if (!move_uploaded_file($tmp, $target)) {
             throw new RuntimeException('Failed to store attachment.');
         }
+        ejeepCustomerServiceMirrorUploadToDev($target, $storedName);
 
         $relative = '/uploads/customer_service/' . $storedName;
         $stmt = $pdo->prepare(
