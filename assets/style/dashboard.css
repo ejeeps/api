@@ -226,6 +226,12 @@
     cursor: pointer;
 }
 
+.assistant-back-btn--small {
+    padding: 4px 8px;
+    font-size: 0.74rem;
+    border-radius: 8px;
+}
+
 .assistant-messages {
     flex: 1;
     overflow-y: auto;
@@ -410,6 +416,16 @@
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(8px);
     border-top: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.assistant-cs-frame {
+    border: 0;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    background: #fff;
+    border-top: 1px solid rgba(226, 232, 240, 0.9);
+    margin-top: 8px;
 }
 
 .assistant-composer__inner {

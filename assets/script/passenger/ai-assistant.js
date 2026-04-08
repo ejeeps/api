@@ -204,15 +204,23 @@
     function switchView(mode) {
         var selector = el('assistantModeSelector');
         var aiView = el('assistantAiView');
-        if (!selector || !aiView) return;
+        var csView = el('assistantCsView');
+        if (!selector || !aiView || !csView) return;
 
         selector.hidden = mode !== 'selector';
         aiView.hidden = mode !== 'ai';
+        csView.hidden = mode !== 'cs';
 
         if (mode === 'ai') {
             var input = el('assistantInput');
             if (input) {
                 setTimeout(function () { input.focus(); }, 50);
+            }
+        }
+        if (mode === 'cs') {
+            var frame = el('assistantCsFrame');
+            if (frame && !frame.getAttribute('src')) {
+                frame.setAttribute('src', base + 'index.php?page=customer_service&embed=1');
             }
         }
     }
@@ -269,6 +277,7 @@
         var modeAiBtn = el('assistantModeAiBtn');
         var modeCsBtn = el('assistantModeCsBtn');
         var backAi = el('assistantBackFromAi');
+        var backCs = el('assistantBackFromCs');
 
         if (btn && modal) {
             btn.addEventListener('click', openModal);
@@ -283,12 +292,9 @@
 
         if (sendBtn) sendBtn.addEventListener('click', sendMessage);
         if (modeAiBtn) modeAiBtn.addEventListener('click', function () { switchView('ai'); });
-        if (modeCsBtn) {
-            modeCsBtn.addEventListener('click', function () {
-                window.location.href = base + 'index.php?page=customer_service';
-            });
-        }
+        if (modeCsBtn) modeCsBtn.addEventListener('click', function () { switchView('cs'); });
         if (backAi) backAi.addEventListener('click', function () { switchView('selector'); });
+        if (backCs) backCs.addEventListener('click', function () { switchView('selector'); });
         if (input) {
             input.addEventListener('input', autoResizeTextarea);
             input.addEventListener('keydown', function (ev) {

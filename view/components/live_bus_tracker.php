@@ -42,7 +42,7 @@ if (!isset($basePath)) {
 
             <div class="assistant-chat-view" id="assistantAiView" hidden>
                 <div class="assistant-view-actions">
-                    <button type="button" class="assistant-back-btn" id="assistantBackFromAi">
+                    <button type="button" class="assistant-back-btn assistant-back-btn--small" id="assistantBackFromAi">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                 </div>
@@ -67,6 +67,15 @@ if (!isset($basePath)) {
                 </div>
             </div>
 
+            <div class="assistant-chat-view" id="assistantCsView" hidden>
+                <div class="assistant-view-actions">
+                    <button type="button" class="assistant-back-btn assistant-back-btn--small" id="assistantBackFromCs">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                </div>
+                <iframe id="assistantCsFrame" class="assistant-cs-frame" title="Customer Service"></iframe>
+            </div>
+
         </div>
     </div>
 </div>
@@ -78,4 +87,4 @@ if (!isset($basePath)) {
 <script>
 window.EJEEP_API_BASE = <?php echo json_encode($basePath, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 </script>
-<script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/ai-assistant.js?v=20260408b" defer></script>
+<script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/ai-assistant.js?v=20260408c" defer></script>
