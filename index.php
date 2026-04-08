@@ -74,6 +74,8 @@ if ($register === 'passenger') {
     include 'view/auth/registration/passenger.php';
     exit;
 }
+
+$prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === '1';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -351,5 +353,25 @@ if ($register === 'passenger') {
         </div>
     </footer>
     <script src="assets/script/index/index.js"></script>
+    <?php if (!empty($prompt_install)) : ?>
+    <script>
+    (function () {
+        var prompted = false;
+        function tryPromptInstall() {
+            if (prompted) return;
+            var api = window.EjeepPWA;
+            if (!api || typeof api.promptInstall !== 'function') return;
+            if (api.isAppInstalled && api.isAppInstalled()) return;
+            if (!api.isInstallable || !api.isInstallable()) return;
+            prompted = true;
+            api.promptInstall();
+        }
+        window.addEventListener('ejeep-pwa-installable', tryPromptInstall);
+        window.addEventListener('load', function () {
+            setTimeout(tryPromptInstall, 400);
+        });
+    })();
+    </script>
+    <?php endif; ?>
 </body>
 </html>
