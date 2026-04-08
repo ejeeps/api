@@ -65,7 +65,7 @@ if (!function_exists('ejeepCustomerServiceEnsureTables')) {
 if (!function_exists('ejeepCustomerServiceUploadDir')) {
     function ejeepCustomerServiceUploadDir(): string
     {
-        return dirname(__DIR__, 3) . '/uploads/customer_service/';
+        return dirname(__DIR__, 2) . '/uploads/customer_service/';
     }
 }
 
