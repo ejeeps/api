@@ -534,6 +534,26 @@ $isImageAttachment = static function (array $att): bool {
                 height: 100%;
             }
         }
+        @supports (height: 100dvh) {
+            @media (max-width: 959px) {
+                .cs-chat-card {
+                    min-height: 68dvh;
+                }
+                .cs-thread {
+                    min-height: 44dvh;
+                    max-height: 60dvh;
+                }
+            }
+        }
+        @media (display-mode: standalone), (display-mode: fullscreen) {
+            .cs-embed-page .cs-chat-card {
+                min-height: calc(78svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+            }
+            .cs-embed-page .cs-thread {
+                min-height: calc(50svh - env(safe-area-inset-bottom, 0px));
+                max-height: calc(66svh - env(safe-area-inset-bottom, 0px));
+            }
+        }
     </style>
 </head>
 <body class="<?php echo $isEmbed ? 'cs-embed-page' : ''; ?>">
@@ -571,6 +591,13 @@ $isImageAttachment = static function (array $att): bool {
     }
     .cs-embed-page .cs-side-panel {
         order: 2;
+    }
+    .cs-embed-page .cs-chat-card {
+        min-height: calc(74vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    }
+    .cs-embed-page .cs-thread {
+        min-height: calc(46vh - env(safe-area-inset-bottom, 0px));
+        max-height: calc(62vh - env(safe-area-inset-bottom, 0px));
     }
     <?php endif; ?>
     </style>
