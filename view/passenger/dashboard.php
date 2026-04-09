@@ -743,7 +743,7 @@ $imageBasePath = $basePath;
         </div>
     </div>
 
-       <?php include 'view/components/live_bus_tracker.php'; ?>
+        <?php include 'view/components/chat.php'; ?>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/dashboard.js"></script>

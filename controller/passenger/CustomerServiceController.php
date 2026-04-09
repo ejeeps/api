@@ -105,7 +105,6 @@ if (!function_exists('ejeepCustomerServiceSaveAttachment')) {
             throw new RuntimeException('Invalid attachment upload.');
         }
 
-        $mime = (string)(mime_content_type($tmp) ?: '');
         $allowed = [
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
@@ -113,6 +112,22 @@ if (!function_exists('ejeepCustomerServiceSaveAttachment')) {
             'application/pdf' => 'pdf',
             'text/plain' => 'txt',
         ];
+        $extToMime = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            'pdf' => 'application/pdf',
+            'txt' => 'text/plain',
+        ];
+        $mime = strtolower((string)(mime_content_type($tmp) ?: ''));
+        if (!isset($allowed[$mime])) {
+            $originalName = (string)($file['name'] ?? '');
+            $ext = strtolower((string)pathinfo($originalName, PATHINFO_EXTENSION));
+            if (isset($extToMime[$ext])) {
+                $mime = $extToMime[$ext];
+            }
+        }
         if (!isset($allowed[$mime])) {
             throw new RuntimeException('Unsupported attachment type. Allowed: JPG, PNG, WEBP, PDF, TXT.');
         }

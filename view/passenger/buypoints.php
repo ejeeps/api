@@ -653,7 +653,7 @@ $reloadAmounts = [1, 20, 50, 100, 200, 500];
             </form>
         </div>
     </div>
-<?php include 'view/components/live_bus_tracker.php'; ?>
+        <?php include 'view/components/chat.php'; ?>
     <!-- Bottom Navigation Bar -->
     <?php
     $activePage = 'buypoints';

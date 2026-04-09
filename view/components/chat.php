@@ -1,6 +1,6 @@
 <?php
 /**
- * Passenger AI assistant (Groq) — replaces live bus map.
+ * Passenger unified chat shell (AI Assistant + Customer Service).
  * Requires: Font Awesome, dashboard.css, assets/script/passenger/ai-assistant.js
  * Parent page must set $basePath (empty string when served from index.php router).
  */
@@ -59,7 +59,7 @@ if (!isset($basePath)) {
                 <div class="assistant-composer">
                     <label class="assistant-composer__label visually-hidden" for="assistantInput">Message</label>
                     <div class="assistant-composer__inner">
-                        <textarea id="assistantInput" class="assistant-composer__input" rows="1" placeholder="Message…" maxlength="4000" autocomplete="off"></textarea>
+                        <textarea id="assistantInput" class="assistant-composer__input" rows="1" placeholder="Message..." maxlength="4000" autocomplete="off"></textarea>
                         <button type="button" class="assistant-composer__send" id="assistantSendBtn" aria-label="Send message">
                             <i class="fas fa-paper-plane"></i>
                         </button>
