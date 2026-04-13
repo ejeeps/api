@@ -197,7 +197,7 @@ $imageBasePath = $basePath;
                 <div class="dashboard-card">
                     <div class="card-icon"><i class="fas fa-id-card"></i></div>
                     <h3 class="card-title">E-JEEP Card</h3>
-                    <p class="card-value"><?php echo $driverInfo['card_number'] ? htmlspecialchars($driverInfo['card_number']) : 'Not Issued'; ?></p>
+                    <p class="card-value"><?php $cardNumber = $driverInfo['card_number'] ?? ''; echo $cardNumber !== '' ? htmlspecialchars($cardNumber) : 'Not Issued'; ?></p>
                 </div>
 
                 <div class="dashboard-card">
