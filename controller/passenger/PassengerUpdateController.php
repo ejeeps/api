@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Determine redirect path
             if (isset($_POST['dashboard_view']) || isset($_GET['dashboard_view'])) {
-                header("Location: index.php?page=settings&success=1");
+                header("Location: ../../view/passenger/settings.php?page=settings&success=1");
             } else {
                 header("Location: ../../view/passenger/settings.php?success=1");
             }
