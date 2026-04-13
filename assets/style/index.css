@@ -2234,21 +2234,15 @@ body.landing-app .landing-container {
 }
 
 .landing-hero__visual {
-    min-height: clamp(140px, 38vw, 220px);
-    background: url('../images/bg.png') center / cover no-repeat;
-    background-color: #bbf7d0;
+    min-height: clamp(300px, 68vw, 110px);
+    background: url('../images/com1\ \(1\).png') center / cover no-repeat;
+    background-color: #bbf7d0fc;
     border-radius: 0;
     position: relative;
     overflow: hidden;
 }
 
-.landing-hero__visual::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(240, 253, 244, 0.1) 0%, rgba(240, 253, 244, 0.85) 100%);
-    pointer-events: none;
-}
+
 
 .landing-hero__content {
     padding: clamp(14px, 4vw, 18px) max(14px, env(safe-area-inset-right)) 0 max(14px, env(safe-area-inset-left));
