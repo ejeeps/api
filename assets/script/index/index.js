@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Show install section if app is installable and not already installed
         function updateInstallVisibility() {
             if (window.EjeepPWA.isInstallable() && !window.EjeepPWA.isAppInstalled()) {
-                installSection.style.display = 'block';
+                installSection.style.display = 'flex';
             } else {
                 installSection.style.display = 'none';
             }
@@ -40,122 +40,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // Hide when app is installed
         window.addEventListener('ejeep-pwa-installed', function () {
             installSection.style.display = 'none';
-        });
-    }
-
-    // Mobile Menu Toggle
-    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    const body = document.body;
-
-    if (mobileMenuToggle && navLinks) {
-        mobileMenuToggle.addEventListener('click', function () {
-            this.classList.toggle('active');
-            navLinks.classList.toggle('active');
-            body.classList.toggle('menu-open');
-        });
-
-        // Close menu when clicking on a link
-        const navLinkItems = navLinks.querySelectorAll('.nav-link');
-        navLinkItems.forEach(link => {
-            link.addEventListener('click', function () {
-                mobileMenuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-                body.classList.remove('menu-open');
-            });
-        });
-
-        // Close menu when clicking outside
-        document.addEventListener('click', function (event) {
-            const isClickInsideMenu = navLinks.contains(event.target);
-            const isClickOnToggle = mobileMenuToggle.contains(event.target);
-
-            if (!isClickInsideMenu && !isClickOnToggle && navLinks.classList.contains('active')) {
-                mobileMenuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-                body.classList.remove('menu-open');
-            }
-        });
-
-        // Close menu on window resize to desktop
-        window.addEventListener('resize', function () {
-            if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
-                mobileMenuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-                body.classList.remove('menu-open');
-            }
-        });
-    }
-
-    // Tag List Scroller Auto-scroll - Optimized for smooth performance
-    const taglistScroller = document.querySelector('.taglist-scroller');
-    if (taglistScroller && !prefersReducedMotion) {
-        let scrollDirection = 1;
-        const scrollSpeed = 0.8; // Pixels per frame
-        let isPaused = false;
-        let animationFrameId = null;
-        let maxScroll = 0;
-        let isUserScrolling = false;
-        let scrollTimeout = null;
-
-        // Calculate max scroll once
-        function updateMaxScroll() {
-            maxScroll = taglistScroller.scrollWidth - taglistScroller.clientWidth;
-        }
-        updateMaxScroll();
-
-        // Recalculate on resize
-        window.addEventListener('resize', updateMaxScroll, { passive: true });
-
-        // Pause on hover
-        taglistScroller.addEventListener('mouseenter', () => {
-            isPaused = true;
-        });
-
-        taglistScroller.addEventListener('mouseleave', () => {
-            isPaused = false;
-        });
-
-        // Detect user scrolling
-        taglistScroller.addEventListener('scroll', () => {
-            isUserScrolling = true;
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                isUserScrolling = false;
-            }, 150);
-        }, { passive: true });
-
-        // Optimized auto-scroll function
-        function autoScroll() {
-            if (!isPaused && !isUserScrolling && maxScroll > 0) {
-                const currentScroll = taglistScroller.scrollLeft;
-                let newScroll = currentScroll + (scrollSpeed * scrollDirection);
-
-                if (newScroll >= maxScroll) {
-                    newScroll = maxScroll;
-                    scrollDirection = -1;
-                } else if (newScroll <= 0) {
-                    newScroll = 0;
-                    scrollDirection = 1;
-                }
-
-                // Direct assignment is faster than scrollTo
-                taglistScroller.scrollLeft = newScroll;
-            }
-
-            animationFrameId = requestAnimationFrame(autoScroll);
-        }
-
-        // Start auto-scroll after a short delay
-        setTimeout(() => {
-            animationFrameId = requestAnimationFrame(autoScroll);
-        }, 1000);
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
         });
     }
 
@@ -250,8 +134,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Parallax effect on scroll (subtle, desktop only, skip if reduced motion)
-    if (!prefersReducedMotion && !isMobile) {
+    // Parallax on hero (legacy full-page layout only; landing-app uses a compact bottom strip)
+    if (!prefersReducedMotion && !isMobile && !document.body.classList.contains('landing-app')) {
         let lastScrollTop = 0;
         window.addEventListener('scroll', function () {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -267,7 +151,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }, { passive: true });
     }
 
-    // Add entrance animation to navbar (skip if reduced motion)
     if (!prefersReducedMotion) {
         const navbar = document.querySelector('.navbar');
         if (navbar) {

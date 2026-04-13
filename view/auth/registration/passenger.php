@@ -33,7 +33,8 @@
     }
     ?>
     <link rel="manifest" href="<?php echo htmlspecialchars($basePath); ?>manifest.json">
-    <link rel="apple-touch-icon" href="<?php echo htmlspecialchars($basePath); ?>assets/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="<?php echo htmlspecialchars($basePath); ?>assets/icons/icon-192x192.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/index.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/driver.css">
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
@@ -103,32 +104,21 @@
         .password-toggle[data-visible="true"] .icon-eye-off { display: block; }
     </style>
 </head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-               <span class="logo-text">E-JEEP</span>
-            </div>
-            <button class="mobile-menu-toggle" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <div class="nav-links">
-                <a href="<?php echo htmlspecialchars($basePath); ?>index.php" class="nav-link">Home</a>
-                <a href="#" class="nav-link">Contact</a>
-                <a href="<?php echo htmlspecialchars($basePath); ?>index.php?login=1" class="nav-link nav-link-login">Login</a>
-            </div>
+<body class="auth-app">
+    <div class="auth-shell">
+    <header class="auth-topbar" role="banner">
+        <a href="<?php echo htmlspecialchars($basePath); ?>index.php" class="auth-back" aria-label="Back to home"><i class="fas fa-arrow-left" aria-hidden="true"></i></a>
+        <div class="auth-topbar-center">
+            <h1 class="auth-topbar-title">Passenger</h1>
         </div>
-    </nav>
+        <a href="<?php echo htmlspecialchars($basePath); ?>index.php?login=1" class="auth-topbar-link">Log in</a>
+    </header>
 
     <!-- Main Content -->
     <div class="main-content">
         <div class="container">
             <div class="registration-header">
-                <h1 class="registration-title">Passenger Registration</h1>
-                <p class="registration-subtitle">Create your account and get your E-JEEP card for cashless payments</p>
+                <p class="registration-subtitle registration-subtitle--solo">Create your account and get your E-JEEP card for cashless payments.</p>
             </div>
 
             <?php if (isset($_GET['error'])): ?>
@@ -368,6 +358,7 @@
             </form>
         </div>
     </div>
+    </div>
 
 <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/reg_passenger.js"></script>
 
@@ -443,49 +434,5 @@
 })();
 </script>
 
-<!-- ── Mobile Menu Toggle ── -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        const body = document.body;
-
-        if (mobileMenuToggle && navLinks) {
-            mobileMenuToggle.addEventListener('click', function() {
-                this.classList.toggle('active');
-                navLinks.classList.toggle('active');
-                body.classList.toggle('menu-open');
-            });
-
-            const navLinkItems = navLinks.querySelectorAll('.nav-link');
-            navLinkItems.forEach(link => {
-                link.addEventListener('click', function() {
-                    mobileMenuToggle.classList.remove('active');
-                    navLinks.classList.remove('active');
-                    body.classList.remove('menu-open');
-                });
-            });
-
-            document.addEventListener('click', function(event) {
-                const isClickInsideMenu = navLinks.contains(event.target);
-                const isClickOnToggle = mobileMenuToggle.contains(event.target);
-                
-                if (!isClickInsideMenu && !isClickOnToggle && navLinks.classList.contains('active')) {
-                    mobileMenuToggle.classList.remove('active');
-                    navLinks.classList.remove('active');
-                    body.classList.remove('menu-open');
-                }
-            });
-
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
-                    mobileMenuToggle.classList.remove('active');
-                    navLinks.classList.remove('active');
-                    body.classList.remove('menu-open');
-                }
-            });
-        }
-    });
-</script>
 </body>
 </html>

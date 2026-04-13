@@ -84,7 +84,7 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=no">
     <meta name="theme-color" content="#16a34a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -98,263 +98,71 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
     <link rel="stylesheet" href="assets/style/index.css">
     <script src="assets/script/pwa.js"></script>
 </head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <img src="assets/logo.png" alt="E-JEEP Logo" onerror="this.outerHTML='<span class=\'logo-text\'>E-JEEP</span>';">
-            </div>
-            <button class="mobile-menu-toggle" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <div class="nav-links">
-                <a href="index.php" class="nav-link">Home</a>
-               
-                <a href="#" class="nav-link">Contact</a>
-                <a href="index.php?login=1" class="nav-link nav-link-login">Login</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="container">
-            <!-- Hero Jeepney Image -->
-            <div class="page-header">
-                <!-- Pure jeepney background image display -->
-            </div>
-
-            <!-- Tag List Scroller -->
-            <div class="taglist-scroller-container">
-                <div class="taglist-scroller">
-                    <div class="tag-item">
-                        <i class="fas fa-credit-card tag-icon"></i>
-                        <span class="tag-text">Cashless Payment</span>
-                    </div>
-                    <div class="tag-item">
-                        <i class="fas fa-id-card tag-icon"></i>
-                        <span class="tag-text">E-JEEP Card</span>
-                    </div>
-                    <div class="tag-item">
-                        <i class="fas fa-bolt tag-icon"></i>
-                        <span class="tag-text">Quick Transactions</span>
-                    </div>
-                    <div class="tag-item">
-                        <i class="fas fa-shield-alt tag-icon"></i>
-                        <span class="tag-text">Secure System</span>
-                    </div>
-                    <div class="tag-item">
-                        <i class="fas fa-user-plus tag-icon"></i>
-                        <span class="tag-text">Easy Registration</span>
-                    </div>
-                    <div class="tag-item">
-                        <i class="fas fa-star tag-icon"></i>
-                        <span class="tag-text">Convenient</span>
-                    </div>
-                    <div class="tag-item">
-                        <i class="fas fa-wallet tag-icon"></i>
-                        <span class="tag-text">Reloadable Balance</span>
-                    </div>
-                    <div class="tag-item">
-                        <i class="fas fa-check-circle tag-icon"></i>
-                        <span class="tag-text">Verified Accounts</span>
-                    </div>
-                    <div class="tag-item">
-                        <i class="fas fa-route tag-icon"></i>
-                        <span class="tag-text">Route Management</span>
-                    </div>
-                    <div class="tag-item">
-                        <i class="fas fa-chart-bar tag-icon"></i>
-                        <span class="tag-text">Track Transactions</span>
-                    </div>
+<body class="landing-app">
+    <div class="landing-shell">
+        <header class="landing-header" role="banner">
+            <div class="landing-brand">
+                <div class="landing-logo-wrap">
+                    <img src="assets/logo.png" alt="" width="40" height="40" class="landing-logo" onerror="this.outerHTML='<span class=\'landing-logo-fallback\'>E</span>';">
+                </div>
+                <div class="landing-brand-text">
+                    <span class="landing-app-name">E-JEEP</span>
                 </div>
             </div>
-            <!-- Download as app section - Play Store Style -->
-            <div class="app-store-section" id="install-section" style="display: none;">
-                <div class="app-store-card">
-                    <!-- App Header with Icon and Basic Info -->
-                    <div class="app-header">
-                        <div class="app-icon-wrapper">
-                            <div class="app-icon">
-                                <i class="fas fa-bus"></i>
-                            </div>
-                            <div class="app-badge">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                        </div>
-                        <div class="app-info">
-                            <h2 class="app-name">E-JEEP</h2>
-                            <p class="app-developer">By E-JEEP Team</p>
-                            <div class="app-badges">
-                                <span class="badge-verified"><i class="fas fa-shield-alt"></i> Verified</span>
-                                <span class="badge-official"><i class="fas fa-star"></i> Official</span>
-                            </div>
-                        </div>
+            <a href="index.php?login=1" class="landing-header-login">Log in</a>
+        </header>
+
+        <main class="main-content landing-main" id="main">
+            <div class="landing-container">
+
+                <section class="landing-hero" aria-labelledby="landing-title">
+                    <div class="landing-hero__visual" aria-hidden="true"></div>
+                    <div class="landing-hero__content">
+                        <h1 id="landing-title" class="landing-hero__title">Cashless rides, made simple.</h1>
+                        <p class="landing-hero__subtitle">Register for your E-JEEP card—then tap when you ride or drive.</p>
                     </div>
+                </section>
 
-                  
+                <section class="landing-pick" aria-labelledby="pick-title">
+                    <h2 id="pick-title" class="landing-pick__title">Register as</h2>
+                    <p class="landing-pick__hint">Choose how you’ll use E-JEEP.</p>
 
-                    <!-- Install Button -->
-                    <div class="install-action">
-                        <button id="install-btn" class="btn btn-install-store">
-                            <i class="fas fa-download"></i>
-                            <span class="install-text">Install</span>
-                        </button>
-                        <p class="install-note">Free • No ads • No in-app purchases</p>
+                    <div class="role-list">
+                        <a href="index.php?register=passenger" class="role-row role-row--passenger">
+                            <span class="role-row__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                            <span class="role-row__body">
+                                <span class="role-row__label">Passenger</span>
+                                <span class="role-row__hint">Get a card and tap to pay when you board.</span>
+                            </span>
+                            <span class="role-row__go" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+                        </a>
+                        <a href="index.php?register=driver" class="role-row role-row--driver">
+                            <span class="role-row__icon" aria-hidden="true"><i class="fas fa-bus"></i></span>
+                            <span class="role-row__body">
+                                <span class="role-row__label">Driver</span>
+                                <span class="role-row__hint">Accept E-JEEP payments and manage your route.</span>
+                            </span>
+                            <span class="role-row__go" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+                        </a>
                     </div>
+                </section>
 
-                  
-
-                    <!-- What's New Section -->
-                    <div class="whats-new">
-                        <div class="whats-new-header">
-                            <h3 class="section-title">What's New</h3>
-                            <span class="version-tag">Version 2.1.0</span>
-                        </div>
-                        <div class="update-content">
-                            <p class="update-date">Updated Feb 23, 2026</p>
-                            <ul class="update-list">
-                                <li><i class="fas fa-bolt"></i> Faster card tap processing</li>
-                                <li><i class="fas fa-map-marker-alt"></i> Real-time route tracking</li>
-                                <li><i class="fas fa-bell"></i> Push notifications for transactions</li>
-                                <li><i class="fas fa-shield-alt"></i> Enhanced security features</li>
-                                <li><i class="fas fa-bug"></i> Bug fixes and improvements</li>
-                            </ul>
-                        </div>
+                <div class="install-strip" id="install-section" style="display: none;">
+                    <div class="install-strip__row">
+                        <span class="install-strip__icon" aria-hidden="true"><i class="fas fa-mobile-screen"></i></span>
+                        <span class="install-strip__text">Install E-JEEP for quicker access next time.</span>
                     </div>
-
-                    <!-- App Description -->
-                    <div class="app-description">
-                        <h3 class="section-title">About this app</h3>
-                        <p class="description-text">
-                            E-JEEP is the official app for modern jeepney transportation with cashless payments. 
-                            Get your E-JEEP card, tap to pay when boarding, track your balance, and view your 
-                            transaction history - all in one convenient app.
-                        </p>
-                        <div class="description-tags">
-                            <span class="desc-tag">Transportation</span>
-                            <span class="desc-tag">Payments</span>
-                            <span class="desc-tag">Lifestyle</span>
-                        </div>
-                    </div>
-
-                    <!-- Additional Info -->
-                    <div class="app-meta">
-                        <div class="meta-item">
-                            <i class="fas fa-shield-alt"></i>
-                            <span>Safe & Secure</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-mobile-alt"></i>
-                            <span>All Devices</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-globe"></i>
-                            <span>Philippines</span>
-                        </div>
-                    </div>
+                    <button type="button" id="install-btn" class="install-strip__btn">
+                        <i class="fas fa-download" aria-hidden="true"></i> Install
+                    </button>
                 </div>
-            </div>
-            <div class="description-section">
-                <p class="page-description">
-                    Welcome to E-JEEP Registration Portal. Whether you're a driver operating on routes 
-                    or a passenger wanting to get your E-JEEP card for cashless payments when boarding, 
-                    we've got you covered. Choose your registration type below.
+
+                <p class="landing-login-inline">
+                    <a href="index.php?login=1" class="landing-login-text">Already have an account? <strong>Log in</strong></a>
                 </p>
             </div>
-
-        <div class="registration-types">
-            <!-- Driver Registration Card -->
-            <div class="registration-card">
-                <div class="registration-icon">
-                    <i class="fas fa-bus"></i>
-                </div>
-                <h2 class="registration-title">Driver Registration</h2>
-                <p class="registration-description">
-                    Join our platform as a professional driver and operate on your designated routes. 
-                    Get your E-JEEP card and accept card payments from passengers as they board your jeepney.
-                </p>
-                
-                <div class="registration-benefits">
-                    <p class="registration-benefits-title">Benefits:</p>
-                    <ul class="benefits-list">
-                        <li>Get your E-JEEP card</li>
-                        <li>Accept E-JEEP card payments from passengers</li>
-                        <li>Manage your routes and schedule</li>
-                        <li>Cashless transaction system</li>
-                        <li>Secure payment processing</li>
-                        <li>Verified driver profile</li>
-                    </ul>
-                </div>
-
-                <div class="card-highlight">
-                    🎫 Get your E-JEEP Card after registration! Requirements: Valid Driver's License, Background Check
-                </div>
-
-                <a href="index.php?register=driver" class="btn btn-primary btn-register">Register as Driver</a>
-            </div>
-
-            <!-- Passenger Registration Card -->
-            <div class="registration-card">
-                <div class="registration-icon">
-                    <i class="fas fa-user"></i>
-                </div>
-                <h2 class="registration-title">Passenger Registration</h2>
-                <p class="registration-description">
-                    Register as a passenger to get your E-JEEP card. Simply tap your card when you enter 
-                    the jeepney for quick and cashless payment. No need to carry exact change!
-                </p>
-                
-                <div class="registration-benefits">
-                    <p class="registration-benefits-title">Benefits:</p>
-                    <ul class="benefits-list">
-                        <li>Get your E-JEEP card</li>
-                        <li>Tap card when entering jeepney</li>
-                        <li>Cashless payment - no exact change needed</li>
-                        <li>Quick and convenient transactions</li>
-                        <li>Reloadable card balance</li>
-                    </ul>
-                </div>
-
-                <div class="card-highlight">
-                    🎫 Get your E-JEEP Card after registration! Just tap when you board any jeepney on the route.
-                </div>
-
-                <a href="index.php?register=passenger" class="btn btn-primary btn-register">Register as Passenger</a>
-            </div>
-        </div>
-
-            <!-- Login Section -->
-            <div class="login-section">
-                <div class="login-card">
-                    <div class="login-icon">
-                        <i class="fas fa-sign-in-alt"></i>
-                    </div>
-                    <h3 class="login-title">Welcome Back!</h3>
-                    <p class="login-description">Already have an E-JEEP account? Access your dashboard to manage your card, view transactions, and more.</p>
-                    <a href="index.php?login=1" class="btn btn-secondary btn-login">Login to Your Account</a>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-content">
-                <div class="footer-text">
-                    <h3>E-JEEP</h3>
-                    <p>Modern Transportation, Cashless Payments</p>
-                    <p>&copy; 2026 E-JEEP. All rights reserved.</p>
-                    <p class="footer-links">
-                        <a href="view/legal/privacy.php">Privacy Policy</a> | 
-                        <a href="view/legal/terms.php">Terms of Service</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </footer>
     <script src="assets/script/index/index.js"></script>
     <?php if (!empty($prompt_install)) : ?>
     <script>
