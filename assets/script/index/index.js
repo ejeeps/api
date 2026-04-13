@@ -8,27 +8,31 @@ document.addEventListener('DOMContentLoaded', function () {
     const isMobile = window.innerWidth <= 768;
     const isTablet = window.innerWidth <= 992 && window.innerWidth > 768;
 
-    // PWA Install Button functionality
+    const pwaInstallGate = document.body.getAttribute('data-pwa-install-gate') === '1';
     const installSection = document.getElementById('install-section');
     const installBtn = document.getElementById('install-btn');
 
-    if (installSection && installBtn && window.EjeepPWA) {
-        // Show install section if app is installable and not already installed
-        function updateInstallVisibility() {
-            if (window.EjeepPWA.isInstallable() && !window.EjeepPWA.isAppInstalled()) {
-                installSection.style.display = 'flex';
-            } else {
-                installSection.style.display = 'none';
-            }
+    function updateInstallVisibility() {
+        if (!installSection || !window.EjeepPWA) {
+            return;
         }
+        if (document.body.getAttribute('data-pwa-install-gate') === '1') {
+            installSection.style.display = 'none';
+            return;
+        }
+        if (window.EjeepPWA.isInstallable() && !window.EjeepPWA.isAppInstalled()) {
+            installSection.style.display = 'flex';
+        } else {
+            installSection.style.display = 'none';
+        }
+    }
 
-        // Initial check
-        updateInstallVisibility();
-
-        // Listen for PWA installable event
+    if (installSection && window.EjeepPWA) {
         window.addEventListener('ejeep-pwa-installable', updateInstallVisibility);
+        updateInstallVisibility();
+    }
 
-        // Handle install button click
+    if (installSection && installBtn && window.EjeepPWA && !pwaInstallGate) {
         installBtn.addEventListener('click', function () {
             window.EjeepPWA.promptInstall().then(function (accepted) {
                 if (accepted) {
@@ -36,10 +40,128 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
+    }
 
-        // Hide when app is installed
+    if (installSection && window.EjeepPWA) {
         window.addEventListener('ejeep-pwa-installed', function () {
             installSection.style.display = 'none';
+        });
+    }
+
+    if (pwaInstallGate) {
+        const modal = document.getElementById('pwaInstallModal');
+        const waitingEl = document.getElementById('pwaInstallWaiting');
+        const actionsEl = document.getElementById('pwaInstallActions');
+        const confirmBtn = document.getElementById('pwaInstallConfirm');
+        const hintEl = document.getElementById('pwaInstallHint');
+
+        function dismissGate() {
+            document.body.removeAttribute('data-pwa-install-gate');
+            document.body.style.overflow = '';
+            if (modal) {
+                modal.classList.add('pwa-install-modal--dismissed');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+            updateInstallVisibility();
+        }
+
+        function showInstallActions() {
+            if (waitingEl) {
+                waitingEl.hidden = true;
+            }
+            if (actionsEl) {
+                actionsEl.hidden = false;
+            }
+            if (hintEl) {
+                hintEl.hidden = true;
+            }
+            if (confirmBtn) {
+                confirmBtn.hidden = false;
+            }
+        }
+
+        function showFallbackHint() {
+            if (waitingEl) {
+                waitingEl.hidden = true;
+            }
+            if (actionsEl) {
+                actionsEl.hidden = false;
+            }
+            if (hintEl) {
+                hintEl.hidden = false;
+            }
+            if (confirmBtn) {
+                confirmBtn.hidden = true;
+            }
+        }
+
+        function checkInstallable() {
+            const api = window.EjeepPWA;
+            if (!api) {
+                return false;
+            }
+            if (api.isAppInstalled && api.isAppInstalled()) {
+                dismissGate();
+                return true;
+            }
+            if (api.isInstallable && api.isInstallable()) {
+                showInstallActions();
+                return true;
+            }
+            return false;
+        }
+
+        if (!modal) {
+            return;
+        }
+
+        document.body.style.overflow = 'hidden';
+
+        modal.querySelectorAll('[data-pwa-install-dismiss]').forEach(function (el) {
+            el.addEventListener('click', dismissGate);
+        });
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function () {
+                const api = window.EjeepPWA;
+                if (!api || typeof api.promptInstall !== 'function') {
+                    return;
+                }
+                api.promptInstall().then(function (accepted) {
+                    if (accepted) {
+                        dismissGate();
+                    }
+                });
+            });
+        }
+
+        window.addEventListener('ejeep-pwa-installable', function () {
+            checkInstallable();
+        });
+
+        checkInstallable();
+
+        let pollCount = 0;
+        const poll = setInterval(function () {
+            pollCount++;
+            if (checkInstallable()) {
+                clearInterval(poll);
+                return;
+            }
+            if (pollCount >= 36) {
+                clearInterval(poll);
+                showFallbackHint();
+            }
+        }, 250);
+
+        document.addEventListener('keydown', function onInstallModalEsc(e) {
+            if (e.key !== 'Escape') {
+                return;
+            }
+            if (modal.classList.contains('pwa-install-modal--dismissed')) {
+                return;
+            }
+            dismissGate();
         });
     }
 

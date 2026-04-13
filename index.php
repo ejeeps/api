@@ -98,7 +98,7 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
     <link rel="stylesheet" href="assets/style/index.css">
     <script src="assets/script/pwa.js"></script>
 </head>
-<body class="landing-app">
+<body class="landing-app"<?php echo !empty($prompt_install) ? ' data-pwa-install-gate="1"' : ''; ?>>
     <div class="landing-shell">
         <header class="landing-header" role="banner">
             <div class="landing-brand">
@@ -163,26 +163,28 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
             </div>
         </main>
     </div>
-    <script src="assets/script/index/index.js"></script>
+
     <?php if (!empty($prompt_install)) : ?>
-    <script>
-    (function () {
-        var prompted = false;
-        function tryPromptInstall() {
-            if (prompted) return;
-            var api = window.EjeepPWA;
-            if (!api || typeof api.promptInstall !== 'function') return;
-            if (api.isAppInstalled && api.isAppInstalled()) return;
-            if (!api.isInstallable || !api.isInstallable()) return;
-            prompted = true;
-            api.promptInstall();
-        }
-        window.addEventListener('ejeep-pwa-installable', tryPromptInstall);
-        window.addEventListener('load', function () {
-            setTimeout(tryPromptInstall, 400);
-        });
-    })();
-    </script>
+    <div class="pwa-install-modal" id="pwaInstallModal" role="dialog" aria-modal="true" aria-labelledby="pwaInstallTitle">
+        <div class="pwa-install-modal__backdrop" data-pwa-install-dismiss tabindex="-1" aria-hidden="true"></div>
+        <div class="pwa-install-modal__panel">
+            <div class="pwa-install-modal__icon" aria-hidden="true"><i class="fas fa-mobile-screen-button"></i></div>
+            <h2 id="pwaInstallTitle" class="pwa-install-modal__title">Install E-JEEP</h2>
+            <p class="pwa-install-modal__text">Add the app to your device for faster access, registration, and your E-JEEP card.</p>
+            <p class="pwa-install-modal__waiting" id="pwaInstallWaiting">Preparing install…</p>
+            <div class="pwa-install-modal__actions" id="pwaInstallActions" hidden>
+                <button type="button" class="pwa-install-modal__btn pwa-install-modal__btn--primary" id="pwaInstallConfirm">
+                    <i class="fas fa-download" aria-hidden="true"></i> Install app
+                </button>
+                <button type="button" class="pwa-install-modal__btn pwa-install-modal__btn--ghost" data-pwa-install-dismiss>Not now</button>
+            </div>
+            <p class="pwa-install-modal__hint" id="pwaInstallHint" hidden>
+                If you don’t see an install option, use your browser’s menu and choose <strong>Add to Home screen</strong> (especially on iPhone or iPad).
+            </p>
+        </div>
+    </div>
     <?php endif; ?>
+
+    <script src="assets/script/index/index.js"></script>
 </body>
 </html>
