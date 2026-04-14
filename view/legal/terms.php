@@ -23,26 +23,7 @@
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/legal.css">
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <a href="<?php echo htmlspecialchars($basePath); ?>index.php">
-                    <img src="<?php echo htmlspecialchars($basePath); ?>assets/logo.png" alt="E-JEEP Logo" onerror="this.outerHTML='<span class=\'logo-text\'>E-JEEP</span>';">
-                </a>
-            </div>
-            <button class="mobile-menu-toggle" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <div class="nav-links">
-                <a href="<?php echo htmlspecialchars($basePath); ?>index.php" class="nav-link">Home</a>
-                <a href="#" class="nav-link">Contact</a>
-                <a href="<?php echo htmlspecialchars($basePath); ?>index.php?login=1" class="nav-link nav-link-login">Login</a>
-            </div>
-        </div>
-    </nav>
+   
 
     <!-- Main Content -->
     <div class="main-content">

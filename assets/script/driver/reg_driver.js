@@ -5,19 +5,208 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
-    
+
+    if (!form || !steps.length || !prevBtn || !nextBtn || !submitBtn) {
+        return;
+    }
+
     let currentStep = 1;
     const totalSteps = steps.length;
+    const STEP_STORAGE_KEY = 'ejeep_driver_reg_step';
+    const DRAFT_STORAGE_KEY = 'ejeep_driver_reg_draft';
+    const FILE_DRAFT_IDS = ['license_image', 'license_back_image', 'profile_image'];
+    let draftSaveTimer = null;
 
-    // Initialize form
+    function persistStep(step) {
+        try {
+            sessionStorage.setItem(STEP_STORAGE_KEY, String(step));
+        } catch (err) {
+            /* private mode / quota */
+        }
+    }
+
+    function readSavedStep() {
+        try {
+            const raw = sessionStorage.getItem(STEP_STORAGE_KEY);
+            const n = parseInt(raw || '', 10);
+            if (!isNaN(n) && n >= 1 && n <= totalSteps) {
+                return n;
+            }
+        } catch (err) {
+            /* ignore */
+        }
+        return 1;
+    }
+
+    function clearSavedStep() {
+        try {
+            sessionStorage.removeItem(STEP_STORAGE_KEY);
+        } catch (err) {
+            /* ignore */
+        }
+    }
+
+    function loadDraftObject() {
+        try {
+            const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
+            if (!raw) {
+                return {};
+            }
+            const o = JSON.parse(raw);
+            return typeof o === 'object' && o !== null ? o : {};
+        } catch (err) {
+            return {};
+        }
+    }
+
+    function clearDraft() {
+        try {
+            sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+        } catch (err) {
+            /* ignore */
+        }
+    }
+
+    function persistDraftPayload(data) {
+        try {
+            sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(data));
+        } catch (err) {
+            if (data.__bin) {
+                delete data.__bin;
+                try {
+                    sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(data));
+                } catch (err2) {
+                    /* private mode / quota */
+                }
+            }
+        }
+    }
+
+    function saveDraftFromFormImmediate() {
+        const data = {};
+        form.querySelectorAll('input, select, textarea').forEach((el) => {
+            const key = el.name || el.id;
+            if (!key) {
+                return;
+            }
+            if (el.type === 'file') {
+                return;
+            }
+            if (el.type === 'checkbox') {
+                data[key] = el.checked;
+                return;
+            }
+            data[key] = el.value;
+        });
+
+        const readers = [];
+        FILE_DRAFT_IDS.forEach((fid) => {
+            const el = document.getElementById(fid);
+            if (!el || el.type !== 'file' || !el.files || !el.files[0]) {
+                return;
+            }
+            readers.push(
+                new Promise((resolve) => {
+                    const r = new FileReader();
+                    r.onload = () => resolve({ fid, result: r.result });
+                    r.onerror = () => resolve({ fid, result: null });
+                    r.readAsDataURL(el.files[0]);
+                })
+            );
+        });
+
+        if (readers.length === 0) {
+            delete data.__bin;
+            persistDraftPayload(data);
+            return;
+        }
+
+        Promise.all(readers).then((items) => {
+            const bin = {};
+            items.forEach(({ fid, result }) => {
+                if (result) {
+                    bin[fid] = result;
+                }
+            });
+            if (Object.keys(bin).length) {
+                data.__bin = bin;
+            } else {
+                delete data.__bin;
+            }
+            persistDraftPayload(data);
+        });
+    }
+
+    function restoreDraftFiles(draft) {
+        if (!draft || !draft.__bin || typeof draft.__bin !== 'object') {
+            return Promise.resolve();
+        }
+        const bin = draft.__bin;
+        const promises = [];
+        FILE_DRAFT_IDS.forEach((fid) => {
+            const dataUrl = bin[fid];
+            if (!dataUrl || typeof dataUrl !== 'string' || dataUrl.indexOf('data:') !== 0) {
+                return;
+            }
+            const el = document.getElementById(fid);
+            if (!el || el.type !== 'file') {
+                return;
+            }
+            promises.push(
+                fetch(dataUrl)
+                    .then((r) => r.blob())
+                    .then((blob) => {
+                        const ext = blob.type && blob.type.indexOf('png') !== -1 ? 'png' : 'jpg';
+                        const file = new File([blob], fid + '-draft.' + ext, {
+                            type: blob.type || 'image/jpeg',
+                        });
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        el.files = dt.files;
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                    })
+                    .catch(() => {})
+            );
+        });
+        return Promise.all(promises);
+    }
+
+    function scheduleDraftSave() {
+        clearTimeout(draftSaveTimer);
+        draftSaveTimer = setTimeout(saveDraftFromFormImmediate, 300);
+    }
+
+    function applyDraftFields(draft) {
+        if (!draft || typeof draft !== 'object') {
+            return;
+        }
+        form.querySelectorAll('input, select, textarea').forEach((el) => {
+            const key = el.name || el.id;
+            if (!key || !(key in draft)) {
+                return;
+            }
+            if (el.type === 'file') {
+                return;
+            }
+            if (el.type === 'checkbox') {
+                el.checked = !!draft[key];
+                return;
+            }
+            el.value = draft[key];
+        });
+    }
+
+    // Initialize form (restore last step + draft after reload)
     function initForm() {
-        showStep(1);
-        updateStepIndicator();
-        updateButtons();
+        showStep(readSavedStep(), { scrollSmooth: false });
+        const draft = loadDraftObject();
+        applyDraftFields(draft);
+        restoreDraftFiles(draft).finally(() => saveDraftFromFormImmediate());
     }
 
     // Show specific step
-    function showStep(step) {
+    function showStep(step, options) {
+        const scrollSmooth = !options || options.scrollSmooth !== false;
         steps.forEach((stepContent, index) => {
             if (index + 1 === step) {
                 stepContent.classList.add('active');
@@ -26,23 +215,34 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         currentStep = step;
+        persistStep(step);
         updateStepIndicator();
         updateButtons();
-        
-        // Scroll to top of form
-        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        form.scrollIntoView({ behavior: scrollSmooth ? 'smooth' : 'auto', block: 'start' });
+    }
+
+    function navigateToStep(step, options) {
+        showStep(step, options);
+        saveDraftFromFormImmediate();
     }
 
     // Update step indicator
     function updateStepIndicator() {
         stepItems.forEach((item, index) => {
             const stepNum = index + 1;
-            item.classList.remove('active', 'completed');
-            
+            item.classList.remove('active', 'completed', 'step-item--navigable');
+
             if (stepNum < currentStep) {
                 item.classList.add('completed');
             } else if (stepNum === currentStep) {
                 item.classList.add('active');
+            }
+            if (stepNum <= currentStep) {
+                item.classList.add('step-item--navigable');
+                item.setAttribute('tabindex', '0');
+            } else {
+                item.setAttribute('tabindex', '-1');
             }
         });
     }
@@ -125,6 +325,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        if (step === 1) {
+            const emailField = document.getElementById('email');
+            if (emailField && emailField.getAttribute('data-email-status') === 'taken') {
+                isValid = false;
+                emailField.classList.add('error');
+                if (firstInvalidField.length === 0) {
+                    firstInvalidField.push(emailField);
+                }
+            }
+        }
+
         // Focus first invalid field
         if (firstInvalidField.length > 0) {
             firstInvalidField[0].focus();
@@ -135,29 +346,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Next button click
-    nextBtn.addEventListener('click', function() {
+    nextBtn.addEventListener('click', async function() {
+        if (currentStep === 1 && typeof window.ensureRegistrationEmailAvailable === 'function') {
+            const emailEl = document.getElementById('email');
+            const ok = await window.ensureRegistrationEmailAvailable(emailEl);
+            if (!ok) {
+                return;
+            }
+        }
         if (validateStep(currentStep)) {
             if (currentStep < totalSteps) {
-                showStep(currentStep + 1);
+                navigateToStep(currentStep + 1);
             }
         }
     });
 
     // Previous button click
-    prevBtn.addEventListener('click', function() {
+    prevBtn.addEventListener('click', function(e) {
+        e.preventDefault();
         if (currentStep > 1) {
-            showStep(currentStep - 1);
+            navigateToStep(currentStep - 1);
         }
+    });
+
+    stepItems.forEach((item, index) => {
+        const stepNum = index + 1;
+        item.addEventListener('click', function() {
+            if (stepNum <= currentStep) {
+                navigateToStep(stepNum);
+            }
+        });
+        item.addEventListener('keydown', function(e) {
+            if (stepNum <= currentStep && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                navigateToStep(stepNum);
+            }
+        });
     });
 
     // Form submission validation
     form.addEventListener('submit', function(e) {
+        const emailEl = document.getElementById('email');
+        if (emailEl && emailEl.getAttribute('data-email-status') === 'taken') {
+            e.preventDefault();
+            navigateToStep(1);
+            emailEl.focus();
+            return false;
+        }
+
         // Validate all steps before submission
         let allValid = true;
         for (let i = 1; i <= totalSteps; i++) {
             if (!validateStep(i)) {
                 allValid = false;
-                showStep(i);
+                navigateToStep(i);
                 break;
             }
         }
@@ -174,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (password !== confirmPassword) {
             e.preventDefault();
             alert('Passwords do not match!');
-            showStep(1);
+            navigateToStep(1);
             return false;
         }
 
@@ -185,8 +427,29 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!licenseFront || !licenseBack) {
             e.preventDefault();
             alert('Please upload both front and back license images!');
-            showStep(4);
+            navigateToStep(4);
             return false;
+        }
+
+        clearSavedStep();
+        clearDraft();
+    });
+
+    const cancelLink = form.querySelector('a.btn-cancel');
+    if (cancelLink) {
+        cancelLink.addEventListener('click', function() {
+            clearSavedStep();
+            clearDraft();
+        });
+    }
+
+    form.addEventListener('input', scheduleDraftSave);
+    form.addEventListener('change', scheduleDraftSave);
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') {
+            clearTimeout(draftSaveTimer);
+            saveDraftFromFormImmediate();
         }
     });
 

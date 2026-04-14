@@ -528,6 +528,265 @@ input[type="file"].error:focus {
 }
 
 /* Form Hints */
+/* ID camera capture (passenger registration step 4) — responsive, card layout */
+.id-capture-block {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+.id-capture-ui {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.875rem;
+    padding: clamp(0.875rem, 3vw, 1.25rem);
+    background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 20px rgba(34, 197, 94, 0.06);
+}
+.id-capture-viewport {
+    position: relative;
+    width: 100%;
+    max-width: 36rem;
+    margin: 0 auto;
+    aspect-ratio: 4 / 3;
+    max-height: min(52vh, 22rem);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: linear-gradient(155deg, #1f2937 0%, #0f1419 45%, #111827 100%);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+.id-capture-viewport--has-media {
+    border-color: rgba(34, 197, 94, 0.35);
+}
+@media (min-width: 480px) {
+    .id-capture-viewport {
+        aspect-ratio: 3 / 2;
+        max-height: min(48vh, 24rem);
+    }
+}
+@media (min-width: 768px) {
+    .id-capture-viewport {
+        max-height: min(44vh, 26rem);
+    }
+}
+.id-capture-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: clamp(1rem, 4vw, 1.75rem);
+    color: #9ca3af;
+    z-index: 1;
+    pointer-events: none;
+}
+.id-capture-placeholder__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(3rem, 10vw, 3.75rem);
+    height: clamp(3rem, 10vw, 3.75rem);
+    margin-bottom: 0.75rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    color: #6ee7b7;
+    font-size: clamp(1.25rem, 4vw, 1.6rem);
+}
+.id-capture-placeholder__title {
+    display: block;
+    font-size: clamp(0.95rem, 2.8vw, 1.05rem);
+    font-weight: 600;
+    color: #e5e7eb;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.35rem;
+}
+.id-capture-placeholder__text {
+    display: block;
+    font-size: clamp(0.8rem, 2.4vw, 0.875rem);
+    line-height: 1.45;
+    max-width: 18rem;
+    color: #9ca3af;
+}
+.id-capture-video,
+.id-capture-preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-position: center;
+}
+.id-capture-video {
+    object-fit: cover;
+    z-index: 2;
+}
+.id-capture-preview {
+    object-fit: contain;
+    background: #0a0c0f;
+    z-index: 2;
+}
+.id-capture-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.625rem;
+    margin-top: clamp(1rem, 3vw, 1.25rem);
+    max-width: 36rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+@media (min-width: 380px) {
+    .id-capture-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (min-width: 640px) {
+    .id-capture-toolbar {
+        grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+        gap: 0.75rem;
+    }
+}
+.id-capture-toolbar .id-capture-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    width: 100%;
+    box-sizing: border-box;
+}
+.id-capture-toolbar .id-capture-btn i {
+    font-size: 1rem;
+    opacity: 0.95;
+}
+.id-capture-toolbar .id-capture-btn[hidden] {
+    display: none !important;
+}
+.id-capture-hint {
+    margin: 0.875rem 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: #6b7280;
+    text-align: center;
+    max-width: 32rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+.id-capture-file-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Address search suggestions (passenger registration, Philippines) */
+.address-search-wrap {
+    position: relative;
+}
+.address-suggestions {
+    list-style: none;
+    margin: 0.25rem 0 0;
+    padding: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    max-height: 240px;
+    overflow-y: auto;
+    background-color: var(--bg-white, #fff);
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 60;
+}
+.address-suggestions li {
+    padding: 0.65rem 0.9rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    border-bottom: 1px solid #f3f4f6;
+}
+.address-suggestions li:last-child {
+    border-bottom: none;
+}
+.address-suggestions li:hover,
+.address-suggestions li[aria-selected="true"] {
+    background-color: #f3f4f6;
+}
+.address-suggestions .address-suggestions__meta {
+    display: block;
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-top: 0.2rem;
+}
+
+/* Philippines phone: fixed +63 prefix (passenger registration) */
+.phone-ph-field {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    background-color: var(--bg-white);
+    overflow: hidden;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.phone-ph-field:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.08);
+}
+.phone-ph-prefix {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    padding: 0 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #374151;
+    background-color: #f3f4f6;
+    border-right: 1px solid #dee2e6;
+    user-select: none;
+}
+.phone-ph-field .phone-ph-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+.phone-ph-field .phone-ph-input:focus {
+    box-shadow: none !important;
+}
+.phone-ph-field .form-input.error {
+    border: none !important;
+}
+.phone-ph-field:has(.phone-ph-input.error) {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1) !important;
+}
+
+/* Live email availability (registration) */
+.email-availability-msg {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.85rem;
+    min-height: 1.2em;
+}
+.email-availability-msg[hidden] {
+    display: none !important;
+}
+.email-availability-msg--error {
+    color: #e74c3c;
+}
+
 .form-hint {
     display: block;
     margin-top: 5px;
@@ -560,6 +819,108 @@ input[type="file"].error:focus {
 }
 
 .checkbox-label .link:hover {
+    color: var(--hover-color);
+}
+
+/* Legal document modal (Terms / Privacy on registration) */
+.legal-modal {
+    position: fixed;
+    z-index: 10001;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.legal-modal[hidden] {
+    display: none !important;
+}
+
+.legal-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    cursor: pointer;
+}
+
+.legal-modal-dialog {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 720px;
+    max-height: min(90vh, 900px);
+    background: var(--bg-white);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.legal-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    background: var(--primary-color);
+    color: var(--bg-white);
+    flex-shrink: 0;
+}
+
+.legal-modal-header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.legal-modal-close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.75rem;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.legal-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.legal-modal-body {
+    flex: 1;
+    min-height: 0;
+    background: var(--bg-white);
+}
+
+.legal-modal-frame {
+    display: block;
+    width: 100%;
+    height: min(75vh, 720px);
+    border: 0;
+    background: var(--bg-white);
+}
+
+.legal-modal-trigger {
+    display: inline;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: var(--primary-color);
+    text-decoration: underline;
+    cursor: pointer;
+    vertical-align: baseline;
+}
+
+.legal-modal-trigger:hover {
     color: var(--hover-color);
 }
 
@@ -619,6 +980,16 @@ input[type="file"].error:focus {
 .step-item.active .step-label {
     color: var(--primary-color);
     font-weight: 600;
+}
+
+.step-item.step-item--navigable {
+    cursor: pointer;
+}
+
+.step-item.step-item--navigable:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 4px;
+    border-radius: 8px;
 }
 
 .step-line {

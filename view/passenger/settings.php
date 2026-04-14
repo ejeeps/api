@@ -390,8 +390,10 @@ $imageBasePath = $basePath;
                                                 </div>
                                             <?php endif; ?>
                                         </div>
-                                        <?php if (!empty($passengerInfo['id_number'])): ?>
-                                            <p class="license-info">ID #: <?php echo htmlspecialchars($passengerInfo['id_number']); ?></p>
+                                        <?php if (!empty($passengerInfo['id_type']) || !empty($passengerInfo['id_number'])): ?>
+                                            <p class="license-info">
+                                                <?php if (!empty($passengerInfo['id_type'])): ?><?php echo htmlspecialchars($passengerInfo['id_type']); ?><?php endif; ?><?php if (!empty($passengerInfo['id_type']) && !empty($passengerInfo['id_number'])): ?> · <?php endif; ?><?php if (!empty($passengerInfo['id_number'])): ?>ID #<?php echo htmlspecialchars($passengerInfo['id_number']); ?><?php endif; ?>
+                                            </p>
                                         <?php endif; ?>
                                     </div>
                                     

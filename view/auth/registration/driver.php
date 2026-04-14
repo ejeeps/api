@@ -167,7 +167,7 @@
                 </div>
             </div>
 
-            <form action="<?php echo htmlspecialchars($basePath); ?>controller/driver/DriverRegController.php" method="POST" enctype="multipart/form-data" class="registration-form" id="driverRegistrationForm">
+            <form action="<?php echo htmlspecialchars($basePath); ?>controller/driver/DriverRegController.php" method="POST" enctype="multipart/form-data" class="registration-form" id="driverRegistrationForm" data-email-check-url="<?php echo htmlspecialchars($basePath); ?>controller/auth/CheckEmailController.php">
                 
                 <!-- Account Information Section -->
                 <div class="form-section step-content active" data-step="1">
@@ -175,7 +175,8 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="email" class="form-label">Email Address <span class="required">*</span></label>
-                            <input type="email" id="email" name="email" placeholder="Input email address" class="form-input" required>
+                            <input type="email" id="email" name="email" placeholder="Input email address" class="form-input" required autocomplete="email">
+                            <small id="emailAvailabilityMsg" class="form-hint email-availability-msg" hidden role="status" aria-live="polite"></small>
                         </div>
 
                         <!-- Password with eye toggle -->
@@ -362,7 +363,11 @@
                     <div class="form-group form-group-checkbox">
                         <label class="checkbox-label">
                             <input type="checkbox" name="terms" required>
-                            <span>I agree to the <a href="<?php echo htmlspecialchars($basePath); ?>view/legal/terms.php" target="_blank" class="link">Terms and Conditions</a> and <a href="<?php echo htmlspecialchars($basePath); ?>view/legal/privacy.php" target="_blank" class="link">Privacy Policy</a> <span class="required">*</span></span>
+                            <span>I agree to the
+                                <button type="button" class="legal-modal-trigger" data-legal-title="Terms and Conditions" data-legal-src="<?php echo htmlspecialchars($basePath . 'index.php?page=terms', ENT_QUOTES, 'UTF-8'); ?>">Terms and Conditions</button>
+                                and
+                                <button type="button" class="legal-modal-trigger" data-legal-title="Privacy Policy" data-legal-src="<?php echo htmlspecialchars($basePath . 'index.php?page=privacy', ENT_QUOTES, 'UTF-8'); ?>">Privacy Policy</button>
+                                <span class="required">*</span></span>
                         </label>
                     </div>
                     <div class="form-group form-group-checkbox">
@@ -385,6 +390,21 @@
     </div>
     </div>
 
+    <div id="legalModal" class="legal-modal" hidden role="dialog" aria-modal="true" aria-labelledby="legalModalTitle" aria-hidden="true">
+        <div class="legal-modal-backdrop" data-legal-modal-close tabindex="-1" aria-hidden="true"></div>
+        <div class="legal-modal-dialog">
+            <div class="legal-modal-header">
+                <h2 id="legalModalTitle">Terms and Conditions</h2>
+                <button type="button" class="legal-modal-close" data-legal-modal-close aria-label="Close">&times;</button>
+            </div>
+            <div class="legal-modal-body">
+                <iframe class="legal-modal-frame" title="Legal document" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+<script src="<?php echo htmlspecialchars($basePath); ?>assets/script/auth/check_email_registration.js"></script>
+<script src="<?php echo htmlspecialchars($basePath); ?>assets/script/auth/legal_modal_registration.js"></script>
 <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/driver/reg_driver.js"></script>
 
 <!-- ── Password visibility toggle (Register page only) ── -->

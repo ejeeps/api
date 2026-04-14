@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validate required fields
         $requiredFields = [
             'email', 'password', 'confirm_password', 'first_name', 'last_name',
-            'phone_number', 'id_number', 'terms'
+            'phone_number', 'id_type', 'id_number', 'terms'
         ];
 
         foreach ($requiredFields as $field) {
@@ -104,6 +104,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $city = !empty($_POST['city']) ? $_POST['city'] : null;
         $province = !empty($_POST['province']) ? $_POST['province'] : null;
         $postalCode = !empty($_POST['postal_code']) ? $_POST['postal_code'] : null;
+        $idType = trim((string) ($_POST['id_type'] ?? ''));
+        if (strlen($idType) > 50) {
+            throw new Exception("Invalid ID type.");
+        }
 
         // Start transaction
         $pdo->beginTransaction();
@@ -132,12 +136,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Insert into passengers table
             $passengerSql = "INSERT INTO passengers (
-                user_id, id_number, id_image_front, id_image_back, address_line1, address_line2, city, province, postal_code
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                user_id, id_type, id_number, id_image_front, id_image_back, address_line1, address_line2, city, province, postal_code
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             $passengerStmt = $pdo->prepare($passengerSql);
             $passengerStmt->execute([
                 $userId,
+                $idType,
                 $_POST['id_number'],
                 $idImageFront,
                 $idImageBack,

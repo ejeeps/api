@@ -117,9 +117,7 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="container">
-            <div class="registration-header">
-                <p class="registration-subtitle registration-subtitle--solo">Create your account and get your E-JEEP card for cashless payments.</p>
-            </div>
+          
 
             <?php if (isset($_GET['error'])): ?>
                 <div class="alert alert-error">
@@ -166,7 +164,7 @@
                 </div>
             </div>
 
-            <form action="<?php echo htmlspecialchars($basePath); ?>controller/passenger/PassengerRegController.php" method="POST" enctype="multipart/form-data" class="registration-form" id="passengerRegistrationForm">
+            <form action="<?php echo htmlspecialchars($basePath); ?>controller/passenger/PassengerRegController.php" method="POST" enctype="multipart/form-data" class="registration-form" id="passengerRegistrationForm" data-email-check-url="<?php echo htmlspecialchars($basePath); ?>controller/auth/CheckEmailController.php" data-ph-address-url="<?php echo htmlspecialchars($basePath); ?>controller/passenger/PhAddressController.php">
                 
                 <!-- Account Information Section -->
                 <div class="form-section step-content active" data-step="1">
@@ -174,7 +172,8 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="email" class="form-label">Email Address <span class="required">*</span></label>
-                            <input type="email" id="email" name="email" placeholder="Input email address" class="form-input" required>
+                            <input type="email" id="email" name="email" placeholder="Input email address" class="form-input" required autocomplete="email">
+                            <small id="emailAvailabilityMsg" class="form-hint email-availability-msg" hidden role="status" aria-live="polite"></small>
                         </div>
 
                         <!-- Password with eye toggle -->
@@ -253,14 +252,14 @@
                             <label for="last_name" class="form-label">Last Name <span class="required">*</span></label>
                             <input type="text" id="last_name" name="last_name" class="form-input" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group form-group-full">
                             <label for="phone_number" class="form-label">Phone Number <span class="required">*</span></label>
-                            <input type="tel" id="phone_number" name="phone_number" class="form-input" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="id_number" class="form-label">ID Number <span class="required">*</span></label>
-                            <input type="text" id="id_number" name="id_number" class="form-input" placeholder="Government ID, Student ID, etc." required>
-                            <small class="form-hint">Enter your valid ID number (Government ID, Student ID, etc.)</small>
+                            <div class="phone-ph-field" role="group" aria-label="Philippines mobile number">
+                                <span class="phone-ph-prefix" aria-hidden="true">+63</span>
+                                <input type="tel" id="phone_number" name="phone_number" class="form-input phone-ph-input" placeholder="9XX XXX XXXX" inputmode="numeric" autocomplete="tel-national" required aria-describedby="phone_number_hint phone_number_error">
+                            </div>
+                            <small id="phone_number_hint" class="form-hint">Philippines only. Enter your 10-digit mobile number (starts with 9). Leading 0 is optional.</small>
+                            <small id="phone_number_error" class="form-hint email-availability-msg email-availability-msg--error" hidden role="alert"></small>
                         </div>
                         <div class="form-group">
                             <label for="date_of_birth" class="form-label">Date of Birth</label>
@@ -287,24 +286,36 @@
                     <h2 class="section-title">Address Information <small style="font-weight: normal; color: #666;">(Optional)</small></h2>
                     <div class="form-grid">
                         <div class="form-group form-group-full">
+                            <label for="ph_address_search" class="form-label">Search address <small style="font-weight: normal; color: #666;">(Philippines)</small></label>
+                            <div class="address-search-wrap">
+                                <input type="search" id="ph_address_search" class="form-input" placeholder="Street, barangay, building, city…" autocomplete="off" aria-autocomplete="list" aria-controls="ph_address_suggestions">
+                                <ul id="ph_address_suggestions" class="address-suggestions" hidden role="listbox" aria-label="Address suggestions"></ul>
+                            </div>
+                            <small id="ph_address_source_hint" class="form-hint">Suggestions use online data when available; otherwise choose province and city below. All locations are in the Philippines.</small>
+                        </div>
+                        <div class="form-group form-group-full">
                             <label for="address_line1" class="form-label">Address Line 1</label>
-                            <input type="text" id="address_line1" name="address_line1" class="form-input">
+                            <input type="text" id="address_line1" name="address_line1" class="form-input" placeholder="House / unit, street, barangay">
                         </div>
                         <div class="form-group form-group-full">
                             <label for="address_line2" class="form-label">Address Line 2</label>
-                            <input type="text" id="address_line2" name="address_line2" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label for="city" class="form-label">City</label>
-                            <input type="text" id="city" name="city" class="form-input">
+                            <input type="text" id="address_line2" name="address_line2" class="form-input" placeholder="Subdivision, building (optional)">
                         </div>
                         <div class="form-group">
                             <label for="province" class="form-label">Province</label>
-                            <input type="text" id="province" name="province" class="form-input">
+                            <select id="province" name="province" class="form-input form-select">
+                                <option value="">Select province</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="city" class="form-label">City / municipality</label>
+                            <select id="city" name="city" class="form-input form-select" disabled>
+                                <option value="">Select province first</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="postal_code" class="form-label">Postal Code</label>
-                            <input type="text" id="postal_code" name="postal_code" class="form-input">
+                            <input type="text" id="postal_code" name="postal_code" class="form-input" placeholder="Optional">
                         </div>
                     </div>
                 </div>
@@ -313,15 +324,88 @@
                 <div class="form-section step-content" data-step="4">
                     <h2 class="section-title">ID Information</h2>
                     <div class="form-grid">
-                        <div class="form-group form-group-full">
-                            <label for="id_image_front" class="form-label">ID Picture - Front Side <span class="required">*</span></label>
-                            <input type="file" id="id_image_front" name="id_image_front" class="form-input file-input" accept="image/*" required>
-                            <small class="form-hint">Upload a clear photo of the front side of your ID (Max 5MB)</small>
+                        <div class="form-group">
+                            <label for="id_type" class="form-label">ID Type <span class="required">*</span></label>
+                            <select id="id_type" name="id_type" class="form-input form-select" required>
+                                <option value="">Select ID type</option>
+                                <option value="PhilSys National ID">PhilSys National ID</option>
+                                <option value="Passport">Passport</option>
+                                <option value="Driver's License">Driver's License</option>
+                                <option value="UMID">UMID</option>
+                                <option value="SSS ID">SSS ID</option>
+                                <option value="PhilHealth ID">PhilHealth ID</option>
+                                <option value="TIN ID">TIN ID</option>
+                                <option value="Postal ID">Postal ID</option>
+                                <option value="Voter's ID">Voter's ID</option>
+                                <option value="PRC ID">PRC ID</option>
+                                <option value="School ID">School ID</option>
+                                <option value="Other">Other</option>
+                            </select>
                         </div>
                         <div class="form-group form-group-full">
-                            <label for="id_image_back" class="form-label">ID Picture - Back Side <span class="required">*</span></label>
-                            <input type="file" id="id_image_back" name="id_image_back" class="form-input file-input" accept="image/*" required>
-                            <small class="form-hint">Upload a clear photo of the back side of your ID (Max 5MB)</small>
+                            <label for="id_number" class="form-label">ID Number <span class="required">*</span></label>
+                            <input type="text" id="id_number" name="id_number" class="form-input" placeholder="Number as shown on your ID" required>
+                            <small class="form-hint">Must match the ID you upload below.</small>
+                        </div>
+                        <div class="form-group form-group-full id-capture-block" data-target="id_image_front">
+                            <div class="form-label" id="label_id_image_front">ID picture — front <span class="required">*</span></div>
+                            <div class="id-capture-ui" role="region" aria-labelledby="label_id_image_front">
+                                <div class="id-capture-viewport">
+                                    <div class="id-capture-placeholder">
+                                        <span class="id-capture-placeholder__icon" aria-hidden="true"><i class="fas fa-id-card"></i></span>
+                                        <span class="id-capture-placeholder__title">Ready to capture</span>
+                                        <span class="id-capture-placeholder__text">Use the camera for a clear photo of your ID, or pick an image from your gallery.</span>
+                                    </div>
+                                    <video class="id-capture-video" playsinline muted hidden></video>
+                                    <img class="id-capture-preview" alt="Preview of ID front" hidden decoding="async">
+                                </div>
+                                <div class="id-capture-toolbar">
+                                    <button type="button" class="btn btn-primary id-capture-btn id-capture-start" aria-label="Open camera for ID front">
+                                        <i class="fas fa-camera" aria-hidden="true"></i><span>Open camera</span>
+                                    </button>
+                                    <button type="button" class="btn btn-primary id-capture-btn id-capture-snap" hidden aria-label="Capture ID front photo">
+                                        <i class="fas fa-check" aria-hidden="true"></i><span>Capture</span>
+                                    </button>
+                                    <button type="button" class="btn btn-secondary id-capture-btn id-capture-retake" hidden aria-label="Retake ID front photo">
+                                        <i class="fas fa-redo" aria-hidden="true"></i><span>Retake</span>
+                                    </button>
+                                    <button type="button" class="btn btn-secondary id-capture-btn id-capture-pick" aria-label="Choose ID front from gallery">
+                                        <i class="fas fa-images" aria-hidden="true"></i><span>Gallery</span>
+                                    </button>
+                                </div>
+                                <p class="id-capture-hint">Tip: hold the card steady in good light. Files are saved as JPEG (max 5MB on submit).</p>
+                            </div>
+                            <input type="file" id="id_image_front" name="id_image_front" class="id-capture-file-sr" accept="image/*" required aria-labelledby="label_id_image_front">
+                        </div>
+                        <div class="form-group form-group-full id-capture-block" data-target="id_image_back">
+                            <div class="form-label" id="label_id_image_back">ID picture — back <span class="required">*</span></div>
+                            <div class="id-capture-ui" role="region" aria-labelledby="label_id_image_back">
+                                <div class="id-capture-viewport">
+                                    <div class="id-capture-placeholder">
+                                        <span class="id-capture-placeholder__icon" aria-hidden="true"><i class="fas fa-id-card"></i></span>
+                                        <span class="id-capture-placeholder__title">Ready to capture</span>
+                                        <span class="id-capture-placeholder__text">Photograph the back of the same ID, or choose from your gallery.</span>
+                                    </div>
+                                    <video class="id-capture-video" playsinline muted hidden></video>
+                                    <img class="id-capture-preview" alt="Preview of ID back" hidden decoding="async">
+                                </div>
+                                <div class="id-capture-toolbar">
+                                    <button type="button" class="btn btn-primary id-capture-btn id-capture-start" aria-label="Open camera for ID back">
+                                        <i class="fas fa-camera" aria-hidden="true"></i><span>Open camera</span>
+                                    </button>
+                                    <button type="button" class="btn btn-primary id-capture-btn id-capture-snap" hidden aria-label="Capture ID back photo">
+                                        <i class="fas fa-check" aria-hidden="true"></i><span>Capture</span>
+                                    </button>
+                                    <button type="button" class="btn btn-secondary id-capture-btn id-capture-retake" hidden aria-label="Retake ID back photo">
+                                        <i class="fas fa-redo" aria-hidden="true"></i><span>Retake</span>
+                                    </button>
+                                    <button type="button" class="btn btn-secondary id-capture-btn id-capture-pick" aria-label="Choose ID back from gallery">
+                                        <i class="fas fa-images" aria-hidden="true"></i><span>Gallery</span>
+                                    </button>
+                                </div>
+                                <p class="id-capture-hint">Use the same lighting as the front when possible. Max 5MB on submit.</p>
+                            </div>
+                            <input type="file" id="id_image_back" name="id_image_back" class="id-capture-file-sr" accept="image/*" required aria-labelledby="label_id_image_back">
                         </div>
                     </div>
                 </div>
@@ -343,7 +427,10 @@
                     <div class="form-group form-group-checkbox">
                         <label class="checkbox-label">
                             <input type="checkbox" name="terms" required>
-                            <span>I agree to the <a href="<?php echo htmlspecialchars($basePath); ?>view/legal/terms.php" target="_blank" class="link">Terms and Conditions</a> and <a href="<?php echo htmlspecialchars($basePath); ?>view/legal/privacy.php" target="_blank" class="link">Privacy Policy</a> <span class="required">*</span></span>
+                            <span>I agree to the <button type="button" class="legal-modal-trigger" data-legal-title="Terms and Conditions" data-legal-src="<?php echo htmlspecialchars($basePath . 'index.php?page=terms', ENT_QUOTES, 'UTF-8'); ?>">Terms and Conditions</button>
+                                and
+                                <button type="button" class="legal-modal-trigger" data-legal-title="Privacy Policy" data-legal-src="<?php echo htmlspecialchars($basePath . 'index.php?page=privacy', ENT_QUOTES, 'UTF-8'); ?>">Privacy Policy</button>
+                                <span class="required">*</span></span>
                         </label>
                     </div>
                 </div>
@@ -360,6 +447,23 @@
     </div>
     </div>
 
+    <div id="legalModal" class="legal-modal" hidden role="dialog" aria-modal="true" aria-labelledby="legalModalTitle" aria-hidden="true">
+        <div class="legal-modal-backdrop" data-legal-modal-close tabindex="-1" aria-hidden="true"></div>
+        <div class="legal-modal-dialog">
+            <div class="legal-modal-header">
+                <h2 id="legalModalTitle">Terms and Conditions</h2>
+                <button type="button" class="legal-modal-close" data-legal-modal-close aria-label="Close">&times;</button>
+            </div>
+            <div class="legal-modal-body">
+                <iframe class="legal-modal-frame" title="Legal document" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+<script src="<?php echo htmlspecialchars($basePath); ?>assets/script/auth/check_email_registration.js"></script>
+<script src="<?php echo htmlspecialchars($basePath); ?>assets/script/auth/legal_modal_registration.js"></script>
+<script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/ph_address_registration.js"></script>
+<script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/id_capture_registration.js"></script>
 <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/reg_passenger.js"></script>
 
 <!-- ── Password visibility toggle (Register page only) ── -->

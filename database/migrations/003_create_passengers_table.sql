@@ -4,6 +4,12 @@ CREATE TABLE IF NOT EXISTS passengers (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id INT UNSIGNED NOT NULL UNIQUE,
     
+    -- Government / school ID (see registration step "ID Information")
+    id_type VARCHAR(50) DEFAULT NULL,
+    id_number VARCHAR(50) DEFAULT NULL,
+    id_image_front VARCHAR(255) DEFAULT NULL,
+    id_image_back VARCHAR(255) DEFAULT NULL,
+    
     -- Address Information (Optional for passengers)
     address_line1 VARCHAR(255) DEFAULT NULL,
     address_line2 VARCHAR(255) DEFAULT NULL,
@@ -17,6 +23,7 @@ CREATE TABLE IF NOT EXISTS passengers (
     
     PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_id (user_id)
+    INDEX idx_user_id (user_id),
+    INDEX idx_id_number (id_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
