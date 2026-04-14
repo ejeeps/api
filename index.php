@@ -100,18 +100,6 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
 </head>
 <body class="landing-app"<?php echo !empty($prompt_install) ? ' data-pwa-install-gate="1"' : ''; ?>>
     <div class="landing-shell">
-        <header class="landing-header" role="banner">
-            <div class="landing-brand">
-                <div class="landing-logo-wrap">
-                    <img src="assets/icons/icon-96x96.png" alt="" width="40" height="40" class="landing-logo" decoding="async" onerror="this.outerHTML='<span class=\'landing-logo-fallback\' aria-hidden=\'true\'>E</span>';">
-                </div>
-                <div class="landing-brand-text">
-                    <span class="landing-app-name">E-JEEP</span>
-                </div>
-            </div>
-            <a href="index.php?login=1" class="landing-header-login"><span class="landing-header-login__label">Log in</span></a>
-        </header>
-
         <main class="main-content landing-main" id="main">
             <div class="landing-container">
 
@@ -131,10 +119,7 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
                             </div>
                         </div>
                     </div>
-                    <div class="landing-hero__content">
-                        <h1 id="landing-title" class="landing-hero__title">Modern Transit, Simplified.</h1>
-                        <p class="landing-hero__subtitle">Experience seamless, cashless rides. Get your digital E-JEEP card today and tap your way to a better commute.</p>
-                    </div>
+                
                 </section>
 
                 <section class="landing-pick" id="register-section" aria-labelledby="pick-title">
@@ -161,6 +146,16 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
                             <span class="role-row__go" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
                         </a>
                     </div>
+
+                    <div class="landing-hero__content">
+                        <h1 id="landing-title" class="landing-hero__title">Modern Transit, Simplified.</h1>
+                        <p class="landing-hero__subtitle">Experience seamless, cashless rides. Get your digital E-JEEP card today and tap your way to a better commute.</p>
+                        
+                    </div>
+                    <br>
+                    <div class="landing-hero__actions" aria-label="Primary actions">
+                            <a href="index.php?login=1" class="landing-hero__btn landing-hero__btn--primary">Log in</a>
+                        </div>
                 </section>
 
                 <div class="install-strip" id="install-section" style="display: none;">
@@ -173,10 +168,6 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
                     </button>
                 </div>
 
-                <p class="landing-login-inline">
-                    <a href="index.php?login=1" class="landing-login-text">Already have an account? <strong>Log in</strong></a>
-                </p>
-                
                 <div class="landing-legal-links">
                     <a href="index.php?page=terms">Terms</a> &middot; 
                     <a href="index.php?page=privacy">Privacy</a>
