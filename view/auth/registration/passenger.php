@@ -50,7 +50,7 @@
             height: 1em;
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-top-color: #ffffff;
-            border-radius: 50%;
+            border-radius: 0;
             display: inline-block;
             margin-right: 8px;
             vertical-align: -2px;
@@ -83,7 +83,7 @@
             cursor: pointer;
             color: #6b7280;
             line-height: 0;
-            border-radius: 0.25rem;
+            border-radius: 0;
             transition: color 0.15s ease;
             flex-shrink: 0;
         }

@@ -47,7 +47,7 @@
             height: 1em;
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-top-color: #ffffff;
-            border-radius: 50%;
+            border-radius: 0;
             display: inline-block;
             margin-right: 8px;
             vertical-align: -2px;

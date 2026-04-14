@@ -116,16 +116,32 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
             <div class="landing-container">
 
                 <section class="landing-hero" aria-labelledby="landing-title">
-                    <div class="landing-hero__visual" aria-hidden="true"></div>
+                    <div class="landing-hero__visual" aria-hidden="true">
+                        <div class="pro-card">
+                            <div class="pro-card-top">
+                                <span class="pro-card-logo">E-JEEP</span>
+                                <i class="fas fa-wifi pro-card-rfid"></i>
+                            </div>
+                            <div class="pro-card-chip"></div>
+                            <div class="pro-card-bottom">
+                                <div class="pro-card-dots">
+                                    <span></span><span></span><span></span><span></span>
+                                </div>
+                                <span class="pro-card-type">TRANSIT CARD</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="landing-hero__content">
-                        <h1 id="landing-title" class="landing-hero__title">Cashless rides, made simple.</h1>
-                        <p class="landing-hero__subtitle">Register for your E-JEEP card—then tap when you ride or drive.</p>
+                        <h1 id="landing-title" class="landing-hero__title">Modern Transit, Simplified.</h1>
+                        <p class="landing-hero__subtitle">Experience seamless, cashless rides. Get your digital E-JEEP card today and tap your way to a better commute.</p>
                     </div>
                 </section>
 
-                <section class="landing-pick" aria-labelledby="pick-title">
-                    <h2 id="pick-title" class="landing-pick__title">Register as</h2>
-                    <p class="landing-pick__hint">Choose how you’ll use E-JEEP.</p>
+                <section class="landing-pick" id="register-section" aria-labelledby="pick-title">
+                    <div class="section-header">
+                        <h2 id="pick-title" class="landing-pick__title">Join the E-JEEP Network</h2>
+                        <p class="landing-pick__hint">Choose how you’ll use E-JEEP.</p>
+                    </div>
 
                     <div class="role-list">
                         <a href="index.php?register=passenger" class="role-row role-row--passenger">
@@ -160,6 +176,11 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
                 <p class="landing-login-inline">
                     <a href="index.php?login=1" class="landing-login-text">Already have an account? <strong>Log in</strong></a>
                 </p>
+                
+                <div class="landing-legal-links">
+                    <a href="index.php?page=terms">Terms</a> &middot; 
+                    <a href="index.php?page=privacy">Privacy</a>
+                </div>
             </div>
         </main>
     </div>
