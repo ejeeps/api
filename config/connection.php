@@ -6,7 +6,7 @@ $isLocal = in_array($host, [
     'localhost',
     '127.0.0.1',
     '::1',
-    '192.168.102.212',
+    '192.168.8.107',
 ], true)
     || (strlen($host) >= 6 && substr($host, -6) === '.local')
     || (strlen($host) >= 5 && substr($host, -5) === '.test')
