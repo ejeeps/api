@@ -103,7 +103,7 @@ $prompt_install = isset($_GET['prompt_install']) && $_GET['prompt_install'] === 
         <header class="landing-header" role="banner">
             <div class="landing-brand">
                 <div class="landing-logo-wrap">
-                    <img src="assets/logo.png" alt="" width="40" height="40" class="landing-logo" onerror="this.outerHTML='<span class=\'landing-logo-fallback\'>E</span>';">
+                    <img src="assets/images/login-bg.png" alt="" width="40" height="40" class="landing-logo" onerror="this.outerHTML='<span class=\'landing-logo-fallback\'>E</span>';">
                 </div>
                 <div class="landing-brand-text">
                     <span class="landing-app-name">E-JEEP</span>
