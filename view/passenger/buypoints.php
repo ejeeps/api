@@ -510,15 +510,7 @@ $reloadAmounts = [1, 20, 50, 100, 200, 500];
                 </div>
             <?php endif; ?>
 
-            <!-- Balance Card -->
-            <div class="balance-card">
-                <div class="balance-label">Current Balance</div>
-                <div class="balance-amount">₱<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></div>
-                <div class="balance-card-number">
-                    <i class="fas fa-id-card"></i>
-                    Card: <?php echo $passengerInfo['card_number'] ? htmlspecialchars($passengerInfo['card_number']) : 'Not Issued'; ?>
-                </div>
-            </div>
+           
 
             <!-- Info Box -->
             <div class="info-box">
@@ -661,7 +653,7 @@ $reloadAmounts = [1, 20, 50, 100, 200, 500];
             </form>
         </div>
     </div>
-<?php include 'view/components/live_bus_tracker.php'; ?>
+        <?php include 'view/components/chat.php'; ?>
     <!-- Bottom Navigation Bar -->
     <?php
     $activePage = 'buypoints';

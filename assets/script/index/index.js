@@ -8,27 +8,31 @@ document.addEventListener('DOMContentLoaded', function () {
     const isMobile = window.innerWidth <= 768;
     const isTablet = window.innerWidth <= 992 && window.innerWidth > 768;
 
-    // PWA Install Button functionality
+    const pwaInstallGate = document.body.getAttribute('data-pwa-install-gate') === '1';
     const installSection = document.getElementById('install-section');
     const installBtn = document.getElementById('install-btn');
 
-    if (installSection && installBtn && window.EjeepPWA) {
-        // Show install section if app is installable and not already installed
-        function updateInstallVisibility() {
-            if (window.EjeepPWA.isInstallable() && !window.EjeepPWA.isAppInstalled()) {
-                installSection.style.display = 'block';
-            } else {
-                installSection.style.display = 'none';
-            }
+    function updateInstallVisibility() {
+        if (!installSection || !window.EjeepPWA) {
+            return;
         }
+        if (document.body.getAttribute('data-pwa-install-gate') === '1') {
+            installSection.style.display = 'none';
+            return;
+        }
+        if (window.EjeepPWA.isInstallable() && !window.EjeepPWA.isAppInstalled()) {
+            installSection.style.display = 'flex';
+        } else {
+            installSection.style.display = 'none';
+        }
+    }
 
-        // Initial check
-        updateInstallVisibility();
-
-        // Listen for PWA installable event
+    if (installSection && window.EjeepPWA) {
         window.addEventListener('ejeep-pwa-installable', updateInstallVisibility);
+        updateInstallVisibility();
+    }
 
-        // Handle install button click
+    if (installSection && installBtn && window.EjeepPWA && !pwaInstallGate) {
         installBtn.addEventListener('click', function () {
             window.EjeepPWA.promptInstall().then(function (accepted) {
                 if (accepted) {
@@ -36,126 +40,128 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
+    }
 
-        // Hide when app is installed
+    if (installSection && window.EjeepPWA) {
         window.addEventListener('ejeep-pwa-installed', function () {
             installSection.style.display = 'none';
         });
     }
 
-    // Mobile Menu Toggle
-    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    const body = document.body;
+    if (pwaInstallGate) {
+        const modal = document.getElementById('pwaInstallModal');
+        const waitingEl = document.getElementById('pwaInstallWaiting');
+        const actionsEl = document.getElementById('pwaInstallActions');
+        const confirmBtn = document.getElementById('pwaInstallConfirm');
+        const hintEl = document.getElementById('pwaInstallHint');
 
-    if (mobileMenuToggle && navLinks) {
-        mobileMenuToggle.addEventListener('click', function () {
-            this.classList.toggle('active');
-            navLinks.classList.toggle('active');
-            body.classList.toggle('menu-open');
-        });
-
-        // Close menu when clicking on a link
-        const navLinkItems = navLinks.querySelectorAll('.nav-link');
-        navLinkItems.forEach(link => {
-            link.addEventListener('click', function () {
-                mobileMenuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-                body.classList.remove('menu-open');
-            });
-        });
-
-        // Close menu when clicking outside
-        document.addEventListener('click', function (event) {
-            const isClickInsideMenu = navLinks.contains(event.target);
-            const isClickOnToggle = mobileMenuToggle.contains(event.target);
-
-            if (!isClickInsideMenu && !isClickOnToggle && navLinks.classList.contains('active')) {
-                mobileMenuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-                body.classList.remove('menu-open');
+        function dismissGate() {
+            document.body.removeAttribute('data-pwa-install-gate');
+            document.body.style.overflow = '';
+            if (modal) {
+                modal.classList.add('pwa-install-modal--dismissed');
+                modal.setAttribute('aria-hidden', 'true');
             }
-        });
-
-        // Close menu on window resize to desktop
-        window.addEventListener('resize', function () {
-            if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
-                mobileMenuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-                body.classList.remove('menu-open');
-            }
-        });
-    }
-
-    // Tag List Scroller Auto-scroll - Optimized for smooth performance
-    const taglistScroller = document.querySelector('.taglist-scroller');
-    if (taglistScroller && !prefersReducedMotion) {
-        let scrollDirection = 1;
-        const scrollSpeed = 0.8; // Pixels per frame
-        let isPaused = false;
-        let animationFrameId = null;
-        let maxScroll = 0;
-        let isUserScrolling = false;
-        let scrollTimeout = null;
-
-        // Calculate max scroll once
-        function updateMaxScroll() {
-            maxScroll = taglistScroller.scrollWidth - taglistScroller.clientWidth;
+            updateInstallVisibility();
         }
-        updateMaxScroll();
 
-        // Recalculate on resize
-        window.addEventListener('resize', updateMaxScroll, { passive: true });
+        function showInstallActions() {
+            if (waitingEl) {
+                waitingEl.hidden = true;
+            }
+            if (actionsEl) {
+                actionsEl.hidden = false;
+            }
+            if (hintEl) {
+                hintEl.hidden = true;
+            }
+            if (confirmBtn) {
+                confirmBtn.hidden = false;
+            }
+        }
 
-        // Pause on hover
-        taglistScroller.addEventListener('mouseenter', () => {
-            isPaused = true;
+        function showFallbackHint() {
+            if (waitingEl) {
+                waitingEl.hidden = true;
+            }
+            if (actionsEl) {
+                actionsEl.hidden = false;
+            }
+            if (hintEl) {
+                hintEl.hidden = false;
+            }
+            if (confirmBtn) {
+                confirmBtn.hidden = true;
+            }
+        }
+
+        function checkInstallable() {
+            const api = window.EjeepPWA;
+            if (!api) {
+                return false;
+            }
+            if (api.isAppInstalled && api.isAppInstalled()) {
+                dismissGate();
+                return true;
+            }
+            if (api.isInstallable && api.isInstallable()) {
+                showInstallActions();
+                return true;
+            }
+            return false;
+        }
+
+        if (!modal) {
+            return;
+        }
+
+        document.body.style.overflow = 'hidden';
+
+        modal.querySelectorAll('[data-pwa-install-dismiss]').forEach(function (el) {
+            el.addEventListener('click', dismissGate);
         });
 
-        taglistScroller.addEventListener('mouseleave', () => {
-            isPaused = false;
-        });
-
-        // Detect user scrolling
-        taglistScroller.addEventListener('scroll', () => {
-            isUserScrolling = true;
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                isUserScrolling = false;
-            }, 150);
-        }, { passive: true });
-
-        // Optimized auto-scroll function
-        function autoScroll() {
-            if (!isPaused && !isUserScrolling && maxScroll > 0) {
-                const currentScroll = taglistScroller.scrollLeft;
-                let newScroll = currentScroll + (scrollSpeed * scrollDirection);
-
-                if (newScroll >= maxScroll) {
-                    newScroll = maxScroll;
-                    scrollDirection = -1;
-                } else if (newScroll <= 0) {
-                    newScroll = 0;
-                    scrollDirection = 1;
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function () {
+                const api = window.EjeepPWA;
+                if (!api || typeof api.promptInstall !== 'function') {
+                    return;
                 }
-
-                // Direct assignment is faster than scrollTo
-                taglistScroller.scrollLeft = newScroll;
-            }
-
-            animationFrameId = requestAnimationFrame(autoScroll);
+                api.promptInstall().then(function (accepted) {
+                    if (accepted) {
+                        dismissGate();
+                    }
+                });
+            });
         }
 
-        // Start auto-scroll after a short delay
-        setTimeout(() => {
-            animationFrameId = requestAnimationFrame(autoScroll);
-        }, 1000);
+        window.addEventListener('ejeep-pwa-installable', function () {
+            checkInstallable();
+        });
 
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
+        checkInstallable();
+
+        let pollCount = 0;
+        const poll = setInterval(function () {
+            pollCount++;
+            if (checkInstallable()) {
+                clearInterval(poll);
+                return;
             }
+            if (pollCount >= 36) {
+                clearInterval(poll);
+                showFallbackHint();
+            }
+        }, 250);
+
+        document.addEventListener('keydown', function onInstallModalEsc(e) {
+            if (e.key !== 'Escape') {
+                return;
+            }
+            if (modal.classList.contains('pwa-install-modal--dismissed')) {
+                return;
+            }
+            dismissGate();
         });
     }
 
@@ -250,8 +256,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Parallax effect on scroll (subtle, desktop only, skip if reduced motion)
-    if (!prefersReducedMotion && !isMobile) {
+    // Parallax on hero (legacy full-page layout only; landing-app uses a compact bottom strip)
+    if (!prefersReducedMotion && !isMobile && !document.body.classList.contains('landing-app')) {
         let lastScrollTop = 0;
         window.addEventListener('scroll', function () {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -267,7 +273,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }, { passive: true });
     }
 
-    // Add entrance animation to navbar (skip if reduced motion)
     if (!prefersReducedMotion) {
         const navbar = document.querySelector('.navbar');
         if (navbar) {

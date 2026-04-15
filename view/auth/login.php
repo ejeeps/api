@@ -32,6 +32,7 @@
     <link rel="apple-touch-icon" href="<?php echo htmlspecialchars($iconPath); ?>">
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
     <title>Login - E-JEEP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/index.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($basePath); ?>assets/style/login.css">
     <style>
@@ -95,33 +96,23 @@
         }
     </style>
 </head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                    <img src="assets/logo.png" alt="E-JEEP Logo" onerror="this.outerHTML='<span class=\'logo-text\'>E-JEEP</span>';">
-            </div>
-            <button class="mobile-menu-toggle" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <div class="nav-links">
-                <a href="index.php" class="nav-link">Home</a>
-                <a href="#" class="nav-link">Contact</a>
-               
-            </div>
+<body class="auth-app">
+    <div class="auth-shell">
+    <header class="auth-topbar" role="banner">
+        <a href="<?php echo htmlspecialchars($basePath); ?>index.php" class="auth-back" aria-label="Back to home"><i class="fas fa-arrow-left" aria-hidden="true"></i></a>
+        <div class="auth-topbar-center">
+            <h1 class="auth-topbar-title">Log in</h1>
         </div>
-    </nav>
+        <a href="<?php echo htmlspecialchars($basePath); ?>index.php" class="auth-topbar-link">Register</a>
+    </header>
 
     <!-- Main Content -->
     <div class="main-content">
         <div class="container">
             <div class="login-container">
                 <div class="login-header">
-                    <h1 class="login-title">Welcome Back</h1>
-                    <p class="login-subtitle">Sign in to your E-JEEP account</p>
+                    <h2 class="login-title">Welcome back</h2>
+                    <p class="login-subtitle">Sign in with your email and password</p>
                 </div>
 
                 <?php if (isset($_GET['error'])): ?>
@@ -188,58 +179,12 @@
                 </form>
 
                 <div class="login-footer">
-                    <p>Don't have an account? 
-                        <a href="index.php?register=driver" class="register-link">Register as Driver</a> or 
-                        <a href="index.php?register=passenger" class="register-link">Register as Passenger</a>
-                    </p>
+                    <p>Need an account? <a href="<?php echo htmlspecialchars($basePath); ?>index.php" class="register-link">Choose Passenger or Driver</a></p>
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-        // Mobile Menu Toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-            const navLinks = document.querySelector('.nav-links');
-            const body = document.body;
-
-            if (mobileMenuToggle && navLinks) {
-                mobileMenuToggle.addEventListener('click', function() {
-                    this.classList.toggle('active');
-                    navLinks.classList.toggle('active');
-                    body.classList.toggle('menu-open');
-                });
-
-                const navLinkItems = navLinks.querySelectorAll('.nav-link');
-                navLinkItems.forEach(link => {
-                    link.addEventListener('click', function() {
-                        mobileMenuToggle.classList.remove('active');
-                        navLinks.classList.remove('active');
-                        body.classList.remove('menu-open');
-                    });
-                });
-
-                document.addEventListener('click', function(event) {
-                    const isClickInsideMenu = navLinks.contains(event.target);
-                    const isClickOnToggle = mobileMenuToggle.contains(event.target);
-                    if (!isClickInsideMenu && !isClickOnToggle && navLinks.classList.contains('active')) {
-                        mobileMenuToggle.classList.remove('active');
-                        navLinks.classList.remove('active');
-                        body.classList.remove('menu-open');
-                    }
-                });
-
-                window.addEventListener('resize', function() {
-                    if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
-                        mobileMenuToggle.classList.remove('active');
-                        navLinks.classList.remove('active');
-                        body.classList.remove('menu-open');
-                    }
-                });
-            }
-        });
-    </script>
+    </div>
 
     <script>
     // Password visibility toggle

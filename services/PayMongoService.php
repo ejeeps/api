@@ -302,11 +302,6 @@ class PayMongoService {
                 ];
             }
 
-            // Update card balance
-            $newBalance = $cardInfo['balance'] + $amount;
-            $stmt = $this->db->prepare("UPDATE cards SET balance = ? WHERE id = ?");
-            $stmt->execute([$newBalance, $cardInfo['card_id']]);
-
             // Get payment method details if available
             $paymentMethod = $metadata['payment_method'] ?? 'paymongo';
             $paymentMethodDetails = null;
@@ -319,19 +314,71 @@ class PayMongoService {
                 ]);
             }
 
-            // Update existing transaction or create new one
             if ($existingTransactionId) {
+                // Atomic claim: only the first concurrent request should be able to
+                // transition the transaction into `completed`. Others will see 0 rows affected
+                // and must not credit the card again.
                 $stmt = $this->db->prepare("
                     UPDATE transactions
                     SET card_id = ?, status = 'completed', processed_at = NOW(), updated_at = NOW(),
                         payment_method = ?, payment_method_details = ?,
                         payment_intent_id = ?
-                    WHERE id = ? AND user_id = ?
+                    WHERE id = ? AND user_id = ? AND status != 'completed'
                 ");
-                $stmt->execute([$cardInfo['card_id'], $paymentMethod, $paymentMethodDetails, $paymentIntentId, $existingTransactionId, $userId]);
+                $stmt->execute([
+                    $cardInfo['card_id'],
+                    $paymentMethod,
+                    $paymentMethodDetails,
+                    $paymentIntentId,
+                    $existingTransactionId,
+                    $userId
+                ]);
+
+                if ((int)$stmt->rowCount() === 0) {
+                    // Someone else already completed it; return without crediting.
+                    $stmt = $this->db->prepare("SELECT card_id FROM transactions WHERE id = ? AND user_id = ? LIMIT 1");
+                    $stmt->execute([$existingTransactionId, $userId]);
+                    $completedTx = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $cardId = $completedTx['card_id'] ?? null;
+                    if (!$cardId) {
+                        throw new Exception('Payment already processed but card not found');
+                    }
+
+                    $stmt = $this->db->prepare("SELECT balance FROM cards WHERE id = ? LIMIT 1");
+                    $stmt->execute([$cardId]);
+                    $cardBalance = $stmt->fetchColumn() ?: 0;
+
+                    $this->db->commit();
+                    return [
+                        'success' => true,
+                        'amount' => $amount,
+                        'new_balance' => $cardBalance,
+                        'transaction_reference' => $existingTransactionId,
+                        'already_processed' => true
+                    ];
+                }
+
+                // Only after successfully claiming the transaction do we credit the card.
+                $stmt = $this->db->prepare("UPDATE cards SET balance = balance + ? WHERE id = ?");
+                $stmt->execute([$amount, $cardInfo['card_id']]);
+
+                $stmt = $this->db->prepare("SELECT balance FROM cards WHERE id = ? LIMIT 1");
+                $stmt->execute([$cardInfo['card_id']]);
+                $newBalance = $stmt->fetchColumn() ?: 0;
+
                 $transactionRef = $existingTransactionId;
             } else {
-                // Create transaction record (fallback)
+                // Fallback: create transaction record (no existing transaction row id passed in).
+                // The idempotency is still guarded by the `payment_intent_id` completed check above.
+                // Update card balance first, then insert the completed transaction.
+                $stmt = $this->db->prepare("UPDATE cards SET balance = balance + ? WHERE id = ?");
+                $stmt->execute([$amount, $cardInfo['card_id']]);
+
+                $stmt = $this->db->prepare("SELECT balance FROM cards WHERE id = ? LIMIT 1");
+                $stmt->execute([$cardInfo['card_id']]);
+                $newBalance = $stmt->fetchColumn() ?: 0;
+
+                // Create transaction record
                 $transactionRef = generateTransactionReference($userId);
                 $stmt = $this->db->prepare("
                     INSERT INTO transactions (

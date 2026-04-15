@@ -52,6 +52,79 @@
         box.scrollTop = box.scrollHeight;
     }
 
+    /**
+     * Assistant reply with typewriter effect (errors show instantly).
+     */
+    function appendAssistantMessageTyped(text, isError, onComplete) {
+        var box = el('assistantMessages');
+        if (!box) {
+            if (onComplete) onComplete();
+            return;
+        }
+        removeEmptyState();
+
+        var row = document.createElement('div');
+        row.className = 'assistant-msg-row assistant-msg-row--bot';
+
+        var av = document.createElement('div');
+        av.className = 'assistant-msg-avatar';
+        av.setAttribute('aria-hidden', 'true');
+        av.innerHTML = '<i class="fas fa-robot"></i>';
+
+        var bubble = document.createElement('div');
+        bubble.className = 'assistant-msg-bubble assistant-msg-bubble--bot';
+        if (isError) {
+            bubble.classList.add('assistant-msg-bubble--error');
+        } else {
+            bubble.classList.add('assistant-msg-bubble--streaming');
+        }
+
+        row.appendChild(av);
+        row.appendChild(bubble);
+        box.appendChild(row);
+
+        if (isError || !text) {
+            bubble.textContent = text || '';
+            box.scrollTop = box.scrollHeight;
+            if (onComplete) onComplete();
+            return;
+        }
+
+        var cursor = document.createElement('span');
+        cursor.className = 'assistant-cursor';
+        cursor.setAttribute('aria-hidden', 'true');
+
+        var full = String(text);
+        var i = 0;
+        var len = full.length;
+        var chunk = len > 900 ? 4 : len > 400 ? 3 : len > 120 ? 2 : 1;
+        var delayMs = len > 900 ? 14 : len > 400 ? 16 : 18;
+
+        function tick() {
+            if (!bubble.parentNode) {
+                if (onComplete) onComplete();
+                return;
+            }
+            i = Math.min(len, i + chunk);
+            bubble.textContent = full.slice(0, i);
+            if (i < len) {
+                bubble.appendChild(cursor);
+            } else {
+                bubble.classList.remove('assistant-msg-bubble--streaming');
+                if (cursor.parentNode) {
+                    cursor.parentNode.removeChild(cursor);
+                }
+                if (onComplete) onComplete();
+            }
+            box.scrollTop = box.scrollHeight;
+            if (i < len) {
+                setTimeout(tick, delayMs);
+            }
+        }
+
+        tick();
+    }
+
     function showTyping() {
         var box = el('assistantMessages');
         if (!box) return;
@@ -82,7 +155,6 @@
         if (t && t.parentNode) {
             t.parentNode.removeChild(t);
         }
-        typingEl = null;
     }
 
     function setLoading(on) {
@@ -112,6 +184,7 @@
         if (!modal) return;
         modal.classList.add('open');
         modal.setAttribute('aria-hidden', 'false');
+        switchView('selector');
         var input = el('assistantInput');
         if (input) {
             setTimeout(function () {
@@ -126,6 +199,30 @@
         if (!modal) return;
         modal.classList.remove('open');
         modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function switchView(mode) {
+        var selector = el('assistantModeSelector');
+        var aiView = el('assistantAiView');
+        var csView = el('assistantCsView');
+        if (!selector || !aiView || !csView) return;
+
+        selector.hidden = mode !== 'selector';
+        aiView.hidden = mode !== 'ai';
+        csView.hidden = mode !== 'cs';
+
+        if (mode === 'ai') {
+            var input = el('assistantInput');
+            if (input) {
+                setTimeout(function () { input.focus(); }, 50);
+            }
+        }
+        if (mode === 'cs') {
+            var frame = el('assistantCsFrame');
+            if (frame && !frame.getAttribute('src')) {
+                frame.setAttribute('src', base + 'index.php?page=customer_service&embed=1');
+            }
+        }
     }
 
     async function sendMessage() {
@@ -157,7 +254,7 @@
                 return;
             }
             var reply = data.reply || '';
-            appendMsg('assistant', reply);
+            appendAssistantMessageTyped(reply, false);
             history.push({ role: 'user', content: text });
             history.push({ role: 'assistant', content: reply });
             if (history.length > 20) {
@@ -177,6 +274,10 @@
         var closeBtn = el('assistantModalClose');
         var sendBtn = el('assistantSendBtn');
         var input = el('assistantInput');
+        var modeAiBtn = el('assistantModeAiBtn');
+        var modeCsBtn = el('assistantModeCsBtn');
+        var backAi = el('assistantBackFromAi');
+        var backCs = el('assistantBackFromCs');
 
         if (btn && modal) {
             btn.addEventListener('click', openModal);
@@ -190,6 +291,10 @@
         }
 
         if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+        if (modeAiBtn) modeAiBtn.addEventListener('click', function () { switchView('ai'); });
+        if (modeCsBtn) modeCsBtn.addEventListener('click', function () { switchView('cs'); });
+        if (backAi) backAi.addEventListener('click', function () { switchView('selector'); });
+        if (backCs) backCs.addEventListener('click', function () { switchView('selector'); });
         if (input) {
             input.addEventListener('input', autoResizeTextarea);
             input.addEventListener('keydown', function (ev) {

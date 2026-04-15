@@ -27,6 +27,7 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    margin: 0;
     width: min(960px, 92vw);
     height: min(78vh, 680px);
     background: #ffffff;
@@ -35,6 +36,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    object-fit: unset;
 }
 
 .tracker-modal .modal-header {
@@ -71,15 +73,15 @@
     min-height: 0;
 }
 
-/* ── E-JEEP Assistant chat (redesigned) ───────────────────────────── */
+/* ── E-JEEP Assistant chat (compact; overrides generic tracker modal) ─ */
 .tracker-modal.assistant-chat-modal .modal-content.assistant-chat-shell {
-    width: min(420px, 94vw);
-    height: min(85vh, 640px);
-    max-height: calc(100vh - 32px);
-    border-radius: 20px;
+    width: min(360px, 92vw);
+    height: min(76vh, 620px);
+    max-height: min(700px, calc(100vh - 70px));
+    border-radius: 18px;
     border: 1px solid rgba(0, 0, 0, 0.06);
     box-shadow:
-        0 24px 48px rgba(15, 23, 42, 0.18),
+        0 20px 40px rgba(15, 23, 42, 0.16),
         0 0 0 1px rgba(255, 255, 255, 0.06) inset;
     overflow: hidden;
 }
@@ -88,8 +90,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 14px 16px;
+    gap: 10px;
+    padding: 11px 12px;
     background: linear-gradient(135deg, #16a34a 0%, #15803d 55%, #166534 100%);
     color: #fff;
     flex-shrink: 0;
@@ -103,9 +105,9 @@
 }
 
 .assistant-chat-header__avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.2);
     display: flex;
     align-items: center;
@@ -121,7 +123,7 @@
 
 .assistant-chat-header__title {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 0.98rem;
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.2;
@@ -165,12 +167,77 @@
         linear-gradient(180deg, #ecfdf5 0%, #f8fafc 100%);
 }
 
+.assistant-mode-selector {
+    display: grid;
+    gap: 12px;
+    padding: 14px 12px;
+}
+
+.assistant-mode-selector[hidden],
+.assistant-chat-view[hidden] {
+    display: none !important;
+}
+
+.assistant-mode-card {
+    text-align: left;
+    border: 1px solid #d1fae5;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 12px;
+    display: grid;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.assistant-mode-card__icon {
+    color: #16a34a;
+    font-size: 1rem;
+}
+
+.assistant-mode-card__title {
+    font-weight: 700;
+    color: #14532d;
+    font-size: 0.95rem;
+}
+
+.assistant-mode-card__hint {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.assistant-chat-view {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+}
+
+.assistant-view-actions {
+    padding: 8px 10px 0;
+}
+
+.assistant-back-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #334155;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.assistant-back-btn--small {
+    padding: 4px 8px;
+    font-size: 0.74rem;
+    border-radius: 8px;
+}
+
 .assistant-messages {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 16px 14px 12px;
-    min-height: 200px;
+    padding: 12px 12px 10px;
+    min-height: 140px;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -253,9 +320,9 @@
 
 .assistant-msg-bubble {
     max-width: calc(100% - 42px);
-    padding: 11px 14px;
-    border-radius: 16px;
-    font-size: 0.9rem;
+    padding: 9px 12px;
+    border-radius: 14px;
+    font-size: 0.875rem;
     line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-word;
@@ -319,12 +386,46 @@
     }
 }
 
+.assistant-msg-bubble--streaming {
+    min-height: 1.5em;
+}
+
+.assistant-msg-bubble .assistant-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    background: #16a34a;
+    animation: assistantCursorBlink 0.9s step-end infinite;
+}
+
+@keyframes assistantCursorBlink {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
 .assistant-composer {
     flex-shrink: 0;
-    padding: 12px 14px 16px;
+    padding: 10px 12px 12px;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(8px);
     border-top: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.assistant-cs-frame {
+    border: 0;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    background: #fff;
+    border-top: 1px solid rgba(226, 232, 240, 0.9);
+    margin-top: 8px;
 }
 
 .assistant-composer__inner {
@@ -560,11 +661,39 @@
 }
 
 .ejeep-card .meta {
-    margin-top: 6px;
+    margin-top: 2px;
     font-size: 0.8rem;
     opacity: 0.85;
-    display: flex;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 6px;
+}
+
+.ejeep-card .meta span {
+    min-width: 0;
+}
+
+.ejeep-card .meta > span:first-child {
+    grid-column: 1;
+}
+
+.ejeep-card .meta .meta-balance {
+    grid-column: 2;
+    justify-self: end;
+}
+
+.ejeep-card .meta .meta-org {
+    grid-column: 1 / -1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.68rem;
+    opacity: 0.78;
+    letter-spacing: 0.2px;
+    text-transform: none;
 }
 
 .ejeep-card .glow {
@@ -597,13 +726,344 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
+    background: #e4122bda;
+    box-shadow: 0 0 8px rgba(229, 14, 118, 0.9);
 }
 
 @media (min-width: 640px) {
     .ejeep-card {
         aspect-ratio: 16/9;
+    }
+}
+
+/* Passenger virtual card flip + privacy controls */
+.ejeep-flip-card {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 16/10;
+    border-radius: 16px;
+    cursor: pointer;
+    perspective: 1000px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.ejeep-flip-card .ejeep-flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.ejeep-flip-card.flipped .ejeep-flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+.ejeep-flip-card .ejeep-card {
+    position: absolute;
+    inset: 0;
+    max-width: none;
+    aspect-ratio: auto;
+    border-radius: 16px;
+}
+
+.ejeep-flip-card .ejeep-card-front,
+.ejeep-flip-card .ejeep-card-back {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.ejeep-flip-card .ejeep-card-back {
+    transform: rotateY(180deg);
+}
+
+.ejeep-flip-card .ejeep-card-back .chip {
+    display: none;
+}
+
+.ejeep-card-back .card-back-strip {
+    margin-top: 14px;
+    height: 36px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.72);
+}
+
+.ejeep-card-back .card-back-signature-row {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ejeep-card-back .card-back-signature {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.88);
+    color: #064e3b;
+    border-radius: 4px;
+    min-height: 30px;
+    padding: 6px 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ejeep-card-back .card-back-cvv {
+    min-width: 68px;
+    text-align: center;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #111827;
+    padding: 6px 8px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+}
+
+.ejeep-card-back .back-number {
+    margin-top: 12px;
+    letter-spacing: 1px;
+}
+
+.ejeep-flip-card .number-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.ejeep-flip-card .number-row .number {
+    flex: 1;
+    margin-top: 0;
+}
+
+.ejeep-card-icon-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.92;
+    transition: transform 0.12s ease, opacity 0.15s ease;
+}
+
+.ejeep-card-icon-btn:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+.ejeep-card-icon-btn:active {
+    transform: translateY(0px);
+}
+
+.ejeep-card-icon-btn i {
+    font-size: 0.92rem;
+}
+
+.ejeep-flip-card .meta-balance {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+
+.ejeep-flip-card .meta-balance-text {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0px;
+    white-space: nowrap;
+}
+
+/* Balance hidden/show state */
+.ejeep-flip-card .virtual-balance-hidden {
+    display: none;
+}
+
+.ejeep-flip-card .virtual-eye-off {
+    display: none;
+}
+
+.ejeep-flip-card[data-balance-visible="false"] .virtual-balance-visible {
+    display: none;
+}
+
+.ejeep-flip-card[data-balance-visible="false"] .virtual-balance-hidden {
+    display: inline;
+}
+
+.ejeep-flip-card[data-balance-visible="false"] .virtual-eye-open {
+    display: none;
+}
+
+.ejeep-flip-card[data-balance-visible="false"] .virtual-eye-off {
+    display: inline;
+}
+
+@media (min-width: 640px) {
+    .ejeep-flip-card {
+        aspect-ratio: 16/9;
+    }
+}
+
+/* Mobile adjustments: prevent clipping/overlap */
+@media (max-width: 420px) {
+    .ejeep-flip-card {
+        /* Give the card more vertical room on narrow phones */
+        aspect-ratio: 16/11.5;
+    }
+
+    .ejeep-card {
+        padding: 14px;
+        --chip-w: 40px;
+        --chip-h: 30px;
+        --chip-notch-w: 9px;
+        --chip-notch-h: 16px;
+    }
+
+    .ejeep-card .chip {
+        margin-top: 8px;
+    }
+
+    .ejeep-card-icon-btn {
+        width: 24px;
+        height: 24px;
+    }
+
+    .ejeep-card-icon-btn i {
+        font-size: 0.8rem;
+    }
+
+    .ejeep-card .card-brand {
+        top: 12px;
+        right: 12px;
+        font-size: 0.78rem;
+    }
+
+    .ejeep-card .number {
+        /* allow the spaced number to wrap instead of overlapping the copy icon */
+        white-space: normal;
+        overflow-wrap: anywhere;
+        letter-spacing: 0.9px;
+        margin-top: 0;
+        line-height: 1.18;
+    }
+
+    .ejeep-flip-card .number-row {
+        margin-top: 10px;
+        gap: 8px;
+    }
+
+    .ejeep-card .meta {
+        grid-template-columns: minmax(0, 1fr) auto;
+        column-gap: 8px;
+        row-gap: 5px;
+        font-size: 0.72rem;
+    }
+
+    .ejeep-card .holder {
+        margin-top: 10px;
+        line-height: 1.15;
+    }
+
+    .ejeep-card .meta {
+        margin-top: 2px;
+    }
+
+    .ejeep-card .meta .meta-org {
+        grid-column: 1 / -1;
+        font-size: 0.62rem;
+    }
+
+    .ejeep-flip-card .meta-balance-text {
+        font-size: 0.68rem;
+        white-space: nowrap;
+    }
+
+    .ejeep-card .badge {
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .ejeep-card-back .card-back-strip {
+        margin-top: 10px;
+        height: 30px;
+    }
+
+    .ejeep-card-back .card-back-signature-row {
+        margin-top: 10px;
+    }
+
+    .ejeep-card-back .card-back-signature,
+    .ejeep-card-back .card-back-cvv {
+        font-size: 0.66rem;
+        min-height: 28px;
+    }
+}
+
+@media (max-width: 360px) {
+    .ejeep-flip-card {
+        /* Prevent text collisions on very small devices */
+        aspect-ratio: 4/3;
+    }
+
+    .ejeep-card {
+        padding: 12px;
+    }
+
+    .ejeep-card .row {
+        align-items: flex-start;
+    }
+
+    .ejeep-card .card-brand {
+        font-size: 0.72rem;
+        letter-spacing: 0.6px;
+    }
+
+    .ejeep-card .number {
+        font-size: 0.78rem;
+        letter-spacing: 0.55px;
+    }
+
+    .ejeep-card .holder {
+        font-size: 0.66rem;
+        margin-top: 8px;
+    }
+
+    .ejeep-card .meta {
+        grid-template-columns: minmax(0, 1fr) auto;
+        column-gap: 6px;
+        row-gap: 4px;
+        font-size: 0.64rem;
+        margin-top: 0;
+    }
+
+    .ejeep-card .meta .meta-org {
+        font-size: 0.56rem;
+    }
+
+    .ejeep-card .badge {
+        font-size: 0.58rem;
+        padding: 2px 6px;
+        bottom: 8px;
+        right: 8px;
+    }
+
+    .ejeep-card-back .card-back-strip {
+        height: 26px;
+    }
+
+    .ejeep-card-back .card-back-signature-row {
+        gap: 6px;
     }
 }
 
@@ -698,6 +1158,276 @@
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 25px;
     margin-bottom: 40px;
+}
+
+/* Trips today — routes with network activity (passenger dashboard) */
+.trips-today-section {
+    margin-bottom: 40px;
+}
+
+.trips-today-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.trips-today-title .fa-bus {
+    opacity: 0.85;
+}
+
+.trips-today-subtitle {
+    margin: -18px 0 20px;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.trips-today-empty {
+    text-align: center;
+    padding: 28px 16px;
+    color: var(--text-light);
+    border: 1px dashed var(--border-color);
+    background: #fafbfc;
+    border-radius: 8px;
+}
+
+.trips-today-empty .fa-road {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+    display: block;
+}
+
+.trips-today-empty-hint {
+    font-size: 0.85rem;
+    margin-top: 8px;
+    opacity: 0.9;
+}
+
+.trips-today-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    /* Prevent the dashboard from growing too tall on mobile when there are many routes */
+    max-height: 360px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 6px; /* room for scrollbar */
+    -webkit-overflow-scrolling: touch;
+}
+
+.trips-today-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--border-color);
+    background: linear-gradient(135deg, #ffffff 0%, #f8faf8 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+}
+
+.trips-today-card--clickable {
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.trips-today-card--clickable:hover {
+    border-color: rgba(22, 163, 74, 0.4);
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.1);
+}
+
+.trips-today-card--clickable:active {
+    transform: scale(0.992);
+}
+
+.trips-today-card--clickable:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.trips-today-map-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #15803d;
+}
+
+.trips-today-map-hint .fa-map-location-dot {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+@media (min-width: 640px) {
+    .trips-today-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+/* Smaller phones: reduce scroll area so it doesn't push the page too far down */
+@media (max-width: 640px) {
+    .trips-today-list {
+        max-height: 42vh;
+    }
+
+    .trips-today-card {
+        gap: 10px;
+    }
+}
+
+.trips-today-route-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--text-dark);
+    font-size: 1.05rem;
+}
+
+.trips-today-arrow {
+    color: var(--primary-color);
+    font-size: 0.85rem;
+}
+
+.trips-today-extra {
+    margin: 8px 0 0;
+    font-size: 0.88rem;
+    color: var(--text-light);
+}
+
+.trips-today-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    font-size: 0.85rem;
+}
+
+.trips-today-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.trips-today-badge--ongoing {
+    background: rgba(22, 163, 74, 0.15);
+    color: #15803d;
+}
+
+.trips-today-badge--quiet {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.trips-today-pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: tripsTodayPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes tripsTodayPulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(0.92);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .trips-today-pulse {
+        animation: none;
+    }
+}
+
+.trips-today-stat,
+.trips-today-time {
+    color: var(--text-light);
+}
+
+/* Passenger dashboard — main stack; narrow screens reorder for a cleaner thumb reach */
+.passenger-dashboard-flow {
+    display: block;
+}
+
+@media (max-width: 640px) {
+    .passenger-dashboard-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .passenger-dashboard-flow__stats {
+        order: 1;
+    }
+
+    .passenger-dashboard-flow__card {
+        order: 2;
+    }
+
+    .passenger-dashboard-flow__trips {
+        order: 3;
+    }
+
+    .passenger-dashboard-flow .dashboard-grid {
+        margin-bottom: 0;
+        gap: 10px;
+    }
+
+    .passenger-dashboard-flow .trips-today-section .section-title {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+
+    .passenger-dashboard-flow .trips-today-subtitle {
+        margin: -6px 0 12px;
+        font-size: 0.82rem;
+        line-height: 1.35;
+    }
+
+    .trips-today-subtitle-extra {
+        display: none;
+    }
+
+    .passenger-dashboard-flow .trips-today-section.dashboard-section {
+        padding: 14px;
+        margin-bottom: 0;
+    }
+
+    .passenger-dashboard-flow .ejeep-card-wrap.dashboard-section {
+        margin-bottom: 0;
+    }
+
+    .trips-today-card {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+
+    .trips-today-card-meta {
+        gap: 8px 10px;
+    }
+
+    .trips-today-route-line {
+        font-size: 0.98rem;
+    }
 }
 
 .dashboard-card {
@@ -960,7 +1690,7 @@
     word-break: break-word;
 }
 
-/* Image Modal */
+/* Fullscreen image viewer only — do not use bare .modal-content (assistant chat reuses that class name) */
 .image-modal {
     display: none;
     position: fixed;
@@ -973,7 +1703,7 @@
     cursor: pointer;
 }
 
-.modal-content {
+.image-modal .modal-content {
     margin: auto;
     display: block;
     width: 90%;
@@ -983,7 +1713,7 @@
     margin-top: 5vh;
 }
 
-.modal-close {
+.image-modal .modal-close {
     position: absolute;
     top: 10px;
     right: 20px;
@@ -1767,6 +2497,18 @@ body .main-content {
         padding-bottom: 10px;
     }
 
+    .passenger-dashboard-flow {
+        gap: 10px;
+    }
+
+    .trips-today-date {
+        font-size: 0.78rem;
+    }
+
+    .trips-today-title.section-title {
+        font-size: 1.05rem;
+    }
+
     .info-item {
         padding: 12px 14px;
         gap: 6px;
@@ -1877,8 +2619,9 @@ body .main-content {
     }
 
     .tracker-modal.assistant-chat-modal .modal-content.assistant-chat-shell {
-        width: 96vw;
-        height: min(90vh, 100%);
+        width: min(96vw, 400px);
+        height: min(80vh, 620px);
+        max-height: calc(100vh - 60px);
         border-radius: 16px;
     }
 

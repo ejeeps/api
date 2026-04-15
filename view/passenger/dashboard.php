@@ -14,12 +14,16 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_level'] !== 'passenger') {
 }
 require_once __DIR__ . '/../../config/connection.php';
 require_once __DIR__ . '/../../controller/passenger/get_passengers_info.php';
+require_once __DIR__ . '/../../controller/passenger/get_dashboard_trips_today.php';
 $passengerInfo = getPassengerInfo($pdo, $_SESSION['user_id']);
 if (!$passengerInfo) {
     $redirectPath = isset($dashboard_view) ? 'index.php' : '../../index.php';
     header("Location: " . $redirectPath . "?login=1&error=" . urlencode("Passenger information not found."));
     exit;
 }
+// Use card_id (no spaces) so the "ongoing" badge reflects this passenger's open trips.
+$cardIdNumber = !empty($passengerInfo['card_number']) ? preg_replace('/\D+/', '', (string)$passengerInfo['card_number']) : null;
+$tripsTodayRoutes = getDashboardTripsToday($pdo, $cardIdNumber);
 if (isset($dashboard_view)) {
     $basePath = '';
 } else {
@@ -44,6 +48,7 @@ $imageBasePath = $basePath;
     <title>Passenger Dashboard - E-JEEP</title>
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/index.css" rel="stylesheet" type="text/css">
     <link href="<?php echo htmlspecialchars($basePath); ?>assets/style/dashboard.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/pwa.js"></script>
 
@@ -157,7 +162,7 @@ $imageBasePath = $basePath;
         /* Modal card */
         .logout-modal-box {
             background: #ffffff;
-            border-radius: 20px;
+           
             padding: 40px 36px 32px;
             width: 92%;
             max-width: 420px;
@@ -232,7 +237,7 @@ $imageBasePath = $basePath;
         .logout-modal-actions button {
             flex: 1;
             padding: 13px 18px;
-            border-radius: 12px;
+         
             font-size: 0.93rem;
             font-weight: 600;
             cursor: pointer;
@@ -272,6 +277,130 @@ $imageBasePath = $basePath;
             cursor: not-allowed;
             filter: none;
         }
+
+        /* Route map modal (trips today — OSRM + Leaflet) */
+        .route-map-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99990;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .route-map-modal.open {
+            display: flex;
+        }
+        .route-map-modal__panel {
+            background: #fff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: min(920px, 100vw - 24px);
+            max-height: min(88vh, 720px);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+            overflow: hidden;
+            animation: routeMapModalIn 0.26s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes routeMapModalIn {
+            from { opacity: 0; transform: scale(0.94) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .route-map-modal__header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .route-map-modal__header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #14532d;
+            line-height: 1.35;
+            padding-right: 8px;
+        }
+        .route-map-modal__close {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 10px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 1.35rem;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .route-map-modal__close:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        .route-map-modal__body {
+            position: relative;
+            flex: 1;
+            min-height: min(52vh, 400px);
+            display: flex;
+            flex-direction: column;
+        }
+        .route-map-modal__map {
+            flex: 1;
+            min-height: min(52vh, 400px);
+            width: 100%;
+            background: #e8f5e9;
+        }
+        .route-map-modal__loading {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.82);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #166534;
+            gap: 10px;
+        }
+        .route-map-modal__loading::before {
+            content: '';
+            width: 22px;
+            height: 22px;
+            border: 3px solid #bbf7d0;
+            border-top-color: #16a34a;
+            border-radius: 50%;
+            animation: routeMapSpin 0.75s linear infinite;
+        }
+        @keyframes routeMapSpin {
+            to { transform: rotate(360deg); }
+        }
+        .route-map-modal__error {
+            margin: 0;
+            padding: 10px 16px 14px;
+            font-size: 0.88rem;
+            color: #92400e;
+            background: #fffbeb;
+            border-top: 1px solid #fde68a;
+        }
+        .route-map-marker__dot {
+            display: block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.35);
+        }
+        .route-map-marker--start .route-map-marker__dot { background: #22c55e; }
+        .route-map-marker--end .route-map-marker__dot { background: #ef4444; }
     </style>
 </head>
 
@@ -332,7 +461,9 @@ $imageBasePath = $basePath;
                 </div>
             <?php endif; ?>
 
+            <div class="passenger-dashboard-flow">
             <!-- Dashboard Cards -->
+            <div class="passenger-dashboard-flow__stats">
             <div class="dashboard-grid">
                 <div class="dashboard-card">
                     <div class="card-icon"><i class="fas fa-id-card"></i></div>
@@ -358,37 +489,221 @@ $imageBasePath = $basePath;
                     <p class="card-value"><?php echo $passengerInfo['organization_name'] ? htmlspecialchars($passengerInfo['organization_name']) : 'None'; ?></p>
                 </div>
             </div>
+            </div>
+
+            <!-- Trips today: routes with activity (network overview) -->
+            <div class="passenger-dashboard-flow__trips">
+            <div class="dashboard-section trips-today-section">
+                <h2 class="section-title trips-today-title">
+                    <i class="fas fa-bus" aria-hidden="true"></i>
+                    Trips today
+                </h2>
+                <p class="trips-today-subtitle">
+                    <span class="trips-today-date"><?php echo htmlspecialchars(date('l, F j, Y')); ?></span><span class="trips-today-subtitle-extra"> · Routes with activity today · Tap a route to open the map (OSRM)</span>
+                </p>
+                <?php if (empty($tripsTodayRoutes)): ?>
+                    <div class="trips-today-empty" role="status">
+                        <i class="fas fa-road" aria-hidden="true"></i>
+                        <p>No trip activity has been recorded on the network yet today.</p>
+                        <p class="trips-today-empty-hint">When vehicles run and taps are logged, routes will appear here.</p>
+                    </div>
+                <?php else: ?>
+                    <ul class="trips-today-list">
+                        <?php foreach ($tripsTodayRoutes as $row):
+                            $from = isset($row['from_location']) ? (string)$row['from_location'] : '';
+                            $to = isset($row['to_location']) ? (string)$row['to_location'] : '';
+                            $extra = isset($row['location']) ? trim((string)$row['location']) : '';
+                            $sessions = (int)($row['trip_sessions'] ?? 0);
+                            $pending = (int)($row['pending_rows'] ?? 0);
+                            $lastTs = !empty($row['last_activity']) ? strtotime((string)$row['last_activity']) : false;
+                            $lastLabel = $lastTs ? date('g:i A', $lastTs) : '';
+                            $ongoing = $pending > 0;
+                            $routeGeo = [
+                                'startLat' => isset($row['map_start_lat']) && $row['map_start_lat'] !== null && $row['map_start_lat'] !== '' ? (float)$row['map_start_lat'] : null,
+                                'startLng' => isset($row['map_start_lng']) && $row['map_start_lng'] !== null && $row['map_start_lng'] !== '' ? (float)$row['map_start_lng'] : null,
+                                'endLat' => isset($row['map_end_lat']) && $row['map_end_lat'] !== null && $row['map_end_lat'] !== '' ? (float)$row['map_end_lat'] : null,
+                                'endLng' => isset($row['map_end_lng']) && $row['map_end_lng'] !== null && $row['map_end_lng'] !== '' ? (float)$row['map_end_lng'] : null,
+                            ];
+                            $routeGeoJson = htmlspecialchars(json_encode($routeGeo), ENT_QUOTES, 'UTF-8');
+                            $routeMapLabel = 'View route on map: ' . $from . ' to ' . $to;
+                            ?>
+                            <li
+                                class="trips-today-card trips-today-card--clickable"
+                                tabindex="0"
+                                role="button"
+                                data-route-geo="<?php echo $routeGeoJson; ?>"
+                                data-route-from="<?php echo htmlspecialchars($from, ENT_QUOTES, 'UTF-8'); ?>"
+                                data-route-to="<?php echo htmlspecialchars($to, ENT_QUOTES, 'UTF-8'); ?>"
+                                aria-label="<?php echo htmlspecialchars($routeMapLabel, ENT_QUOTES, 'UTF-8'); ?>"
+                            >
+                                <div class="trips-today-card-main">
+                                    <div class="trips-today-route-line">
+                                        <span class="trips-today-from"><?php echo htmlspecialchars($from); ?></span>
+                                        <span class="trips-today-arrow" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>
+                                        <span class="trips-today-to"><?php echo htmlspecialchars($to); ?></span>
+                                    </div>
+                                    <?php if ($extra !== ''): ?>
+                                        <p class="trips-today-extra"><?php echo htmlspecialchars($extra); ?></p>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="trips-today-card-meta">
+                                    <?php if ($ongoing): ?>
+                                        <span class="trips-today-badge trips-today-badge--ongoing"><span class="trips-today-pulse" aria-hidden="true"></span> Ongoing</span>
+                                    <?php else: ?>
+                                        <span class="trips-today-badge trips-today-badge--quiet">No open trip</span>
+                                    <?php endif; ?>
+                                    <span class="trips-today-stat"><?php echo $sessions; ?> trip<?php echo $sessions === 1 ? '' : 's'; ?> today</span>
+                                    <?php if ($lastLabel !== ''): ?>
+                                        <span class="trips-today-time">Last activity <?php echo htmlspecialchars($lastLabel); ?></span>
+                                    <?php endif; ?>
+                                    <span class="trips-today-map-hint" aria-hidden="true"><i class="fas fa-map-location-dot"></i> Map</span>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </div>
+            </div>
 
             <?php if (!empty($passengerInfo['card_number']) && ($passengerInfo['card_status'] ?? '') === 'active'): ?>
             <!-- E-JEEP Virtual Card -->
+            <div class="passenger-dashboard-flow__card">
             <div class="dashboard-section ejeep-card-wrap">
-               
-                <div class="ejeep-card" aria-label="Your virtual E-JEEP card">
-                    <div class="glow"></div>
-                    <div class="row">
-                        <div class="logo"><span class="dot"></span><span>E&#8209;JEEP</span></div>
-                        <div class="card-brand">VIRTUAL</div>
+                <?php
+                    $virtualCardRaw = preg_replace('/\D+/', '', (string)($passengerInfo['card_number'] ?? ''));
+                    $virtualCardFormatted = trim(chunk_split($virtualCardRaw, 4, ' '));
+                    $virtualCardMasked = str_repeat('*', max(0, strlen($virtualCardRaw) - 4)) . substr($virtualCardRaw, -4);
+                    $virtualCardMaskedFormatted = trim(chunk_split($virtualCardMasked, 4, ' '));
+
+                    $virtualBalanceFormatted = number_format((float)($passengerInfo['card_balance'] ?? 0.00), 2);
+                    $virtualCardType = strtoupper((string)($passengerInfo['card_type'] ?? 'STANDARD'));
+                    $virtualHolder = strtoupper(trim((string)($passengerInfo['first_name'] ?? '') . ' ' . (string)($passengerInfo['last_name'] ?? '')));
+                    $virtualOrg = $passengerInfo['organization_name'] ? trim((string)$passengerInfo['organization_name']) : null;
+                    $virtualCvvMasked = str_repeat('*', 3);
+                    if (strlen($virtualCardRaw) >= 3) {
+                        $virtualCvvMasked = substr($virtualCardRaw, -3);
+                    }
+                ?>
+
+                <div
+                    class="ejeep-flip-card"
+                    data-balance-visible="true"
+                    data-card-number-raw="<?php echo htmlspecialchars($virtualCardRaw); ?>"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Your virtual E-JEEP card. Click to flip."
+                    onclick="flipVirtualEjeepCard(event)"
+                    onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); flipVirtualEjeepCard(event); }"
+                >
+                    <div class="ejeep-flip-card-inner">
+                        <!-- Front Side -->
+                        <div class="ejeep-card ejeep-card-front" aria-hidden="false">
+                            <div class="glow"></div>
+                            <div class="row">
+                                <div class="logo"><span class="dot"></span><span>E&#8209;JEEP</span></div>
+                                <div class="card-brand">VIRTUAL</div>
+                            </div>
+                            <div class="chip" title="Secure chip"></div>
+
+                            <div class="number-row">
+                                <div class="number">
+                                    <?php echo htmlspecialchars($virtualCardFormatted); ?>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="ejeep-card-icon-btn copy-card-number-btn"
+                                    aria-label="Copy card number"
+                                    title="Copy card number"
+                                    onclick="event.stopPropagation(); copyVirtualCardNumber(event);"
+                                >
+                                    <i class="fas fa-copy" aria-hidden="true"></i>
+                                </button>
+                            </div>
+
+                            <div class="holder"><?php echo htmlspecialchars($virtualHolder); ?></div>
+
+                            <div class="meta">
+                                <span><?php echo htmlspecialchars($virtualCardType); ?></span>
+                                <span class="meta-balance">
+                                    <span class="meta-balance-text">
+                                        BAL: &#8369;
+                                        <span class="virtual-balance-visible"><?php echo htmlspecialchars($virtualBalanceFormatted); ?></span>
+                                        <span class="virtual-balance-hidden">****.**</span>
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="ejeep-card-icon-btn balance-toggle-btn"
+                                        aria-label="Hide balance"
+                                        title="Hide balance"
+                                        onclick="event.stopPropagation(); toggleVirtualBalanceVisibility(event);"
+                                    >
+                                        <i class="fas fa-eye virtual-eye-open" aria-hidden="true"></i>
+                                        <i class="fas fa-eye-slash virtual-eye-off" aria-hidden="true"></i>
+                                    </button>
+                                </span>
+                                <?php if ($virtualOrg): ?>
+                                    <small class="meta-org">Organization: <?php echo htmlspecialchars($virtualOrg); ?></small>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="badge">ACTIVE</div>
+                        </div>
+
+                        <!-- Back Side -->
+                        <div class="ejeep-card ejeep-card-back" aria-hidden="true">
+                            <div class="glow"></div>
+                            <div class="row">
+                                <div class="logo"><span class="dot"></span><span>E&#8209;JEEP</span></div>
+                                <div class="card-brand">BACK</div>
+                            </div>
+                            <div class="card-back-strip" aria-hidden="true"></div>
+
+                            <div class="card-back-signature-row">
+                                <div class="card-back-signature">
+                                    <?php echo htmlspecialchars($virtualHolder); ?>
+                                </div>
+                                <div class="card-back-cvv">
+                                    CVV <?php echo htmlspecialchars($virtualCvvMasked); ?>
+                                </div>
+                            </div>
+
+                            <div class="number back-number">
+                                <?php echo htmlspecialchars($virtualCardMaskedFormatted); ?>
+                            </div>
+
+                            <div class="meta">
+                                <span><?php echo htmlspecialchars($virtualCardType); ?></span>
+                                <span class="meta-balance">
+                                    <span class="meta-balance-text">
+                                        BAL: &#8369;
+                                        <span class="virtual-balance-visible"><?php echo htmlspecialchars($virtualBalanceFormatted); ?></span>
+                                        <span class="virtual-balance-hidden">****.**</span>
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="ejeep-card-icon-btn balance-toggle-btn"
+                                        aria-label="Hide balance"
+                                        title="Hide balance"
+                                        onclick="event.stopPropagation(); toggleVirtualBalanceVisibility(event);"
+                                    >
+                                        <i class="fas fa-eye virtual-eye-open" aria-hidden="true"></i>
+                                        <i class="fas fa-eye-slash virtual-eye-off" aria-hidden="true"></i>
+                                    </button>
+                                </span>
+                                <?php if ($virtualOrg): ?>
+                                    <small class="meta-org">Organization: <?php echo htmlspecialchars($virtualOrg); ?></small>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="badge">ACTIVE</div>
+                        </div>
                     </div>
-                    <div class="chip" title="Secure chip"></div>
-                    <div class="number">
-                        <?php
-                            $raw = preg_replace('/\D+/', '', (string)$passengerInfo['card_number']);
-                            $formatted = trim(chunk_split($raw, 4, ' '));
-                            echo htmlspecialchars($formatted);
-                        ?>
-                    </div>
-                    <div class="holder"><?php echo htmlspecialchars(strtoupper(($passengerInfo['first_name'] ?? '') . ' ' . ($passengerInfo['last_name'] ?? ''))); ?></div>
-                    <div class="meta">
-                        <span><?php echo htmlspecialchars(strtoupper($passengerInfo['card_type'] ?? 'STANDARD')); ?></span>
-                        <span>BAL: &#8369;<?php echo number_format($passengerInfo['card_balance'] ?? 0.00, 2); ?></span>
-                        <?php if ($passengerInfo['organization_name']): ?>
-                            <span>ORG: <?php echo htmlspecialchars(strtoupper($passengerInfo['organization_name'])); ?></span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="badge">ACTIVE</div>
                 </div>
             </div>
+            </div>
             <?php endif; ?>
+
+            </div><!-- .passenger-dashboard-flow -->
 
             
     </div>
@@ -405,6 +720,21 @@ $imageBasePath = $basePath;
         <img class="modal-content" id="modalImage">
     </div>
 
+    <!-- Route map (OSRM + Leaflet) -->
+    <div id="routeMapModal" class="route-map-modal" role="dialog" aria-modal="true" aria-labelledby="routeMapModalTitle" aria-hidden="true">
+        <div class="route-map-modal__panel">
+            <div class="route-map-modal__header">
+                <h3 id="routeMapModalTitle">Route</h3>
+                <button type="button" class="route-map-modal__close" id="routeMapModalClose" aria-label="Close map">&times;</button>
+            </div>
+            <div class="route-map-modal__body">
+                <div id="routeMapModalLoading" class="route-map-modal__loading" hidden>Loading route…</div>
+                <div id="routeMapModalMap" class="route-map-modal__map" role="img" aria-label="Route map"></div>
+                <p id="routeMapModalError" class="route-map-modal__error" role="alert" hidden></p>
+            </div>
+        </div>
+    </div>
+
     <!-- ── Profile Zoom Modal ── -->
     <div id="profileZoomModal" class="profile-zoom-modal" role="dialog" aria-modal="true" aria-label="Profile photo">
         <div class="profile-zoom-inner">
@@ -413,8 +743,9 @@ $imageBasePath = $basePath;
         </div>
     </div>
 
-       <?php include 'view/components/live_bus_tracker.php'; ?>
+        <?php include 'view/components/chat.php'; ?>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="<?php echo htmlspecialchars($basePath); ?>assets/script/passenger/dashboard.js"></script>
 
     <script>

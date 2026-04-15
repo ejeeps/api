@@ -259,23 +259,75 @@ function handleCancelCallback($userId, $payMongoService) {
         $transactionRef = $_SESSION['pending_transaction'] ?? null;
         
         if ($transactionRef) {
-            // Update transaction status to cancelled
+            // Resolve the transaction row so we can check the real provider status.
+            // Users sometimes hit "cancel" / back even though PayMongo later marks the payment as succeeded.
             $database = new Database();
             $pdo = $database->getConnection();
-            
+
             $stmt = $pdo->prepare("
-                UPDATE transactions 
-                SET status = 'cancelled', updated_at = NOW() 
+                SELECT id, payment_intent_id, status
+                FROM transactions
+                WHERE transaction_reference = ? AND user_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+            ");
+            $stmt->execute([$transactionRef, $userId]);
+            $tx = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($tx && !empty($tx['payment_intent_id'])) {
+                $paymentIntentId = (string)$tx['payment_intent_id'];
+                $paymentIntent = $payMongoService->getPaymentIntent($paymentIntentId);
+
+                if ($paymentIntent && isset($paymentIntent['attributes']['status'])) {
+                    $paymentStatus = (string)$paymentIntent['attributes']['status'];
+
+                    // If it already succeeded, treat cancel as a success from the user's POV.
+                    if ($paymentStatus === 'succeeded') {
+                        $transactionId = (int)$tx['id'];
+                        $result = $payMongoService->processSuccessfulPayment($paymentIntentId, $userId, $transactionId);
+
+                        unset($_SESSION['pending_transaction']);
+                        if (!empty($result['success'])) {
+                            $successMessage = urlencode(
+                                "Payment successful! ₱" . number_format((float)$result['amount'], 2) .
+                                " has been added to your account. New balance: ₱" . number_format((float)$result['new_balance'], 2)
+                            );
+                            header("Location: ../../index.php?page=buypoints&success=" . $successMessage);
+                            exit;
+                        }
+                    }
+
+                    // If it's still processing/needs confirmation, don't mark cancelled.
+                    if ($paymentStatus === 'processing' || $paymentStatus === 'awaiting_payment_method' || $paymentStatus === 'awaiting_next_action') {
+                        $stmt = $pdo->prepare("
+                            UPDATE transactions
+                            SET status = 'processing', updated_at = NOW()
+                            WHERE id = ? AND user_id = ?
+                        ");
+                        $stmt->execute([(int)$tx['id'], $userId]);
+                        unset($_SESSION['pending_transaction']);
+
+                        $pendingMessage = urlencode("Your payment is still being processed. Please check again in a few minutes.");
+                        header("Location: ../../index.php?page=buypoints&pending=" . $pendingMessage);
+                        exit;
+                    }
+                }
+            }
+
+            // Otherwise: mark as cancelled (no charges made).
+            $stmt = $pdo->prepare("
+                UPDATE transactions
+                SET status = 'cancelled', updated_at = NOW()
                 WHERE transaction_reference = ? AND user_id = ?
             ");
             $stmt->execute([$transactionRef, $userId]);
-            
+
             logPayMongoTransaction('Payment Cancelled', [
                 'user_id' => $userId,
                 'transaction_reference' => $transactionRef,
                 'affected_rows' => $stmt->rowCount()
             ]);
-            
+
             // Clear pending transaction from session
             unset($_SESSION['pending_transaction']);
         }

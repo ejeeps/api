@@ -43,6 +43,63 @@ if ($message === '' || mb_strlen($message) > 4000) {
     exit;
 }
 
+// Fixed response for developer identity questions.
+$messageLower = mb_strtolower($message, 'UTF-8');
+$personTerms = [
+    'developer',
+    'developed',
+    'develop',
+    'programmer',
+    'prorgammer',
+];
+$buildTerms = [
+    'make',
+    'made',
+    'create',
+    'creator',
+    'created',
+    'build',
+    'built',
+];
+$appTerms = [
+    'app',
+    'application',
+    'system',
+    'website',
+    'this',
+];
+
+$hasPersonTerm = false;
+foreach ($personTerms as $term) {
+    if (strpos($messageLower, $term) !== false) {
+        $hasPersonTerm = true;
+        break;
+    }
+}
+
+$hasBuildTerm = false;
+foreach ($buildTerms as $term) {
+    if (strpos($messageLower, $term) !== false) {
+        $hasBuildTerm = true;
+        break;
+    }
+}
+
+$hasAppTerm = false;
+foreach ($appTerms as $term) {
+    if (strpos($messageLower, $term) !== false) {
+        $hasAppTerm = true;
+        break;
+    }
+}
+
+$asksDeveloperIdentity = $hasPersonTerm || ($hasBuildTerm && $hasAppTerm);
+if ($asksDeveloperIdentity) {
+    echo json_encode(['reply' => 'The developer of this app 
+    is Anthony , Hugh, Dennis.'], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+    exit;
+}
+
 $history = $input['history'] ?? [];
 if (!is_array($history)) {
     $history = [];
@@ -60,6 +117,7 @@ $first = trim((string) ($passengerInfo['first_name'] ?? ''));
 $last = trim((string) ($passengerInfo['last_name'] ?? ''));
 $cardNumber = $passengerInfo['card_number'] ?? null;
 $balance = isset($passengerInfo['card_balance']) ? (float) $passengerInfo['card_balance'] : null;
+$cardType = strtolower(trim((string)($passengerInfo['card_type'] ?? 'regular')));
 
 // Active routes (system-wide, for "what routes exist")
 $routes = [];
@@ -103,14 +161,41 @@ if (!empty($cardNumber)) {
     }
 }
 
+$taripaRates = [];
+// Taripa (LTFRB) fare matrix — used to explain/estimate distance-based fares.
+try {
+    $tStmt = $pdo->query("
+        SELECT
+            distance_km,
+            distance_label,
+            regular_fare,
+            discounted_fare,
+            vehicle_type,
+            effective_date,
+            expiry_date
+        FROM taripa_rates
+        WHERE is_active = TRUE
+          AND effective_date <= CURDATE()
+          AND (expiry_date IS NULL OR expiry_date >= CURDATE())
+        ORDER BY vehicle_type ASC, distance_km ASC
+    ");
+    $taripaRates = $tStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log('PassengerAiAssistant taripa_rates: ' . $e->getMessage());
+}
+
 $contextPayload = [
     'passenger' => [
         'display_name' => trim($first . ' ' . $last),
         'has_active_card' => !empty($cardNumber),
         'card_balance_php' => $balance,
+        'card_type' => $cardType,
+        // Taripa uses "discounted_fare" for Student/Senior/PWD type cards.
+        'has_discount' => in_array($cardType, ['student', 'senior', 'pwd'], true),
     ],
     'routes_active' => $routes,
     'passenger_recent_trips' => $recentTrips,
+    'taripa_rates_active' => $taripaRates,
 ];
 
 $contextJson = json_encode($contextPayload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
@@ -122,7 +207,7 @@ $systemPrompt = <<<PROMPT
 You are the E-JEEP assistant for PASSENGERS ONLY.
 
 Rules:
-- Answer only using the JSON context below (routes and this passenger's trips, plus passenger balance/card flags). Do not invent routes, trips, or fares.
+- Answer only using the JSON context below (routes, this passenger's trips, passenger balance/card flags, and Taripa fare matrix). Do not invent routes, trips, or fares.
 - Help explain which route goes where, what trips the passenger took (tap in/out, time, fare), and how to read this data.
 - If the user asks about drivers, admin, other passengers, politics, coding, or anything outside E-JEEP passenger trips/routes/balance, politely say you can only help with their E-JEEP routes and trip history from this app.
 - Be concise and friendly. Use Philippine peso (₱) when mentioning money.

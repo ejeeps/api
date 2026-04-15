@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ejeep-pwa-v3';
+const CACHE_NAME = 'ejeep-pwa-v6';
 // Only pre-cache static assets — never cache PHP/HTML entry points (session-dependent).
 const STATIC_ASSETS = [
     '/api/assets/style/index.css',
@@ -7,7 +7,7 @@ const STATIC_ASSETS = [
     '/api/assets/script/index/index.js',
     '/api/assets/script/driver/dashboard.js',
     '/api/assets/script/passenger/dashboard.js',
-    '/api/assets/script/passenger/ai-assistant.js'
+    '/api/assets/script/passenger/ai-assistant.js?v=20260408c'
 ];
 
 // Install event - cache static assets
@@ -20,6 +20,12 @@ self.addEventListener('install', function (event) {
         })
     );
     self.skipWaiting();
+});
+
+self.addEventListener('message', function (event) {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 // Activate event - clean up old caches
@@ -65,27 +71,27 @@ self.addEventListener('fetch', function (event) {
         return;
     }
 
-    // Static assets: cache first, then network
-    event.respondWith(
-        caches.match(event.request).then(function (response) {
-            if (response) {
-                return response;
-            }
-
-            return fetch(event.request).then(function (networkResponse) {
-                if (!networkResponse || networkResponse.status !== 200) {
+    // Static assets: network-first, fallback to cache.
+    // This prevents broken UI when we've updated CSS/JS but the SW still serves an older cached copy.
+    if (shouldCacheAsset(url)) {
+        event.respondWith(
+            fetch(event.request)
+                .then(function (networkResponse) {
+                    if (networkResponse && networkResponse.status === 200) {
+                        var responseToCache = networkResponse.clone();
+                        caches.open(CACHE_NAME).then(function (cache) {
+                            cache.put(event.request, responseToCache);
+                        });
+                    }
                     return networkResponse;
-                }
+                })
+                .catch(function () {
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
 
-                if (shouldCacheAsset(url)) {
-                    var responseToCache = networkResponse.clone();
-                    caches.open(CACHE_NAME).then(function (cache) {
-                        cache.put(event.request, responseToCache);
-                    });
-                }
-
-                return networkResponse;
-            });
-        })
-    );
+    // Default: just hit the network (no caching for non-asset GETs).
+    event.respondWith(fetch(event.request));
 });

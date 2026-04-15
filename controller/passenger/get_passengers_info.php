@@ -76,6 +76,56 @@ function getPassengerInfo($pdo, $userId) {
             error_log("Passenger record not found for user_id = " . $userId);
             return null;
         }
+
+        // Persist passenger trip state with 15-minute stale timeout.
+        // If the latest trip row for this card is still a pending IN within 15 minutes, mark ongoing.
+        // Otherwise, mark ended.
+        $tripTimeoutMinutes = 15;
+        if (!empty($result['card_number'])) {
+            try {
+                $latestTripStmt = $pdo->prepare("
+                    SELECT trip_id, tap_level, trip_status, timestamp
+                    FROM trips
+                    WHERE card_id = ?
+                    ORDER BY timestamp DESC, id DESC
+                    LIMIT 1
+                ");
+                $latestTripStmt->execute([(string)$result['card_number']]);
+                $latestTrip = $latestTripStmt->fetch(PDO::FETCH_ASSOC);
+
+                $tripState = 'ended';
+                $lastSeenAt = null;
+                if ($latestTrip) {
+                    $lastSeenAt = $latestTrip['timestamp'] ?? null;
+                    $isPendingIn = (($latestTrip['tap_level'] ?? null) === 'IN') && (($latestTrip['trip_status'] ?? null) === 'pending');
+                    $isFresh = false;
+
+                    if (!empty($latestTrip['timestamp'])) {
+                        $ageStmt = $pdo->prepare("SELECT TIMESTAMPDIFF(MINUTE, ?, NOW())");
+                        $ageStmt->execute([(string)$latestTrip['timestamp']]);
+                        $ageMinutes = (int)$ageStmt->fetchColumn();
+                        $isFresh = $ageMinutes <= $tripTimeoutMinutes;
+                    }
+
+                    if ($isPendingIn && $isFresh) {
+                        $tripState = 'ongoing';
+                    }
+                }
+
+                $updateTripStateStmt = $pdo->prepare("
+                    UPDATE passengers
+                    SET trip_activity_status = ?, trip_last_seen_at = ?, trip_status_updated_at = NOW()
+                    WHERE id = ?
+                ");
+                $updateTripStateStmt->execute([$tripState, $lastSeenAt, (int)$result['passenger_table_id']]);
+
+                $result['trip_activity_status'] = $tripState;
+                $result['trip_last_seen_at'] = $lastSeenAt;
+            } catch (PDOException $e) {
+                // Keep backward compatibility if migration isn't applied yet.
+                error_log("Trip state update skipped: " . $e->getMessage());
+            }
+        }
         
         return $result;
     } catch (PDOException $e) {

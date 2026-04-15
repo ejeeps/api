@@ -47,7 +47,6 @@ $dashboard_view = $dashboard_view ?? false;
     </div>
 </nav>
 
-
 <div class="logout-modal-overlay"
      id="logoutModalOverlay"
      role="dialog"
@@ -101,6 +100,7 @@ $dashboard_view = $dashboard_view ?? false;
     align-items: center;
     justify-content: center;
 }
+
 .logout-modal-overlay.active {
     display: flex;
 }
@@ -175,15 +175,11 @@ $dashboard_view = $dashboard_view ?? false;
     background:#e2e8f0;
 }
 .btn-logout-confirm {
-    background:linear-gradient(135deg,#38a169,#276749);
+    background:#22c55e;
     color:#fff;
 }
 </style>
 
-
-<!-- ═══════════════════════════════════════
-     LOGOUT MODAL JS
-═════════════════════════════════════════ -->
 <script>
 (function () {
 
@@ -233,3 +229,4 @@ $dashboard_view = $dashboard_view ?? false;
 
 })();
 </script>
+

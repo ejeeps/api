@@ -132,6 +132,133 @@ $imageBasePath = $basePath;
             transform: scale(1.08);
             box-shadow: 0 4px 16px rgba(0,0,0,.25);
         }
+
+        /* Settings page redesign */
+        .settings-form {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .settings-form .dashboard-section {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fffb 100%);
+            border: 1px solid #dcfce7;
+            
+            padding: 26px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(2, 44, 34, 0.08);
+        }
+
+        .settings-form .section-title {
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #bbf7d0;
+            font-size: 1.25rem;
+            color: #166534;
+        }
+
+        .settings-form .form-grid {
+            gap: 16px;
+        }
+
+        .settings-form .form-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 7px;
+        }
+
+        .settings-form .form-input {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+           
+            min-height: 46px;
+            padding: 10px 13px;
+            transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+        }
+
+        .settings-form .form-input:hover {
+            border-color: #94a3b8;
+            background: #f8fafc;
+        }
+
+        .settings-form .form-input:focus {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+            background: #fff;
+        }
+
+        .settings-current-photo {
+            margin-bottom: 14px;
+        }
+
+        .settings-current-photo__preview {
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 124px;
+            height: 124px;
+            
+            border: 2px solid #bbf7d0;
+            background: #ecfdf5;
+            overflow: hidden;
+        }
+
+        .settings-current-photo__preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .settings-form .file-input {
+            background: #f8fafc;
+            padding: 8px;
+        }
+
+        .settings-form .file-input::-webkit-file-upload-button {
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 600;
+        }
+
+        .settings-form .form-actions {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: none;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .settings-form .btn {
+            min-width: 150px;
+            
+            padding: 11px 16px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .settings-form .btn-primary {
+            box-shadow: 0 10px 22px rgba(34, 197, 94, 0.24);
+        }
+
+        @media (max-width: 768px) {
+            .settings-form .dashboard-section {
+                padding: 18px;
+                
+                margin-bottom: 14px;
+            }
+
+            .settings-form .form-actions {
+                justify-content: stretch;
+            }
+
+            .settings-form .btn {
+                width: 100%;
+                min-width: 0;
+            }
+        }
     </style>
 </head>
 
@@ -299,10 +426,10 @@ $imageBasePath = $basePath;
                     <div class="form-grid">
                         <div class="form-group form-group-full">
                             <?php if (!empty($passengerInfo['profile_image']) && file_exists($imageBasePath . $passengerInfo['profile_image'])): ?>
-                                <div style="margin-bottom: 15px;">
+                                <div class="settings-current-photo">
                                     <label class="form-label">Current Profile Photo</label>
-                                    <div style="margin-top: 10px;">
-                                        <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['profile_image']); ?>" alt="Current Profile" style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #ddd;">
+                                    <div class="settings-current-photo__preview">
+                                        <img src="<?php echo htmlspecialchars($imageBasePath . $passengerInfo['profile_image']); ?>" alt="Current Profile">
                                     </div>
                                 </div>
                             <?php endif; ?>
@@ -314,14 +441,14 @@ $imageBasePath = $basePath;
                 </div>
 
                 <!-- Form Actions -->
-                <div class="form-actions" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Update Profile</button>
                     <a href="<?php echo isset($dashboard_view) ? 'index.php' : '../../view/passenger/dashboard.php'; ?>" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
         </div>
     </div>
-<?php include 'view/components/live_bus_tracker.php'; ?>
+        <?php include 'view/components/chat.php'; ?>
     <!-- Bottom Navigation Bar -->
     <?php
     $activePage = 'settings';

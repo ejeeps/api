@@ -271,41 +271,7 @@ $imageBasePath = $basePath;
                 </div>
             </div>
 
-            <!-- Profile Information -->
-            <div class="dashboard-section">
-                <h2 class="section-title">Profile Information</h2>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Name:</span>
-                        <span class="info-value"><?php echo htmlspecialchars($driverInfo['first_name'] . ' ' . $driverInfo['last_name']); ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Email:</span>
-                        <span class="info-value"><?php echo htmlspecialchars($driverInfo['email']); ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Phone:</span>
-                        <span class="info-value"><?php echo htmlspecialchars($driverInfo['phone_number']); ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Address:</span>
-                        <span class="info-value"><?php echo htmlspecialchars($driverInfo['address_line1'] . ', ' . $driverInfo['city'] . ', ' . $driverInfo['province']); ?></span>
-                    </div>
-                    <?php if (!empty($driverInfo['license_type'])): ?>
-                        <div class="info-item">
-                            <span class="info-label">License Type:</span>
-                            <span class="info-value"><?php echo htmlspecialchars($driverInfo['license_type']); ?></span>
-                        </div>
-                    <?php endif; ?>
-                    <?php if (!empty($driverInfo['license_expiry_date'])): ?>
-                        <div class="info-item">
-                            <span class="info-label">License Expiry:</span>
-                            <span class="info-value"><?php echo date('F d, Y', strtotime($driverInfo['license_expiry_date'])); ?></span>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
+        
     </div>
 
     <!-- Fullscreen Image Modal (existing — untouched) -->

@@ -97,3 +97,14 @@
 [2026-03-30 04:33:36] [TEST] Payment Cancelled | Data: {"user_id":4,"transaction_reference":"TXN_4_1774838010_8412","affected_rows":1}
 [2026-03-30 04:42:42] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_QLYWC6LJz2D34duZKqVzdwNN","amount":1,"metadata":{"user_id":"4","transaction_reference":"TXN_4_1774838560_6355","transaction_id":"26","customer_email":"ps1@gmail.com","customer_name":"ps 1","payment_method":"qrph"}}
 [2026-03-30 04:42:43] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_191acfd031b74bf4a0ff1b30","payment_intent_id":"pi_QLYWC6LJz2D34duZKqVzdwNN"}
+[2026-03-30 08:32:21] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_9je1uEWdLkxaJfauLC3rc3Ja","amount":1,"metadata":{"user_id":"4","transaction_reference":"TXN_4_1774852338_8949","transaction_id":"27","customer_email":"ps1@gmail.com","customer_name":"ps 1","payment_method":"qrph"}}
+[2026-03-30 08:32:22] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_74fcbe12fc0c2e8fbaf4df45","payment_intent_id":"pi_9je1uEWdLkxaJfauLC3rc3Ja"}
+[2026-03-30 08:33:22] [TEST] Payment Callback Received | Data: {"user_id":4,"status":"success","get_params":{"status":"success"},"session_transaction":"TXN_4_1774852338_8949"}
+[2026-03-30 08:33:27] [TEST] Success Callback Processing | Data: {"user_id":4,"payment_intent_id":"pi_9je1uEWdLkxaJfauLC3rc3Ja","payment_status":"awaiting_payment_method","amount":1,"transaction_id":27}
+[2026-03-30 08:33:29] [TEST] Payment Status Check | Data: {"user_id":4,"transaction_id":27,"payment_intent_id":"pi_9je1uEWdLkxaJfauLC3rc3Ja","payment_status":"awaiting_payment_method"}
+[2026-03-30 08:54:04] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_uDVXPVdWXaXmxwM282cBjvvZ","amount":1,"metadata":{"user_id":"4","transaction_reference":"TXN_4_1774853640_8702","transaction_id":"28","customer_email":"ps1@gmail.com","customer_name":"ps 1","payment_method":"qrph"}}
+[2026-03-30 08:54:09] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_3889396e47bfc38052b2fcda","payment_intent_id":"pi_uDVXPVdWXaXmxwM282cBjvvZ"}
+[2026-03-30 08:54:17] [TEST] Payment Callback Received | Data: {"user_id":4,"status":"cancel","get_params":{"status":"cancel"},"session_transaction":"TXN_4_1774853640_8702"}
+[2026-03-30 08:54:27] [TEST] Payment Status Check | Data: {"user_id":4,"transaction_id":28,"payment_intent_id":"pi_uDVXPVdWXaXmxwM282cBjvvZ","payment_status":"awaiting_payment_method"}
+[2026-03-30 08:55:08] [TEST] Payment Intent Created | Data: {"payment_intent_id":"pi_dcaXhauy5fUWbJMPK1JuTaTf","amount":1,"metadata":{"user_id":"4","transaction_reference":"TXN_4_1774853705_6686","transaction_id":"29","customer_email":"ps1@gmail.com","customer_name":"ps 1","payment_method":"qrph"}}
+[2026-03-30 08:55:11] [TEST] Checkout Session Created | Data: {"checkout_session_id":"cs_ac195f6db1e7857975c24a89","payment_intent_id":"pi_dcaXhauy5fUWbJMPK1JuTaTf"}
