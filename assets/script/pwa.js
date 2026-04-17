@@ -7,12 +7,14 @@
 
     let installPromptEvent = null;
     let hasRefreshedForNewWorker = false;
+    const SERVICE_WORKER_URL = '/api/service-worker.js';
+    const SW_UPDATE_INTERVAL_MS = 2 * 60 * 1000;
 
     // Register Service Worker
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/api/service-worker.js', {
+                navigator.serviceWorker.register(SERVICE_WORKER_URL, {
                     // Ensure the browser does not serve stale SW script from HTTP cache.
                     updateViaCache: 'none'
                 })
@@ -29,7 +31,7 @@
                             registration.update().catch(function (error) {
                                 console.error('Periodic Service Worker update check failed:', error);
                             });
-                        }, 5 * 60 * 1000);
+                        }, SW_UPDATE_INTERVAL_MS);
                     })
                     .catch(function (error) {
                         console.error('E-JEEP Service Worker registration failed:', error);
@@ -80,6 +82,12 @@
                     console.error('Visibility Service Worker update check failed:', error);
                 });
             }
+        });
+
+        window.addEventListener('online', function () {
+            registration.update().catch(function (error) {
+                console.error('Online Service Worker update check failed:', error);
+            });
         });
     }
 

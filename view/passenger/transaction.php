@@ -56,7 +56,7 @@ try {
         WHERE (user_id = ? OR card_id = ?)
           AND transaction_type <> 'refund'
         ORDER BY created_at DESC 
-        LIMIT 50");
+        LIMIT 10");
         $stmt->execute([$_SESSION['user_id'], $cardId]);
         $walletTransactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } else {
@@ -73,7 +73,7 @@ try {
         WHERE user_id = ?
           AND transaction_type <> 'refund'
         ORDER BY created_at DESC 
-        LIMIT 50");
+        LIMIT 10");
         $stmt->execute([$_SESSION['user_id']]);
         $walletTransactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -127,7 +127,7 @@ try {
             WHERE tt.card_id = ?
               AND tt.type <> 'refund'
             ORDER BY tt.created_at DESC
-            LIMIT 50");
+            LIMIT 10");
         $tripStmt->execute([(string)$cardNumber]);
         $rideTransactions = $tripStmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -153,7 +153,8 @@ try {
     usort($transactions, static function ($a, $b): int {
         return strcmp((string)($b['created_at'] ?? ''), (string)($a['created_at'] ?? ''));
     });
-    $transactions = array_slice($transactions, 0, 100);
+    // Show latest 5 entries only (newest first)
+    $transactions = array_slice($transactions, 0, 5);
 
 } catch (PDOException $e) {
     $transactions = [];

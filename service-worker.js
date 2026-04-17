@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ejeep-pwa-v6';
+const CACHE_NAME = 'ejeep-pwa-v7';
 // Only pre-cache static assets — never cache PHP/HTML entry points (session-dependent).
 const STATIC_ASSETS = [
     '/api/assets/style/index.css',
@@ -64,7 +64,7 @@ self.addEventListener('fetch', function (event) {
     // logged-out home page after login; the session cookie only applied on the next request.
     if (event.request.mode === 'navigate') {
         event.respondWith(
-            fetch(event.request).catch(function () {
+            fetch(new Request(event.request, { cache: 'no-store' })).catch(function () {
                 return caches.match('/api/index.php');
             })
         );
@@ -75,7 +75,7 @@ self.addEventListener('fetch', function (event) {
     // This prevents broken UI when we've updated CSS/JS but the SW still serves an older cached copy.
     if (shouldCacheAsset(url)) {
         event.respondWith(
-            fetch(event.request)
+            fetch(new Request(event.request, { cache: 'no-store' }))
                 .then(function (networkResponse) {
                     if (networkResponse && networkResponse.status === 200) {
                         var responseToCache = networkResponse.clone();

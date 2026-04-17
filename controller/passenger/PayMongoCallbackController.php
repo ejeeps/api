@@ -311,6 +311,20 @@ function handleCancelCallback($userId, $payMongoService) {
                         header("Location: ../../index.php?page=buypoints&pending=" . $pendingMessage);
                         exit;
                     }
+                } else {
+                    // If provider status cannot be fetched yet (network lag / eventual consistency),
+                    // keep the transaction in processing instead of prematurely cancelling.
+                    $stmt = $pdo->prepare("
+                        UPDATE transactions
+                        SET status = 'processing', updated_at = NOW()
+                        WHERE id = ? AND user_id = ?
+                    ");
+                    $stmt->execute([(int)$tx['id'], $userId]);
+                    unset($_SESSION['pending_transaction']);
+
+                    $pendingMessage = urlencode("Payment status is still being confirmed. Please check again in a few minutes.");
+                    header("Location: ../../index.php?page=buypoints&pending=" . $pendingMessage);
+                    exit;
                 }
             }
 
