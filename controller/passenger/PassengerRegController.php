@@ -24,31 +24,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        $email = strtolower(trim((string) $_POST['email']));
+        $password = (string) $_POST['password'];
+        $confirmPassword = (string) $_POST['confirm_password'];
+        $firstName = trim((string) $_POST['first_name']);
+        $lastName = trim((string) $_POST['last_name']);
+        $middleName = !empty($_POST['middle_name']) ? trim((string) $_POST['middle_name']) : null;
+        $idNumber = trim((string) $_POST['id_number']);
+
         // Validate password match
-        if ($_POST['password'] !== $_POST['confirm_password']) {
+        if ($password !== $confirmPassword) {
             throw new Exception("Passwords do not match.");
         }
 
         // Validate password length
-        if (strlen($_POST['password']) < 8) {
+        if (strlen($password) < 8) {
             throw new Exception("Password must be at least 8 characters long.");
         }
 
         // Validate email format
-        if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new Exception("Invalid email format.");
         }
 
         // Check if email already exists
         $checkEmail = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-        $checkEmail->execute([$_POST['email']]);
+        $checkEmail->execute([$email]);
         if ($checkEmail->rowCount() > 0) {
             throw new Exception("Email already registered. Please use a different email or login.");
         }
 
         // Check if ID number already exists
         $checkIdNumber = $pdo->prepare("SELECT id FROM passengers WHERE id_number = ?");
-        $checkIdNumber->execute([$_POST['id_number']]);
+        $checkIdNumber->execute([$idNumber]);
         if ($checkIdNumber->rowCount() > 0) {
             throw new Exception("ID number already registered. Please use a different ID number or contact support.");
         }
@@ -95,12 +103,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Hash password
-        $hashedPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         // Prepare data
         $dateOfBirth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
         $gender = !empty($_POST['gender']) ? $_POST['gender'] : null;
-        $middleName = !empty($_POST['middle_name']) ? $_POST['middle_name'] : null;
         $addressLine1 = !empty($_POST['address_line1']) ? $_POST['address_line1'] : null;
         $addressLine2 = !empty($_POST['address_line2']) ? $_POST['address_line2'] : null;
         $city = !empty($_POST['city']) ? $_POST['city'] : null;
@@ -123,10 +130,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $userStmt = $pdo->prepare($userSql);
             $userStmt->execute([
-                $_POST['email'],
+                $email,
                 $hashedPassword,
-                $_POST['first_name'],
-                $_POST['last_name'],
+                $firstName,
+                $lastName,
                 $middleName,
                 $fullPhoneNumber,
                 $dateOfBirth,
@@ -145,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $passengerStmt->execute([
                 $userId,
                 $idType,
-                $_POST['id_number'],
+                $idNumber,
                 $idImageFront,
                 $idImageBack,
                 $addressLine1,
@@ -158,8 +165,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Commit transaction
             $pdo->commit();
 
-            // Redirect to success page
-            header("Location: ../../index.php?register=passenger&success=1");
+            // Redirect to login page after successful registration
+            header("Location: ../../index.php?login=1&success=" . urlencode("Registration successful. You can now sign in."));
             exit();
 
         } catch (Exception $e) {

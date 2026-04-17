@@ -7,9 +7,9 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../config/connection.php';
 
-$email = isset($_GET['email']) ? trim((string) $_GET['email']) : '';
+$email = isset($_GET['email']) ? strtolower(trim((string) $_GET['email'])) : '';
 if ($email === '' && isset($_POST['email'])) {
-    $email = trim((string) $_POST['email']);
+    $email = strtolower(trim((string) $_POST['email']));
 }
 
 if ($email === '') {

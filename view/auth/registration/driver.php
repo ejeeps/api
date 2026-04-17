@@ -45,6 +45,14 @@
             cursor: not-allowed;
             pointer-events: none;
         }
+        .btn.btn-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            white-space: nowrap;
+        }
         .btn.btn-submit .spinner {
             width: 1em;
             height: 1em;
@@ -52,9 +60,8 @@
             border-top-color: #ffffff;
             border-radius: 0;
             display: inline-block;
-            margin-right: 8px;
-            vertical-align: -2px;
             animation: btn-spin 0.6s linear infinite;
+            flex: 0 0 auto;
         }
         @keyframes btn-spin {
             to { transform: rotate(360deg); }
@@ -471,8 +478,7 @@
             btn.classList.add('loading');
             btn.setAttribute('aria-busy', 'true');
             btn.disabled = true;
-            var w = btn.offsetWidth;
-            btn.style.width = w + 'px';
+            btn.style.minWidth = btn.offsetWidth + 'px';
             btn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Processing...</span>';
         });
     });

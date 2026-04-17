@@ -24,19 +24,22 @@ try {
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
+        $email = strtolower(trim((string) ($_POST['email'] ?? '')));
+        $password = (string) ($_POST['password'] ?? '');
+
         // Validate required fields
-        if (empty($_POST['email']) || empty($_POST['password'])) {
+        if ($email === '' || $password === '') {
             throw new Exception("Please enter both email and password.");
         }
 
         // Validate email format
-        if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new Exception("Invalid email format.");
         }
 
         // Get user from database
         $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->execute([$_POST['email']]);
+        $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // Check if user exists
@@ -45,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Verify password
-        if (!password_verify($_POST['password'], $user['password'])) {
+        if (!password_verify($password, $user['password'])) {
             throw new Exception("Invalid email or password.");
         }
 
