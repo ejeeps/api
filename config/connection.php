@@ -18,13 +18,30 @@ if ($isLocal) {
     $dbhost = 'localhost';
     $dbuser = 'root';
     $dbpass = '';
-    $dbname = 'ejeepdb';
+    $dbname = 'ejeep_db';
 } else {
     // SERVER (Hostinger)
     $dbhost = 'localhost';
     $dbuser = 'u951669574_xmas';
     $dbpass = '?0Gm|uH|n6';
     $dbname = 'u951669574_xmas';
+}
+
+/** Idempotent: add passengers.id_type if missing (matches migration 048). */
+function ejeep_ensure_passengers_id_type(PDO $pdo): void
+{
+    try {
+        $colCheck = $pdo->prepare(
+            'SELECT 1 FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1'
+        );
+        $colCheck->execute(['passengers', 'id_type']);
+        if (!$colCheck->fetchColumn()) {
+            $pdo->exec('ALTER TABLE passengers ADD COLUMN id_type VARCHAR(50) DEFAULT NULL AFTER user_id');
+        }
+    } catch (Throwable $e) {
+        // No passengers table, no ALTER privilege, or non-standard setup — leave as-is.
+    }
 }
 
 class Database {
@@ -44,6 +61,7 @@ class Database {
                     PDO::ATTR_EMULATE_PREPARES => false,
                 ]
             );
+            ejeep_ensure_passengers_id_type($this->connection);
         } catch (PDOException $e) {
             die('Database connection failed: ' . $e->getMessage());
         }
@@ -66,6 +84,7 @@ try {
             PDO::ATTR_EMULATE_PREPARES => false,
         ]
     );
+    ejeep_ensure_passengers_id_type($pdo);
 } catch (PDOException $e) {
     die('Database connection failed: ' . $e->getMessage());
 }

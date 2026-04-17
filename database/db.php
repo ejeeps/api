@@ -5,7 +5,7 @@
 $dbhost = 'localhost';
 $dbuser = 'root';
 $dbpass = '';
-$dbname = 'ejeepdb';
+$dbname = 'ejeep_db';
 
 try {
     $pdo = new PDO(
