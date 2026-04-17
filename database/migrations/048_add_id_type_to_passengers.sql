@@ -1,5 +1,5 @@
 -- Add id_type when passengers already has id_number / images from an older 010 migration
--- that did not include id_type. Skip if id_type already exists.
+-- that did not include id_type. Safe when id_type already exists (e.g. from 003 or 010).
 
 ALTER TABLE passengers
-ADD COLUMN id_type VARCHAR(50) DEFAULT NULL AFTER user_id;
+ADD COLUMN IF NOT EXISTS id_type VARCHAR(50) DEFAULT NULL AFTER user_id;
